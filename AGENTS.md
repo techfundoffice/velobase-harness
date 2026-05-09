@@ -5,6 +5,7 @@
 > **定位**：本文件只包含 AI 写代码时必须遵守的**约束规则**。  
 > 架构设计、快速启动、分阶段 Checklist → 见 `[FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md)`  
 > API 三区制与编码约定 → 见 `[docs/conventions/api.md](./docs/conventions/api.md)`  
+> 开发完成后的检查流程 → 见 `[docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md)`  
 > 第三方集成详细文档 → 见 `[docs/integrations/](./docs/integrations/)`  
 > 框架内置功能详细文档 → 见 `[docs/features/](./docs/features/)`
 
@@ -74,7 +75,7 @@ src/
 2. 在 `prisma/schema.prisma` 添加数据模型
 3. 创建 `src/modules/<name>/server/service.ts`（业务逻辑）+ `router.ts`（瘦 Router）
 4. 在 `src/server/api/root.ts` 注册新 router
-5. 运行 `npx prisma db push`
+5. 本地可运行 `npx prisma db push` 快速同步；提交前必须创建 `prisma/migrations/` migration 文件
 6. 前端通过 `api.<name>.<procedure>.useQuery/useMutation()` 调用
 
 **可插拔模块（按需启停）：**
@@ -94,6 +95,7 @@ src/
 - 数据库查询必须分页（cursor-based pagination，默认 limit=20）
 - 使用 `createLogger("module-name")` 创建结构化日志
 - 环境变量通过 `src/env.js`（T3 Env）统一管理，不要直接读 `process.env`
+- 开发完成后必须按 `docs/ai-completion-checklist.md` 执行自检，并在最终回复中说明已运行的检查
 
 ### 认证
 
@@ -118,7 +120,7 @@ src/
 
 - 使用 `db` from `@/server/db`，**禁止**自己创建 PrismaClient
 - 使用 `redis` from `@/server/redis`，**禁止**自己创建 Redis 连接
-- 修改 schema 后运行 `npx prisma db push`
+- 修改 schema 后本地可运行 `npx prisma db push`，但提交 / 部署前必须生成并提交 `prisma/migrations/` migration 文件
 
 ### 支付
 

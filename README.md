@@ -32,6 +32,7 @@ See [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) for detailed setup and production
 | --- | --- |
 | [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) | Architecture, quick start, module system, code boundaries, production checklist |
 | [AGENTS.md](./AGENTS.md) | AI coding rules and constraints |
+| [docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md) | AI post-development checklist before commit or deployment |
 | [docs/conventions/api.md](./docs/conventions/api.md) | API three-zone system and coding conventions |
 | [docs/integration-guide.md](./docs/integration-guide.md) | Third-party integration roadmap and 6-step process |
 | [docs/integrations/](./docs/integrations/) | Detailed docs per integration (auth, email, database, payment, storage, queue, security) |
@@ -87,7 +88,7 @@ mkdir -p src/modules/my-feature/server
 # 2. Add service + router
 # 3. Register router in src/server/api/root.ts
 # 4. Add Prisma models if needed
-npx prisma db push
+npx prisma migrate dev --name add_my_feature
 ```
 
 To create a **pluggable module** (optional integration that can be enabled/disabled):

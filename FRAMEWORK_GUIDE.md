@@ -4,6 +4,7 @@
 
 > **定位**：本文件面向开发者，说明"框架是什么、怎么用、从模板到产品的路径"。  
 > AI 编码规则（禁止/必须） → 见 `[AGENTS.md](./AGENTS.md)`  
+> AI 开发完成检查流程 → 见 `[docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md)`  
 > API 三区制与编码约定 → 见 `[docs/conventions/api.md](./docs/conventions/api.md)`  
 > 第三方集成详细文档 → 见 `[docs/integrations/](./docs/integrations/)`  
 > 集成梳理流程和进度 → 见 `[docs/integration-guide.md](./docs/integration-guide.md)`  
