@@ -19,6 +19,24 @@ else
   fi
 fi
 
+# --- Database seed ---
+# Set SKIP_SEED=true to skip (e.g. replicas where another pod handles seed data)
+if [ "$SKIP_SEED" = "true" ]; then
+  echo "[entrypoint] SKIP_SEED=true, skipping database seed"
+else
+  echo "[entrypoint] Running database seed..."
+  if npx tsx prisma/seed.ts; then
+    echo "[entrypoint] Seed complete"
+  else
+    if [ "$SEED_OPTIONAL" = "true" ]; then
+      echo "[entrypoint] WARNING: Seed failed but SEED_OPTIONAL=true, continuing..."
+    else
+      echo "[entrypoint] ERROR: Seed failed, exiting"
+      exit 1
+    fi
+  fi
+fi
+
 # --- Resource readiness summary ---
 echo "[entrypoint] SERVICE_MODE=${SERVICE_MODE:-all}"
 [ -n "$DATABASE_URL" ]    && echo "[entrypoint] DATABASE_URL=set"    || echo "[entrypoint] DATABASE_URL=NOT SET"
