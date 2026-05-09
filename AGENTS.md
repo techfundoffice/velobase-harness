@@ -6,6 +6,7 @@
 > 架构设计、快速启动、分阶段 Checklist → 见 `[FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md)`  
 > API 三区制与编码约定 → 见 `[docs/conventions/api.md](./docs/conventions/api.md)`  
 > 开发完成后的检查流程 → 见 `[docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md)`  
+> 线上日志到本地复现的 Debug 流程 → 见 `[docs/debugging/online-local-debug.md](./docs/debugging/online-local-debug.md)`  
 > 第三方集成详细文档 → 见 `[docs/integrations/](./docs/integrations/)`  
 > 框架内置功能详细文档 → 见 `[docs/features/](./docs/features/)`
 
@@ -53,17 +54,17 @@ src/
 └── analytics/        # 事件追踪
 ```
 
-## 三服务架构
+## 服务架构
 
-本框架支持三类运行时进程，通过 `SERVICE_MODE` 环境变量灵活组合：
+默认单服务模式：容器只运行 Next.js Web 进程（`:3000`），Hono API 通过 `/api/hono/*` Route Handler 合并进 Web，无需独立进程。Worker 默认关闭。
 
-- `SERVICE_MODE=all`（默认）：Web + API + Worker 在同一进程
-- `SERVICE_MODE=web`：仅 Next.js
-- `SERVICE_MODE=api`：仅 Hono API
-- `SERVICE_MODE=worker`：仅 BullMQ Worker
-- 支持逗号组合：`SERVICE_MODE=web,api`
+- `SERVICE_MODE=web`（默认）：Next.js + Hono API（`/api/hono/*`）
+- `SERVICE_MODE=worker`：独立 BullMQ Worker 进程
+- `SERVICE_MODE=api`：独立 Hono API（`:3002`，多服务拆分用）
+- `SERVICE_MODE=all`（legacy）：Web + API + Worker 同一进程（本地开发 / 向后兼容）
 
-统一入口：`src/server/standalone.ts`
+Hono API 适配层：`src/app/api/hono/[[...route]]/route.ts`
+Legacy 统一入口：`src/server/standalone.ts`
 
 ## 添加新功能
 
@@ -96,6 +97,7 @@ src/
 - 使用 `createLogger("module-name")` 创建结构化日志
 - 环境变量通过 `src/env.js`（T3 Env）统一管理，不要直接读 `process.env`
 - 开发完成后必须按 `docs/ai-completion-checklist.md` 执行自检，并在最终回复中说明已运行的检查
+- 排查线上问题时，先让用户从 Velobase Cloud 控制台 `logs` 页面复制最新 `runtime logs` / `deploy fail logs`，再按 `docs/debugging/online-local-debug.md` 在本地 Docker 数据库环境复现、修复、验证后再 push
 
 ### 认证
 
@@ -140,11 +142,13 @@ src/
 
 - 统一使用 `@/server/storage` 导出的函数，**禁止**直接调用 S3 SDK
 
-### 独立 API 服务（Hono）
+### Hono API 服务
 
 - API 路由写在 `src/api/routes/` 目录下，使用 Hono 路由语法
 - 在 `src/api/app.ts` 中通过 `app.route()` 注册新路由
-- 适合放到 API 服务的：Webhook 接收、对外集成接口、不依赖 Next.js 的 HTTP 端点
+- 单服务模式下，Hono API 通过 `/api/hono/*` 合并进 Next.js（适配层：`src/app/api/hono/[[...route]]/route.ts`）
+- 多服务拆分模式下，Hono 仍以独立 `:3002` 进程运行（`SERVICE_MODE=api`）
+- 适合放到 Hono API 的：Webhook 接收、对外集成接口、不依赖 Next.js 的 HTTP 端点
 - 仍需 Next.js 能力的（SSR、tRPC、NextAuth 回调）保留在 `src/app/api/`
 - **禁止**在 API 服务中导入 Next.js 特有模块（`next/server`、`next/headers` 等）
 

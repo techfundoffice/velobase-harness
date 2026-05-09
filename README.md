@@ -33,6 +33,7 @@ See [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) for detailed setup and production
 | [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) | Architecture, quick start, module system, code boundaries, production checklist |
 | [AGENTS.md](./AGENTS.md) | AI coding rules and constraints |
 | [docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md) | AI post-development checklist before commit or deployment |
+| [docs/debugging/online-local-debug.md](./docs/debugging/online-local-debug.md) | Online logs → IDE analysis → local Docker debugging workflow |
 | [docs/conventions/api.md](./docs/conventions/api.md) | API three-zone system and coding conventions |
 | [docs/integration-guide.md](./docs/integration-guide.md) | Third-party integration roadmap and 6-step process |
 | [docs/integrations/](./docs/integrations/) | Detailed docs per integration (auth, email, database, payment, storage, queue, security) |
