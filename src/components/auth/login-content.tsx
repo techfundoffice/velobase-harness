@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import Script from "next/script";
-import { Mail, ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, Eye, EyeOff, KeyRound } from "lucide-react";
 import { VibeLogo } from "@/components/ui/vibe-logo";
 import { cn } from "@/lib/utils";
 import {
@@ -126,6 +126,21 @@ export function LoginContent({ TitleComponent, DescriptionComponent }: LoginCont
             <Mail className="w-[18px] h-[18px]" />
             <span>{t("continueWithEmail")}</span>
           </button>
+
+          {login.isTestAccountLoginEnabled && (
+            <button
+              onClick={login.handleTestAccountLogin}
+              disabled={login.isLoading}
+              className="w-full h-12 px-4 flex items-center justify-center gap-3 rounded-xl bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/40 hover:bg-orange-100 dark:hover:bg-orange-950/40 transition-all duration-200 text-[15px] font-medium text-orange-700 dark:text-orange-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {login.isLoading ? (
+                <Loader2 className="w-[18px] h-[18px] animate-spin" />
+              ) : (
+                <KeyRound className="w-[18px] h-[18px]" />
+              )}
+              <span>{login.isLoading ? t("signingIn") : t("loginTestAccount")}</span>
+            </button>
+          )}
         </div>
 
         <p className="text-center text-[11px] text-muted-foreground mt-8 px-6">
