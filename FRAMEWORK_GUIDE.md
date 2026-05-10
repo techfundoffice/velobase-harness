@@ -244,7 +244,16 @@ pnpm worker:dev             # Worker 服务 http://localhost:3001
 | `src/server/product/`         | 重新定义产品 SKU、定价结构           |
 | `src/app/(feature)/`          | 核心功能前端页面                  |
 | `src/app/pricing/`            | 基于新产品定价重写                 |
-| `src/app/page.tsx`            | 首页完全替换                    |
+| `src/app/page.tsx`            | Landing page 与默认入口按产品重写   |
+
+### Landing page 与默认入口
+
+基于框架开发新产品时，AI 应根据用户的产品定位、目标用户、核心功能、定价和转化目标，主动改造 `src/app/page.tsx` 与 `messages/*` 中的 `landing` 文案，而不是保留模板默认首页。
+
+- `/` 默认作为公开 landing page，登录用户也应能直接访问；不要在 `src/app/page.tsx` 中默认把已登录用户重定向到 `/dashboard`。
+- 如果产品需要“登录后默认进入工作台 / 核心功能页”，应把入口放在 Header CTA、登录回调 `callbackUrl` 或具体业务流程里，而不是让 landing page 自身消失。
+- 如果产品不需要框架 dashboard，可删除或降级 `/dashboard`，并在导航中指向新的核心页面，例如 `/app`、`/workspace` 或 `src/app/(feature)/` 下的业务路由。
+- Landing page 文案必须走 i18n：业务文案放在 `messages/*.json` 的 `landing` 或产品自定义 namespace 中。
 
 
 ### Prisma Schema 边界
@@ -360,7 +369,7 @@ CREATE INDEX IF NOT EXISTS "idx_my_table_new_column" ON "my_table" ("new_column"
 
 - 在 `src/modules/<name>/` 下创建功能模块（参考 `modules/example/`）
 - 异步功能在 `src/workers/processors/` 下新建 Processor（[队列文档](./docs/integrations/queue/)）
-- 构建前端 UI 页面，替换首页
+- 构建核心前端 UI 页面，并按产品需求重写 landing page 与登录后的主要入口
 
 ### 阶段五：支付集成
 

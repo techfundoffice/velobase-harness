@@ -99,6 +99,12 @@ Legacy 统一入口：`src/server/standalone.ts`
 - 开发完成后必须按 `docs/ai-completion-checklist.md` 执行自检，并在最终回复中说明已运行的检查
 - 排查线上问题时，先让用户从 Velobase Cloud 控制台 `logs` 页面复制最新 `runtime logs` / `deploy fail logs`，再按 `docs/debugging/online-local-debug.md` 在本地 Docker 数据库环境复现、修复、验证后再 push
 
+### 产品化页面
+
+- 基于框架开发新产品时，必须根据用户的产品需求改造 `src/app/page.tsx` landing page 和对应 i18n 文案，不能保留模板默认首页作为最终交付。
+- `/` 是公开 landing page，登录用户也应可访问；不要在首页中默认把已登录用户重定向到 `/dashboard`。
+- 登录后的主入口应通过 Header CTA、登录 `callbackUrl` 或业务导航指向新的核心功能页；如果不使用框架 dashboard，应更新导航或移除相关入口。
+
 ### 认证
 
 > 详细架构和 Provider 配置 → `[docs/integrations/auth/](./docs/integrations/auth/)`
