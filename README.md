@@ -1,117 +1,161 @@
-# AI SaaS Framework
+# Velobase Harness
 
-A production-ready, full-stack AI SaaS framework built with the T3 Stack. Designed for solo developers who want to ship AI products fast without rebuilding common infrastructure.
+**Read this in other languages:** [Simplified Chinese](./README.zh-CN.md)
 
-## Tech Stack
+An AI SaaS application harness for going from idea to production: T3 Stack foundation, billing, payments, background jobs, growth integrations, and a Cloud deployment path built for Velobase Launchpad.
 
-- **Framework**: Next.js 15 (App Router) + React 19 + TypeScript
-- **API**: tRPC v11 (end-to-end type safety)
-- **Database**: PostgreSQL + Prisma 6 ORM + Redis
-- **Auth**: NextAuth v5 (Google, GitHub, Email Magic Link)
-- **Styling**: Tailwind CSS v4 + Radix UI (shadcn/ui)
-- **Background Jobs**: BullMQ + Redis
-- **AI**: Vercel AI SDK (OpenAI, Anthropic, Google Gemini, xAI, OpenRouter)
-- **Payments**: Stripe + NowPayments (crypto)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org)
+[![pnpm](https://img.shields.io/badge/pnpm-10-f69220)](https://pnpm.io)
+[![License](https://img.shields.io/badge/license-private-lightgrey)](#license)
+
+## Why Velobase Harness
+
+Velobase Harness is not a blank starter. It is a product-ready base for AI SaaS teams that want the common infrastructure to be solved before the first product-specific feature is written.
+
+- **Modern T3 foundation:** Next.js 15, React 19, TypeScript, tRPC, Prisma, NextAuth, Tailwind CSS, and pnpm.
+- **Three-service runtime:** run Web, Hono API, and BullMQ Worker together for small deployments or split them with `SERVICE_MODE` for production.
+- **Pluggable modules:** Google Ads, PostHog, Lark, Telegram, NowPayments, Affiliate, Touch, and AI Chat can be enabled by environment variables.
+- **Billing and credits:** order, subscription, credit ledger, fulfillment, cashflow, promo, and `@velobaseai/billing` integration are already wired.
+- **Payment-ready:** Stripe and NowPayments flows include webhooks, renewal handling, refunds, disputes, and compensation jobs.
+- **AI Chat module:** reusable chat, model config, tool calling, and business-tool extension points.
+- **Worker queues:** BullMQ processors handle payment reconciliation, order compensation, touch delivery, subscription credits, support sync, and ad uploads.
+- **Growth operations:** PostHog analytics, Google Ads offline conversion uploads, Affiliate/Referral, lifecycle Touch, Daily Bonus retention, Promo Code, SEO, and Launchpad conversion paths.
+- **Production docs:** Docker, Kubernetes, GitOps, Cloud Deploy API, online-to-local debugging, and AI completion checklists.
 
 ## Quick Start
 
+### Option A: Self-hosted local development
+
 ```bash
-pnpm install                # Install dependencies
-cp .env.example .env        # Copy and configure environment variables
-docker compose up -d        # Start PostgreSQL + Redis
-pnpm db:migrate             # Run database migration
-pnpm dev                    # Web server → http://localhost:3000
-pnpm worker:dev             # Worker server → http://localhost:3001
+pnpm install
+cp .env.example .env
+pnpm docker:db:up
+pnpm db:push
+pnpm db:seed
+pnpm dev:all
 ```
 
-See [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) for detailed setup and production deployment checklist.
+`pnpm dev:all` starts the combined local runtime: Web on `:3000`, API on `:3002`, and Worker on `:3001`.
+
+You can also split processes across terminals:
+
+```bash
+pnpm dev
+pnpm api:dev
+pnpm worker:dev
+```
+
+### Option B: Deploy with Velobase Cloud
+
+Velobase Cloud uses this repository as the default application template for Launchpad-created projects.
+
+1. Create a project in Velobase Cloud or start from Launchpad.
+2. Cloud creates a GitHub repository from the `velobase-harness` template and provisions PostgreSQL, Redis, R2, Kubernetes resources, domain, and deploy API credentials.
+3. Add `VELOBASE_API_KEY` to GitHub Actions secrets.
+4. Push to `main`.
+5. GitHub Actions calls `GET https://api.velobase.cloud/api/v1/deploy/config`, builds and pushes the Docker image, then calls `POST https://api.velobase.cloud/api/v1/deploy`.
+6. Visit `https://{subdomain}.velobase.app` after deployment succeeds.
+
+Application requirements for Cloud deployment:
+
+- A root `Dockerfile`
+- HTTP listening on port `3000`
+- Environment variables read from runtime env
+- Prisma migration through `prisma migrate deploy`
+- A `GET /healthz` readiness endpoint
+
+## Architecture
+
+```mermaid
+flowchart TB
+  browser[Browser] --> nextApp[Next.js Web]
+  nextApp --> trpc[tRPC Routers]
+  external[External Integrations] --> hono[Hono API]
+  trpc --> services[Domain Services]
+  hono --> services
+  services --> db[(PostgreSQL)]
+  services --> redis[(Redis)]
+  services --> events[Event Bus]
+  events --> modules[Pluggable Modules]
+  worker[BullMQ Worker] --> redis
+  worker --> services
+  modules --> growth[Growth Operations]
+```
+
+The same codebase can run as one process or as separate services:
+
+| Runtime | Entry | Port | Command |
+| --- | --- | --- | --- |
+| Web | Next.js App Router | `3000` | `pnpm dev` / `pnpm start` |
+| API | Hono HTTP service | `3002` | `pnpm api:dev` / `pnpm api:prod` |
+| Worker | BullMQ processors | `3001` | `pnpm worker:dev` / `pnpm worker:prod` |
+| Combined | `src/server/standalone.ts` | `3000`, `3002`, `3001` | `pnpm dev:all` / `pnpm start:all` |
+
+`SERVICE_MODE` supports `all`, `web`, `api`, `worker`, and combinations such as `web,api`.
+
+## From Template to Cloud
+
+```mermaid
+flowchart LR
+  idea[Product Idea] --> launchpad[Velobase Launchpad]
+  launchpad --> repo[GitHub Repo from Harness]
+  launchpad --> cloud[Velobase Cloud Resources]
+  repo --> ide[IDE Agent Development]
+  ide --> push[Git Push]
+  push --> actions[GitHub Actions]
+  actions --> deployApi[Velobase Deploy API]
+  deployApi --> liveApp[Live SaaS App]
+```
+
+Launchpad generates an IDE prompt that tells the AI agent how to use the Harness docs, where to implement product features, how to keep framework boundaries intact, and how to push changes back for Cloud deployment.
 
 ## Documentation
 
-| Document | Description |
-| --- | --- |
-| [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) | Architecture, quick start, module system, code boundaries, production checklist |
-| [AGENTS.md](./AGENTS.md) | AI coding rules and constraints |
-| [docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md) | AI post-development checklist before commit or deployment |
-| [docs/debugging/online-local-debug.md](./docs/debugging/online-local-debug.md) | Online logs → IDE analysis → local Docker debugging workflow |
-| [docs/conventions/api.md](./docs/conventions/api.md) | API three-zone system and coding conventions |
-| [docs/integration-guide.md](./docs/integration-guide.md) | Third-party integration roadmap and 6-step process |
-| [docs/integrations/](./docs/integrations/) | Detailed docs per integration (auth, email, database, payment, storage, queue, security) |
-| [docs/features/](./docs/features/) | Built-in framework features (daily-bonus, anti-abuse, cdn-adapters) |
+| Area | English | Chinese |
+| --- | --- | --- |
+| Documentation hub | [docs/en/README.md](./docs/en/README.md) | [docs/zh-CN/README.md](./docs/zh-CN/README.md) |
+| Framework guide | [docs/en/framework-guide.md](./docs/en/framework-guide.md) | [docs/zh-CN/framework-guide.md](./docs/zh-CN/framework-guide.md) |
+| Integration guide | [docs/en/integration-guide.md](./docs/en/integration-guide.md) | [docs/zh-CN/integration-guide.md](./docs/zh-CN/integration-guide.md) |
+| AI completion checklist | [docs/en/ai-completion-checklist.md](./docs/en/ai-completion-checklist.md) | [docs/zh-CN/ai-completion-checklist.md](./docs/zh-CN/ai-completion-checklist.md) |
+| Web/API/Worker split | [docs/en/architecture/web-api-service-split.md](./docs/en/architecture/web-api-service-split.md) | [docs/zh-CN/architecture/web-api-service-split.md](./docs/zh-CN/architecture/web-api-service-split.md) |
+| AI agent rules | [AGENTS.md](./AGENTS.md) | [AGENTS.md](./AGENTS.md) |
+
+Legacy Chinese-first docs remain available during migration, including [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md), [docs/integration-guide.md](./docs/integration-guide.md), and [docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md).
+
+## Star History
+
+Replace `velobase/velobase-harness` if your public repository lives under a different owner/name.
+
+[![Star History Chart](https://api.star-history.com/svg?repos=velobase/velobase-harness&type=Date)](https://star-history.com/#velobase/velobase-harness&Date)
 
 ## Project Structure
 
-```
+```text
 src/
 ├── app/              # Next.js pages and API routes
-├── config/           # Module configuration (modules.ts)
-├── modules/          # Business modules (see modules/example/ for template)
-├── server/           # Server-side code
-│   ├── api/          # tRPC routers (root.ts — core + conditional mounting)
-│   ├── auth/         # Authentication
-│   ├── billing/      # Credits and billing (Velobase SDK)
-│   ├── order/        # Orders and payment processing
-│   ├── email/        # Unified email service (Resend / SendGrid)
-│   ├── events/       # Event bus (bus.ts — module decoupling)
-│   ├── modules/      # Pluggable modules (registry + implementations)
-│   ├── features/     # Built-in features (anti-abuse, cdn-adapters, daily-bonus)
-│   └── ...
-├── workers/          # BullMQ workers, queues, and processors
+├── api/              # Standalone Hono API entry
+├── config/           # Module configuration
+├── modules/          # Product modules and templates
+├── server/           # Auth, billing, order, events, modules, features
+├── workers/          # BullMQ queues and processors
 ├── components/       # Shared UI components
-└── analytics/        # PostHog event tracking
+└── analytics/        # PostHog and ads event tracking
 ```
 
-## Pluggable Module System
-
-Third-party integrations and non-core features are implemented as **pluggable modules**. Each module is auto-enabled when its required environment variables are configured, and can be force-disabled via `DISABLE_*` flags.
-
-| Module | Auto-enabled when | Force-disable |
-| --- | --- | --- |
-| Google Ads | `GOOGLE_ADS_CUSTOMER_ID` + `GOOGLE_ADS_DEVELOPER_TOKEN` | `DISABLE_GOOGLE_ADS=true` |
-| PostHog | `POSTHOG_API_KEY` | `DISABLE_POSTHOG=true` |
-| Lark/Feishu | `LARK_APP_ID` + `LARK_APP_SECRET` | `DISABLE_LARK=true` |
-| Telegram | `TELEGRAM_BOT_TOKEN` | `DISABLE_TELEGRAM=true` |
-| NowPayments | `NOWPAYMENTS_API_KEY` | `DISABLE_NOWPAYMENTS=true` |
-| Affiliate | Default on | `DISABLE_AFFILIATE=true` |
-| Touch | Default on | `DISABLE_TOUCH=true` |
-| AI Chat | Any LLM API key | `DISABLE_AI_CHAT=true` |
-
-Core business logic emits events (e.g. `payment:succeeded`) via the **Event Bus** (`src/server/events/bus.ts`), and modules subscribe to these events for side effects — no direct coupling. See [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md#5-可插拔模块架构) for details.
-
-## Adding a New Feature
-
-See `src/modules/example/` for a complete template, or read [docs/conventions/api.md](./docs/conventions/api.md) for coding conventions.
+## Quality Commands
 
 ```bash
-# 1. Create module
-mkdir -p src/modules/my-feature/server
-
-# 2. Add service + router
-# 3. Register router in src/server/api/root.ts
-# 4. Add Prisma models if needed
-npx prisma migrate dev --name add_my_feature
+pnpm lint
+pnpm typecheck
+pnpm check
+pnpm format:check
+pnpm build
 ```
 
-To create a **pluggable module** (optional integration that can be enabled/disabled):
-
-1. Add config switch in `src/config/modules.ts`
-2. Create `src/server/modules/<name>.ts` implementing `FrameworkModule`
-3. Register in `src/server/modules/index.ts`
-4. See [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md#创建新模块) for details
-
-## Environment Variables
-
-See `.env.example` for the full list with comments. Key variables:
-
-| Variable | Description |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `REDIS_HOST` / `REDIS_PORT` | Redis for BullMQ and caching |
-| `NEXTAUTH_SECRET` | NextAuth secret (`npx auth secret`) |
-| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth |
-| `STRIPE_SECRET_KEY` | Stripe payments |
-| `RESEND_API_KEY` | Email sending |
+`package.json` does not define a general unit-test script in this template. Service-mode smoke coverage lives in `docker-compose.test.yml` and `scripts/test-service-mode.mjs`.
 
 ## License
 
-Private — All rights reserved.
+Private - All rights reserved.
