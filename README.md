@@ -151,17 +151,16 @@ Launchpad generates an IDE prompt that tells the AI agent how to use the Harness
 | Area | English | Chinese |
 | --- | --- | --- |
 | Documentation hub | [docs/en/README.md](./docs/en/README.md) | [docs/zh-CN/README.md](./docs/zh-CN/README.md) |
-| Framework guide | [docs/en/framework-guide.md](./docs/en/framework-guide.md) | [docs/zh-CN/framework-guide.md](./docs/zh-CN/framework-guide.md) |
-| Integration guide | [docs/en/integration-guide.md](./docs/en/integration-guide.md) | [docs/zh-CN/integration-guide.md](./docs/zh-CN/integration-guide.md) |
-| AI completion checklist | [docs/en/ai-completion-checklist.md](./docs/en/ai-completion-checklist.md) | [docs/zh-CN/ai-completion-checklist.md](./docs/zh-CN/ai-completion-checklist.md) |
-| Web/API/Worker split | [docs/en/architecture/web-api-service-split.md](./docs/en/architecture/web-api-service-split.md) | [docs/zh-CN/architecture/web-api-service-split.md](./docs/zh-CN/architecture/web-api-service-split.md) |
+| Framework guide | [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) | [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) |
+| Integration guide | [docs/integration-guide.md](./docs/integration-guide.md) | [docs/integration-guide.md](./docs/integration-guide.md) |
+| AI task guides | [docs/ai/](./docs/ai/) | [docs/ai/](./docs/ai/) |
+| AI completion checklist | [docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md) | [docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md) |
+| Web/API/Worker split | [docs/architecture/web-api-service-split.md](./docs/architecture/web-api-service-split.md) | [docs/architecture/web-api-service-split.md](./docs/architecture/web-api-service-split.md) |
 | AI agent rules | [AGENTS.md](./AGENTS.md) | [AGENTS.md](./AGENTS.md) |
 
 Legacy Chinese-first docs remain available during migration, including [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md), [docs/integration-guide.md](./docs/integration-guide.md), and [docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md).
 
 ## Star History
-
-Replace `velobase/velobase-harness` if your public repository lives under a different owner/name.
 
 [![Star History Chart](https://api.star-history.com/svg?repos=velobase/velobase-harness&type=Date)](https://star-history.com/#velobase/velobase-harness&Date)
 
