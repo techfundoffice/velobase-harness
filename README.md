@@ -5,188 +5,236 @@
 <h1 align="center">Velobase Harness</h1>
 
 <p align="center">
-  <strong>The open-source framework that turns your AI app into a revenue machine.</strong>
+  <strong>The open-source AI SaaS framework that helps you build AND make money.</strong>
 </p>
 
 <p align="center">
-  Extracted from the stack behind an 8-figure ARR product.<br/>
-  Every line of growth & monetization code we wrote — now yours, for free.
+  Extracted from a product doing 8-figure ARR.<br/>
+  The secret was never a better product — it was the growth &amp; monetization infrastructure behind it.<br/>
+  We just open-sourced all of it.
 </p>
 
 <p align="center">
-  <a href="https://github.com/velobase/velobase-harness/stargazers"><img src="https://img.shields.io/github/stars/velobase/velobase-harness?style=social" alt="Stars" /></a>
-  <a href="https://github.com/velobase/velobase-harness/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
-  <a href="https://discord.gg/velobase"><img src="https://img.shields.io/discord/YOUR_ID?label=Discord&logo=discord&logoColor=white" alt="Discord" /></a>
+  <a href="https://github.com/velobase/velobase-harness/stargazers"><img src="https://img.shields.io/github/stars/velobase/velobase-harness?style=for-the-badge&logo=github&color=yellow" alt="Stars" /></a>&nbsp;
+  <a href="https://github.com/velobase/velobase-harness/network/members"><img src="https://img.shields.io/github/forks/velobase/velobase-harness?style=for-the-badge&logo=github&color=lightgray" alt="Forks" /></a>&nbsp;
+  <a href="https://github.com/velobase/velobase-harness/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="License" /></a>&nbsp;
+  <a href="https://discord.gg/velobase"><img src="https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord" /></a>
 </p>
 
 <p align="center">
-  <a href="#-features">Features</a> •
-  <a href="#-why-harness">Why Harness</a> •
-  <a href="#-quick-start">Quick Start</a> •
-  <a href="#-architecture">Architecture</a> •
-  <a href="#-deploy">Deploy</a> •
-  <a href="#-docs">Docs</a> •
+  <a href="#-the-problem">Problem</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#-under-the-hood">Features</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#-quick-start">Quick Start</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#%EF%B8%8F-architecture">Architecture</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#-deploy-to-cloud">Deploy</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#-docs">Docs</a>&nbsp;&nbsp;·&nbsp;&nbsp;
   <a href="#-community">Community</a>
 </p>
 
----
+<br/>
 
-## The Problem
-
-Thousands of AI wrappers launch every week. Almost none of them make a dollar.
-
-Not because the product is bad — but because **billing, attribution, affiliates, email campaigns, anti-abuse, and admin dashboards** are each a 2-month rabbit hole that has nothing to do with your actual product.
-
-**Harness gives you all of that on day one**, so you can focus on the thing that matters: building something people want.
+<!-- TODO: Replace with demo GIF or screenshot -->
+<!-- <p align="center">
+  <img src="public/demo.gif" alt="Harness Demo" width="720" />
+</p> -->
 
 ---
 
-## ✨ Features
+<br/>
 
-### 💰 Monetization — Built In, Not Bolted On
+## 🎯 The Problem
 
-| Module | What It Does |
-|--------|-------------|
-| **Usage-Based Billing** | Credit ledger, subscriptions, promo codes, multi-currency — financial-grade accuracy |
-| **Payments** | Stripe + NowPayments (crypto), webhooks, renewals, refunds, dispute handling |
-| **Affiliate Engine** | Commission tracking, payout management, referral links — your users become your salesforce |
-| **Order Management** | Full lifecycle: create → fulfill → invoice → cashflow tracking |
+**In the vibe-coding era, everyone can build. But almost none of them make a dollar from it.**
 
-### 📈 Growth — From Zero to Traction
+We went from the same problem to 8-figure ARR. The secret was not a better product — it was the growth and monetization infrastructure behind it.
 
-| Module | What It Does |
-|--------|-------------|
-| **Ad Attribution** | Google Ads, X (Twitter), PropellerAds — know exactly which dollar brought which user |
-| **Email Campaigns** | Built-in outreach with A/B testing, templates, failover, and deliverability tracking |
-| **Analytics** | PostHog integration, event tracking, conversion funnels, retention metrics |
-| **Referral & Retention** | Referral programs, retention bonuses, user lifecycle management |
-| **SEO** | Programmatic SEO tooling built into the framework |
+We checked every boilerplate on the market. They help you build. **We help you build AND make money.**
 
-### 🛡️ Production Infrastructure
-
-| Module | What It Does |
-|--------|-------------|
-| **Auth & Security** | NextAuth with anti-abuse, rate limiting, bot detection |
-| **Admin Dashboard** | User management, financial overview, system health — out of the box |
-| **Background Jobs** | BullMQ workers for payment reconciliation, notifications, credit processing |
-| **AI Chat Module** | Pre-wired AI chat integration — plug in your model and go |
+<br/>
 
 ---
 
-## 🤔 Why Harness?
+<br/>
+
+## 🔥 Under the Hood
 
 <table>
 <tr>
-<td width="50%">
+<td>
 
-**Without Harness**
-- Week 1-2: Set up auth & billing
-- Week 3-4: Build payment integration
-- Week 5-6: Add email system
-- Week 7-8: Attribution & analytics
-- Week 9-10: Admin dashboard
-- Week 11-12: Affiliate system
-- **3 months before your first dollar**
+### 📡 Ad Attribution
+Server-side tracking that tells you which ads **actually convert** — Google Ads offline conversion upload, X pixel, PropellerAds
 
 </td>
-<td width="50%">
+<td>
 
-**With Harness**
-- `pnpm install`
-- Configure `.env`
-- `pnpm dev:all`
-- **Revenue infrastructure on day one**
-- Ship your product, not your plumbing
+### 🤝 Affiliate Engine
+Financial-grade double-entry ledger, refund clawback, USDT cashout — your users become your salesforce
+
+</td>
+</tr>
+<tr>
+<td>
+
+### 💳 Usage-Based Billing
+Full credits lifecycle, subscriptions, multi-currency, metering dashboard — charges from day one
+
+</td>
+<td>
+
+### 📧 Email Outreach
+A/B testing, scheduled campaigns, dual-provider failover — brings people back automatically
+
+</td>
+</tr>
+<tr>
+<td>
+
+### 🛡️ Auth & Anti-Abuse
+NextAuth with rate limiting, bot detection, and security hardened for production
+
+</td>
+<td>
+
+### 🤖 Multi-LLM AI Chat
+Reusable chat, model config, tool calling, and business-tool extension points
+
+</td>
+</tr>
+<tr>
+<td>
+
+### ⚙️ 11 Background Workers
+BullMQ processors for payment reconciliation, order compensation, touch delivery, subscription credits, ad uploads, and more
+
+</td>
+<td>
+
+### 📊 Admin Dashboard
+User management, financial overview, system health, promo codes — out of the box
 
 </td>
 </tr>
 </table>
 
-### vs Other Frameworks
+> **Built on T3 Stack** — Next.js 15 · React 19 · TypeScript · tRPC · Prisma · NextAuth · Tailwind CSS · pnpm
 
-| | Harness | V0 / Lovable | ShipAny / ShipFast |
-|---|---------|-------------|-------------------|
-| **Output** | Production-grade, deployable app | Prototypes & UI | Code templates |
-| **Monetization** | Full billing + attribution + affiliates | ❌ | Basic Stripe only |
-| **Growth stack** | Ad tracking, email, referral, SEO | ❌ | ❌ |
-| **Cost** | Free & open source | Subscription | One-time license |
-| **Extensibility** | Modular — use only what you need | Limited | Fork & modify |
+<br/>
 
 ---
 
-## 🚀 Quick Start
+<br/>
 
-### Local Development
+## ⚡ Why Harness?
+
+<table>
+<tr>
+<th align="center" width="50%">😰 Without Harness</th>
+<th align="center" width="50%">🚀 With Harness</th>
+</tr>
+<tr>
+<td>
+
+```
+Week 1-2   Auth & billing setup
+Week 3-4   Payment integration
+Week 5-6   Email system
+Week 7-8   Attribution & analytics
+Week 9-10  Admin dashboard
+Week 11-12 Affiliate system
+────────────────────────────────
+⏱ 3 months before first dollar
+```
+
+</td>
+<td>
 
 ```bash
-# Clone & install
+git clone velobase/velobase-harness
+pnpm install
+cp .env.example .env
+pnpm dev:all
+────────────────────────────────
+⚡ Revenue infrastructure on day 1
+```
+
+</td>
+</tr>
+</table>
+
+### How we compare
+
+| | **Harness** | V0 / Lovable | ShipAny / ShipFast |
+|:---|:---:|:---:|:---:|
+| **What you get** | Production app with revenue stack | UI prototypes | Code templates |
+| **Billing + Payments** | Stripe + Crypto, credits, subscriptions | — | Basic Stripe |
+| **Ad Attribution** | Google Ads, X, PropellerAds | — | — |
+| **Affiliate System** | Double-entry ledger, USDT cashout | — | — |
+| **Email Campaigns** | A/B test, dual-provider failover | — | — |
+| **Background Workers** | 11 BullMQ job processors | — | — |
+| **Price** | **Free & open source** | Subscription | One-time license |
+
+<br/>
+
+---
+
+<br/>
+
+## 🚀 Quick Start
+
+```bash
+# 1. Clone & install
 git clone https://github.com/velobase/velobase-harness.git
 cd velobase-harness
 pnpm install
 
-# Configure environment
+# 2. Configure
 cp .env.example .env
 
-# Start database & seed
+# 3. Database
 pnpm docker:db:up
 pnpm db:push
 pnpm db:seed
 
-# Launch all services
+# 4. Launch
 pnpm dev:all
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — you're live.
+**That's it.** Open [localhost:3000](http://localhost:3000) — billing, attribution, affiliates, email, admin — all running.
 
-### ☁️ One-Click Cloud Deploy
-
-Deploy to **Velobase Cloud** and get a production environment in minutes:
-- GitHub repo auto-created
-- PostgreSQL, Redis, R2 storage provisioned
-- Kubernetes cluster, domain, and SSL configured
-- CI/CD pipeline ready
-
-```bash
-# Or deploy via CLI
-npx velobase deploy
-```
+<br/>
 
 ---
 
+<br/>
+
 ## 🏗️ Architecture
 
-Harness runs as **three services** — together or separately:
+Three services — run together for dev, split for production:
 
 ```
-┌─────────────────────────────────────────────┐
-│                  Harness                     │
-│                                             │
-│  ┌───────────┐ ┌───────────┐ ┌───────────┐ │
-│  │    Web    │ │    API    │ │  Worker   │ │
-│  │ Next.js  │ │   Hono    │ │  BullMQ   │ │
-│  │ :3000    │ │  :3002    │ │  :3001    │ │
-│  └───────────┘ └───────────┘ └───────────┘ │
-│         │            │            │         │
-│  ┌──────┴────────────┴────────────┴──────┐ │
-│  │        PostgreSQL  +  Redis           │ │
-│  └───────────────────────────────────────┘ │
-└─────────────────────────────────────────────┘
+                    ┌──────────────────────────────────────────┐
+                    │            Velobase Harness              │
+                    │                                          │
+                    │  ┌──────────┐ ┌──────────┐ ┌──────────┐ │
+                    │  │   Web    │ │   API    │ │  Worker  │ │
+                    │  │ Next.js  │ │  Hono    │ │  BullMQ  │ │
+                    │  │  :3000   │ │  :3002   │ │  :3001   │ │
+                    │  └────┬─────┘ └────┬─────┘ └────┬─────┘ │
+                    │       │            │            │        │
+                    │  ┌────┴────────────┴────────────┴─────┐  │
+                    │  │       PostgreSQL  ·  Redis          │  │
+                    │  └────────────────────────────────────┘  │
+                    └──────────────────────────────────────────┘
 ```
 
-Control deployment mode with `SERVICE_MODE`:
-- `all` — monolith (default, great for dev)
-- `web` / `api` / `worker` — microservices (production)
-- `web,api` — any combination
+> **`SERVICE_MODE`** controls what runs: `all` (default) · `web` · `api` · `worker` · or any combo like `web,api`
 
-### Tech Stack
+### Pluggable Modules
 
-- **Framework:** Next.js 15, React 19, TypeScript
-- **API:** tRPC + Hono
-- **Database:** Prisma ORM + PostgreSQL
-- **Queue:** BullMQ + Redis
-- **Auth:** NextAuth.js
-- **Styling:** Tailwind CSS + shadcn/ui
-- **Package Manager:** pnpm
+Toggle via environment variables — use only what you need:
+
+`Google Ads` · `PostHog` · `Lark` · `Telegram` · `NowPayments` · `Affiliate` · `Touch` · `AI Chat`
 
 ### Project Structure
 
@@ -194,27 +242,57 @@ Control deployment mode with `SERVICE_MODE`:
 src/
 ├── app/          # Next.js pages & routing
 ├── api/          # Hono API endpoints
-├── config/       # Module configuration (toggle features on/off)
-├── modules/      # Business modules (billing, affiliate, email...)
+├── config/       # Module toggles
+├── modules/      # Business logic (billing, affiliate, email…)
 ├── server/       # Core services (auth, db, queue)
-├── workers/      # Background job processors
+├── workers/      # 11 background job processors
 ├── components/   # UI components
 └── analytics/    # Event tracking & attribution
 ```
 
+<br/>
+
 ---
+
+<br/>
+
+## ☁️ Deploy to Cloud
+
+Deploy to **Velobase Cloud** for a production environment in minutes:
+
+- ✅ GitHub repo auto-created
+- ✅ PostgreSQL, Redis, R2 storage provisioned
+- ✅ Kubernetes cluster + domain + SSL
+- ✅ CI/CD pipeline ready
+
+```bash
+npx velobase deploy
+```
+
+Or self-host with the included `Dockerfile`, `docker-compose.yml`, and Kubernetes manifests.
+
+<br/>
+
+---
+
+<br/>
 
 ## 📖 Docs
 
 | | English | 中文 |
-|---|---------|------|
-| Getting Started | [docs/en/README.md](docs/en/README.md) | [docs/zh-CN/README.md](docs/zh-CN/README.md) |
-| Framework Guide | [docs/en/framework-guide.md](docs/en/framework-guide.md) | [docs/zh-CN/framework-guide.md](docs/zh-CN/framework-guide.md) |
-| Integration Guide | [docs/en/integration-guide.md](docs/en/integration-guide.md) | [docs/zh-CN/integration-guide.md](docs/zh-CN/integration-guide.md) |
-| AI Checklist | [docs/en/ai-completion-checklist.md](docs/en/ai-completion-checklist.md) | [docs/zh-CN/ai-completion-checklist.md](docs/zh-CN/ai-completion-checklist.md) |
-| Architecture Deep Dive | [docs/en/architecture/](docs/en/architecture/) | [docs/zh-CN/architecture/](docs/zh-CN/architecture/) |
+|:---|:---|:---|
+| **Getting Started** | [docs/en/README.md](docs/en/README.md) | [docs/zh-CN/README.md](docs/zh-CN/README.md) |
+| **Framework Guide** | [docs/en/framework-guide.md](docs/en/framework-guide.md) | [docs/zh-CN/framework-guide.md](docs/zh-CN/framework-guide.md) |
+| **Integration Guide** | [docs/en/integration-guide.md](docs/en/integration-guide.md) | [docs/zh-CN/integration-guide.md](docs/zh-CN/integration-guide.md) |
+| **AI Checklist** | [docs/en/ai-completion-checklist.md](docs/en/ai-completion-checklist.md) | [docs/zh-CN/ai-completion-checklist.md](docs/zh-CN/ai-completion-checklist.md) |
+| **Architecture** | [docs/en/architecture/](docs/en/architecture/) | [docs/zh-CN/architecture/](docs/zh-CN/architecture/) |
+| **Agent Rules** | [AGENTS.md](AGENTS.md) | — |
+
+<br/>
 
 ---
+
+<br/>
 
 ## 🧑‍💻 Development
 
@@ -226,15 +304,25 @@ pnpm format:check  # Formatting
 pnpm build         # Production build
 ```
 
+<br/>
+
 ---
+
+<br/>
 
 ## 🌍 Community
 
-- [Discord](https://discord.gg/velobase) — Ask questions, share what you're building
-- [X / Twitter](https://x.com/velobase) — Updates & launches
-- [GitHub Discussions](https://github.com/velobase/velobase-harness/discussions) — Feature requests & ideas
+<p align="center">
+  <a href="https://discord.gg/velobase"><img src="https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord" /></a>&nbsp;&nbsp;
+  <a href="https://x.com/velobase"><img src="https://img.shields.io/badge/X-Follow%20us-000000?style=for-the-badge&logo=x&logoColor=white" alt="X" /></a>&nbsp;&nbsp;
+  <a href="https://github.com/velobase/velobase-harness/discussions"><img src="https://img.shields.io/badge/GitHub-Discussions-181717?style=for-the-badge&logo=github&logoColor=white" alt="Discussions" /></a>
+</p>
+
+<br/>
 
 ---
+
+<br/>
 
 ## 🗺️ Roadmap
 
@@ -244,21 +332,37 @@ pnpm build         # Production build
 - [ ] Multi-tenant support
 - [ ] Mobile SDK
 
+<br/>
+
 ---
+
+<br/>
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=velobase/velobase-harness&type=Date)](https://star-history.com/#velobase/velobase-harness&Date)
+<p align="center">
+  <a href="https://star-history.com/#velobase/velobase-harness&Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=velobase/velobase-harness&type=Date&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=velobase/velobase-harness&type=Date" />
+      <img alt="Star History" src="https://api.star-history.com/svg?repos=velobase/velobase-harness&type=Date" width="600" />
+    </picture>
+  </a>
+</p>
+
+<br/>
 
 ---
+
+<br/>
 
 ## License
 
 [MIT](LICENSE) — use it, fork it, ship it, make money with it.
 
----
+<br/>
 
 <p align="center">
-  <strong>Stop building billing. Start building your product.</strong><br/>
-  <a href="https://github.com/velobase/velobase-harness">⭐ Star us on GitHub</a> · <a href="https://discord.gg/velobase">💬 Join Discord</a>
+  <strong>Stop building billing. Start building your product.</strong><br/><br/>
+  <a href="https://github.com/velobase/velobase-harness">⭐ Star Harness on GitHub</a>&nbsp;&nbsp;·&nbsp;&nbsp;<a href="https://discord.gg/velobase">💬 Join Discord</a>
 </p>
