@@ -6,7 +6,7 @@
 <h1 align="center">Velobase Harness</h1>
 
 <p align="center">
-  <strong>The open-source AI SaaS framework for going from build to revenue.</strong>
+  <strong>An open-source framework that takes your AI app from code to cash.</strong>
 </p>
 
 <p align="center">
@@ -18,8 +18,8 @@
 </p>
 
 <p align="center">
-  <a href="https://x.com/velobase"><img src="https://img.shields.io/badge/Follow_on_X-000000?style=for-the-badge&logo=x&logoColor=white" alt="Follow on X" /></a>&nbsp;&nbsp;
-  <a href="https://discord.gg/velobase"><img src="https://img.shields.io/badge/Join_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord" /></a>
+  <a href="https://x.com/VelobaseX"><img src="https://img.shields.io/badge/Follow_on_X-000000?style=for-the-badge&logo=x&logoColor=white" alt="Follow on X" /></a>&nbsp;&nbsp;
+  <a href="https://discord.gg/HXXWfsx64q"><img src="https://img.shields.io/badge/Join_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord" /></a>
 </p>
 
 <p align="center">
@@ -31,6 +31,8 @@
 </p>
 
 ---
+
+### Ship fast. Get paid faster.
 
 In the vibe-coding era, everyone can build. But almost none of them make a dollar from it.
 
