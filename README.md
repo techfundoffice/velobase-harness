@@ -1,39 +1,59 @@
-# Velobase Harness
+<!-- TODO: Replace with actual hero banner -->
+<!-- <p align="center">
+  <img src="public/banner.png" alt="Velobase Harness" width="800" />
+</p> -->
 
-**Read this in other languages:** [Simplified Chinese](./README.zh-CN.md)
+<h1 align="center">Velobase Harness</h1>
 
-**In the vibe-coding era, everyone can build. But almost none of them make a dollar from it.**
+<p align="center">
+  <strong>The open-source AI SaaS framework for going from build to revenue.</strong>
+</p>
+
+<p align="center">
+  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-15-black" alt="Next.js" /></a>
+  <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61dafb" alt="React" /></a>
+  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-5-blue" alt="TypeScript" /></a>
+  <a href="https://pnpm.io"><img src="https://img.shields.io/badge/pnpm-10-f69220" alt="pnpm" /></a>
+  <a href="#license"><img src="https://img.shields.io/badge/license-private-lightgrey" alt="License" /></a>
+</p>
+
+<p align="center">
+  <a href="https://x.com/velobase"><img src="https://img.shields.io/badge/Follow_on_X-000000?style=for-the-badge&logo=x&logoColor=white" alt="Follow on X" /></a>&nbsp;&nbsp;
+  <a href="https://discord.gg/velobase"><img src="https://img.shields.io/badge/Join_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord" /></a>
+</p>
+
+<p align="center">
+  Help us reach more developers — <a href="https://github.com/velobase/velobase-harness"><strong>Star this repo!</strong></a>
+</p>
+
+<p align="center">
+  <a href="./README.zh-CN.md">中文</a> · <a href="#quick-start">Quick Start</a> · <a href="#documentation">Docs</a> · <a href="#architecture">Architecture</a>
+</p>
+
+---
+
+In the vibe-coding era, everyone can build. But almost none of them make a dollar from it.
 
 We went from the same problem to 8-figure ARR. The secret was not a better product — it was the growth and monetization infrastructure behind it. We just open-sourced all of it. That is Velobase Harness.
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
-[![React](https://img.shields.io/badge/React-19-61dafb)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org)
-[![pnpm](https://img.shields.io/badge/pnpm-10-f69220)](https://pnpm.io)
-[![License](https://img.shields.io/badge/license-private-lightgrey)](#license)
+<!-- TODO: Replace with product screenshot or demo GIF -->
+<!-- <p align="center">
+  <img src="public/demo.gif" alt="Harness Demo" width="720" />
+</p> -->
 
 ## Why Velobase Harness
 
 An open-source AI SaaS framework, extracted from a product doing 8-figure ARR. Unlike every other boilerplate, it does not stop at shipping — it covers the full path from build to revenue.
 
-### Core: Build to Revenue
+**📡 Ad Attribution** — Server-side tracking that tells you which ads actually convert. Google Ads offline conversion upload, X pixel, PropellerAds.
 
-- **📡 Ad Attribution** — Server-side tracking that tells you which ads actually convert. Google Ads offline conversion upload, X pixel, PropellerAds.
-- **🤝 Affiliate Engine** — Financial-grade double-entry ledger, refund clawback, USDT cashout. Your users become your salesforce.
-- **💳 Usage-Based Billing** — Full credits lifecycle, subscriptions, multi-currency, metering dashboard, and `@velobaseai/billing` integration. Charges from day one.
-- **📧 Email Outreach** — A/B testing, scheduled campaigns, dual-provider failover. Brings people back automatically.
+**🤝 Affiliate Engine** — Financial-grade double-entry ledger, refund clawback, USDT cashout. Your users become your salesforce.
 
-### Plus: Production-Ready Infrastructure
+**💳 Usage-Based Billing** — Full credits lifecycle, subscriptions, multi-currency, metering dashboard, and `@velobaseai/billing` integration. Charges from day one.
 
-- **Payments:** Stripe + NowPayments (crypto), webhooks, renewals, refunds, disputes, compensation jobs.
-- **AI Chat:** Reusable chat, multi-LLM model config, tool calling, business-tool extension points.
-- **11 Background Workers:** BullMQ processors for payment reconciliation, order compensation, touch delivery, subscription credits, support sync, ad uploads.
-- **Growth Ops:** PostHog analytics, Affiliate/Referral, lifecycle Touch, Daily Bonus retention, Promo Code, SEO, Launchpad conversion paths.
-- **Auth & Anti-Abuse:** NextAuth with rate limiting, bot detection, admin dashboard.
-- **Modern T3 Stack:** Next.js 15, React 19, TypeScript, tRPC, Prisma, Tailwind CSS, pnpm.
-- **Three-Service Runtime:** Web (Next.js) + API (Hono) + Worker (BullMQ) — run together or split with `SERVICE_MODE`.
-- **Pluggable Modules:** Google Ads, PostHog, Lark, Telegram, NowPayments, Affiliate, Touch, AI Chat — toggle via env vars.
-- **Production Docs:** Docker, Kubernetes, GitOps, Cloud Deploy API, online-to-local debugging, AI completion checklists.
+**📧 Email Outreach** — A/B testing, scheduled campaigns, dual-provider failover. Brings people back automatically.
+
+**Plus:** Auth & anti-abuse · Multi-LLM AI chat · 11 BullMQ background workers · Stripe & crypto payments · PostHog analytics · Affiliate/Referral · Promo codes · Admin dashboard · Pluggable modules (toggle via env vars) · Docker, Kubernetes & GitOps docs
 
 > We checked every boilerplate on the market. They help you build. **We help you build AND make money.**
 
