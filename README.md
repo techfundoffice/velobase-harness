@@ -14,7 +14,7 @@
   <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61dafb" alt="React" /></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-5-blue" alt="TypeScript" /></a>
   <a href="https://pnpm.io"><img src="https://img.shields.io/badge/pnpm-10-f69220" alt="pnpm" /></a>
-  <a href="#license"><img src="https://img.shields.io/badge/license-private-lightgrey" alt="License" /></a>
+  <a href="#license"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License" /></a>
 </p>
 
 <p align="center">
@@ -192,4 +192,4 @@ pnpm build
 
 ## License
 
-Private - All rights reserved.
+[MIT](LICENSE) — use it, fork it, ship it, make money with it.
