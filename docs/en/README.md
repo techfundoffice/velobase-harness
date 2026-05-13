@@ -8,11 +8,12 @@ This directory is the English documentation entry for Velobase Harness. During t
 
 | Document | Purpose |
 | --- | --- |
-| [Framework Guide](./framework-guide.md) | Architecture, local startup, code boundaries, module system, and production checklist |
-| [Integration Guide](./integration-guide.md) | How third-party integrations are organized and how AI should extend them |
-| [AI Completion Checklist](./ai-completion-checklist.md) | Required self-check before commit, push, or deployment |
-| [Web/API/Worker Split](./architecture/web-api-service-split.md) | Runtime split, `SERVICE_MODE`, Docker, Kubernetes, and deployment modes |
-| [Documentation Style Guide](./docs-style-guide.md) | Bilingual docs structure, translation rules, and Launchpad prompt coupling |
+| [AI Domain Design Guide](../ai/design.md) | **Phase 0** — product understanding, domain modeling, schema & API design before coding |
+| [Framework Guide](../../FRAMEWORK_GUIDE.md) | Architecture, local startup, code boundaries, module system, and production checklist |
+| [Integration Guide](../integration-guide.md) | How third-party integrations are organized and how AI should extend them |
+| [AI Testing Guide](../ai/testing.md) | Test strategy, layered patterns (unit / integration / E2E), and AI test generation rules |
+| [AI Completion Checklist](../ai-completion-checklist.md) | Required self-check before commit, push, or deployment |
+| [Web/API/Worker Split](../architecture/web-api-service-split.md) | Runtime split, `SERVICE_MODE`, Docker, Kubernetes, and deployment modes |
 | [AI Agent Rules](../../AGENTS.md) | Stable rules that AI agents must read before editing code |
 
 ## Reference Areas
@@ -29,6 +30,6 @@ This directory is the English documentation entry for Velobase Harness. During t
 ## Documentation Rules
 
 - Keep `README.md` as the English default and `README.zh-CN.md` as the Chinese root entry.
-- Keep canonical long-form docs under `docs/en/**` and `docs/zh-CN/**`.
+- Keep only public documentation entries mirrored under `docs/en/**` and `docs/zh-CN/**`; keep AI-only guides under `docs/ai/**` in English.
 - Do not translate commands, environment variables, file paths, package names, API names, or code blocks.
 - When a documentation path is used by Velobase Cloud Launchpad prompts, update the prompt generator in the Cloud repository in the same change.

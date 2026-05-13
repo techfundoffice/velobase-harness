@@ -8,11 +8,12 @@
 
 | 文档 | 用途 |
 | --- | --- |
-| [框架指南](./framework-guide.md) | 架构、本地启动、代码边界、模块系统、生产 Checklist |
-| [集成指南](./integration-guide.md) | 第三方集成如何组织，以及 AI 如何安全扩展 |
-| [AI 完成检查清单](./ai-completion-checklist.md) | commit、push 或部署前的必要自检 |
-| [Web/API/Worker 拆分](./architecture/web-api-service-split.md) | 运行时拆分、`SERVICE_MODE`、Docker、Kubernetes 和部署模式 |
-| [文档风格指南](./docs-style-guide.md) | 双语文档结构、翻译规则和 Launchpad Prompt 耦合说明 |
+| [AI 领域设计指南](../ai/design.md) | **阶段零** — 产品理解、领域建模、Schema 和 API 设计（写代码之前） |
+| [框架指南](../../FRAMEWORK_GUIDE.md) | 架构、本地启动、代码边界、模块系统、生产 Checklist |
+| [集成指南](../integration-guide.md) | 第三方集成如何组织，以及 AI 如何安全扩展 |
+| [AI 测试指南](../ai/testing.md) | 测试策略、分层模式（单元 / 集成 / E2E）、AI 生成测试规范 |
+| [AI 完成检查清单](../ai-completion-checklist.md) | commit、push 或部署前的必要自检 |
+| [Web/API/Worker 拆分](../architecture/web-api-service-split.md) | 运行时拆分、`SERVICE_MODE`、Docker、Kubernetes 和部署模式 |
 | [AI Agent 规则](../../AGENTS.md) | AI Agent 修改代码前必须阅读的稳定规则 |
 
 ## 参考区域
@@ -29,6 +30,6 @@
 ## 文档规则
 
 - 根目录 `README.md` 保持英文默认入口，`README.zh-CN.md` 作为中文入口。
-- 长文档逐步迁移到 `docs/en/**` 和 `docs/zh-CN/**` 镜像目录。
+- 只有公开文档入口保留在 `docs/en/**` 和 `docs/zh-CN/**`；AI 专用指南统一放在英文 `docs/ai/**`。
 - 不翻译命令、环境变量、文件路径、包名、API 名称和代码块。
 - 如果某个文档路径被 Velobase Cloud Launchpad Prompt 引用，修改文档结构时必须同步修改 Cloud 的 Prompt Generator。

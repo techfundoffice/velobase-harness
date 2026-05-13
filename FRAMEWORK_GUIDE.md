@@ -3,7 +3,9 @@
 本文档指导基于本框架开发新的 AI SaaS 产品。涵盖架构概览、快速启动、代码边界划分和分阶段 Checklist。
 
 > **定位**：本文件面向开发者，说明"框架是什么、怎么用、从模板到产品的路径"。  
+> **⚠️ 阶段零：领域设计**（写代码前先完成） → 见 `[docs/ai/design.md](./docs/ai/design.md)`  
 > AI 编码规则（禁止/必须） → 见 `[AGENTS.md](./AGENTS.md)`  
+> 测试策略与 AI 生成测试规范 → 见 `[docs/ai/testing.md](./docs/ai/testing.md)`  
 > AI 开发完成检查流程 → 见 `[docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md)`  
 > API 三区制与编码约定 → 见 `[docs/conventions/api.md](./docs/conventions/api.md)`  
 > 第三方集成详细文档 → 见 `[docs/integrations/](./docs/integrations/)`  
@@ -336,6 +338,19 @@ CREATE INDEX IF NOT EXISTS "idx_my_table_new_column" ON "my_table" ("new_column"
 ---
 
 ## 4. 从框架到生产应用 — 分阶段 Checklist
+
+### 阶段零：领域设计（写代码之前）
+
+> 目标：完成产品理解和领域建模，为后续所有阶段提供设计蓝图  
+> 完整指南 → [docs/ai/design.md](./docs/ai/design.md)
+
+- 收集产品需求，填写产品概要（目标用户、核心故事、商业模式、AI 能力）
+- 对五大域做出决策：用户域（角色模型）、账单域（SKU + 消耗规则）、运营域（分析事件 + 通知）、集成域（三方启停矩阵）、非功能域（安全 + 部署模式）
+- 设计业务实体 Prisma model 草案（不动框架保留表）
+- 规划 tRPC Router 清单（Procedure、类型、权限级别）
+- 规划领域事件和可插拔模块订阅关系
+- 确定测试策略（每模块的单测 / 集成测 / E2E 覆盖方式），详见 [测试指南](./docs/ai/testing.md)
+- 完成设计评审检查清单
 
 ### 阶段一：基础运行
 
