@@ -87,12 +87,15 @@ await stripe.checkout.sessions.create({ ... });
     → checkout.ts 创建 Order + Payment
     → provider.createPayment()        // 生成 Stripe Checkout URL
   → 用户在 Stripe 页面付款
-  → Stripe → POST /api/webhooks/stripe
+  → 主链路：Stripe → POST /api/webhooks/stripe
     → handlePaymentWebhook()
       → 状态更新 Payment → SUCCEEDED
       → processFulfillmentByPayment() // 发放权益
       → recordPaymentTransaction()    // 不可变流水
       → asyncSendPaymentNotification()// Lark 通知
+  → 本地快速测试兜底：/payment/success 调用 confirmPayment
+    → 直接查询 Stripe Checkout Session / PaymentIntent
+    → Stripe 已 paid/succeeded 时补写本地状态并触发履约
 ```
 
 ### Provider 接口
@@ -177,6 +180,10 @@ NOWPAYMENTS_PAY_CURRENCY=usdttrc20
 # FORCE_PAYMENT_GATEWAY=NOWPAYMENTS
 ```
 
+本地只做“购买成功页 → 积分到账”的快速测试时，可以不启动 Stripe CLI / Docker webhook listener。成功页的 `confirmPayment` 会主动查询 Stripe 并补偿本地 `PENDING` 支付。
+
+注意：当前 Provider 注册会检查 `STRIPE_WEBHOOK_SECRET` 是否非空。本地不联调 webhook 时也需要保留一个非空占位值（例如 `whsec_local_dummy`），否则 Stripe provider 不会注册；上线和 webhook 联调时必须换成 Stripe Dashboard 或 Stripe CLI 输出的真实 `whsec_...`。
+
 ### Stripe Dashboard 配置
 
 1. **Webhook Endpoint**：`https://your-domain.com/api/webhooks/stripe`
@@ -195,7 +202,27 @@ NOWPAYMENTS_PAY_CURRENCY=usdttrc20
   - `invoice.payment_failed`
   - `invoice.voided`
 
-### 本地开发（Docker 方式，推荐）
+### 本地快速测试（无需 webhook listener）
+
+适用于验证普通购买或首单订阅在成功页能否到账：
+
+```bash
+# 1. 配置测试 key
+STRIPE_SECRET_KEY=sk_test_xxx
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+
+# 2. 保留非空占位值，让 Stripe provider 注册
+STRIPE_WEBHOOK_SECRET=whsec_local_dummy
+
+# 3. 启动本地 Web 并完成一次 Stripe Checkout
+pnpm dev
+```
+
+支付完成后用户回到 `/payment/success?paymentId=...`，页面会在本地 `Payment` 仍为 `PENDING` 时调用 `order.confirmPayment`。后端会查询 Stripe Checkout Session / PaymentIntent；若 Stripe 已确认付款成功，会把本地 Payment 标记为 `SUCCEEDED` 并触发 fulfillment。
+
+这个方式只覆盖“用户付款后成功返回成功页”的手动测试，不覆盖用户关闭页面、订阅续费、退款、拒付、发票失败、Webhook 签名、幂等和 Stripe 重试。
+
+### 本地 Webhook 联调（Docker 方式）
 
 无需安装 Stripe CLI，通过 Docker Compose 一键启动：
 
@@ -216,7 +243,7 @@ make stripe-stop
 
 > `stripe-cli` 使用 Docker `profiles`，不会随 `make db` 一起启动，需要单独运行。
 
-### 本地开发（手动安装 CLI）
+### 本地 Webhook 联调（手动安装 CLI）
 
 ```bash
 # 安装 Stripe CLI

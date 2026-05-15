@@ -391,7 +391,8 @@ CREATE INDEX IF NOT EXISTS "idx_my_table_new_column" ON "my_table" ("new_column"
 > 目标：完整的购买 → 积分发放 → 使用扣减链路可用
 
 - 选择支付渠道，配置 env 和 Webhook（[支付文档](./docs/integrations/payment/)）
-- 测试完整流程：选择产品 → 支付 → Webhook → 积分到账
+- 本地快速测试可走成功页 `confirmPayment` 兜底：选择产品 → 支付 → 返回成功页 → 积分到账
+- 上线或完整联调时必须配置 Webhook，并测试：选择产品 → 支付 → Webhook → 积分到账
 - 测试退款、订阅续费
 - 支付相关的副作用（通知、分析、佣金）由可插拔模块自动处理，无需额外代码
 
