@@ -53,6 +53,8 @@ An open-source AI SaaS framework, extracted from a product doing 8-figure ARR. U
 
 **💳 Usage-Based Billing** — Full credits lifecycle, subscriptions, multi-currency, metering dashboard, and `@velobaseai/billing` integration. Charges from day one.
 
+**🛡️ Anti-Abuse Guardrails** — Redis rate limits, Turnstile, disposable email and Gmail trick checks, signup IP/device signals, guest chat quotas, and credit clawback to reduce free-credit and model-cost abuse.
+
 **📧 Email Outreach** — A/B testing, scheduled campaigns, dual-provider failover. Brings people back automatically.
 
 **Plus:** Auth & anti-abuse · Multi-LLM AI chat · 11 BullMQ background workers · Stripe & crypto payments · PostHog analytics · Affiliate/Referral · Promo codes · Admin dashboard · Pluggable modules (toggle via env vars) · Docker, Kubernetes & GitOps docs

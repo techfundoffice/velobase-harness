@@ -19,6 +19,7 @@ Velobase Harness 不是空白脚手架，而是一套能直接承接 AI SaaS 产
 - **可插拔模块:** Google Ads、PostHog、Lark、Telegram、NowPayments、Affiliate、Touch、AI Chat 可按环境变量启停。
 - **计费与积分:** 订单、订阅、积分账本、权益发放、现金流水、优惠码和 `@velobaseai/billing` 已接入。
 - **支付就绪:** Stripe 与 NowPayments 覆盖 Webhook、续费、退款、争议和补偿任务。
+- **反滥用护栏:** Redis 限流、Turnstile、临时邮箱与 Gmail 变体拦截、注册 IP/设备风控、访客 AI Chat 配额和积分回收，降低刷号、薅赠送额度和刷模型成本的风险。
 - **AI Chat 模块:** 提供对话、模型配置、工具调用和业务工具扩展点。
 - **Worker 队列:** BullMQ 处理支付对账、订单补偿、用户触达、订阅积分、客服同步和广告回传。
 - **运营增长能力:** PostHog 分析、Google Ads 离线转化回传、Affiliate/Referral、Touch 生命周期触达、Daily Bonus 留存、Promo Code、SEO 和 Launchpad 转化路径。
