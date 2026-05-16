@@ -7,47 +7,60 @@ Read this file first. Then follow the task and integration routers below before 
 ## Task Router
 
 IF the user asks to build a new product from scratch:
-  - MUST read `docs/ai/design.md`.
-  - MUST complete domain design before writing product code.
+
+- MUST read `docs/en/ai/design.md`.
+- MUST complete domain design before writing product code.
 
 IF you are about to create a new business module under `src/modules/`:
-  - MUST read `docs/ai/new-module.md` first.
+
+- MUST read `docs/en/ai/new-module.md` first.
 
 IF you are about to create or modify tests (`*.test.ts`, `*.spec.ts`, or `e2e/*`):
-  - MUST read `docs/ai/testing.md` first.
+
+- MUST read `docs/en/ai/testing.md` first.
 
 After development is complete:
-  - MUST run the checks in `docs/ai-completion-checklist.md`.
-  - MUST tell the user which checks were run and which were skipped.
+
+- MUST run the checks in `docs/en/ai/completion-checklist.md`.
+- MUST tell the user which checks were run and which were skipped.
 
 ## Integration Router
 
 IF you touch authentication or login:
-  - Read `docs/integrations/auth/README.md`.
+
+- Read `docs/en/integrations/auth/README.md`.
 
 IF you touch billing, orders, payments, subscriptions, products, credits, or promo codes:
-  - Read `docs/integrations/payment/README.md`.
+
+- Read `docs/en/integrations/payment/README.md`.
 
 IF you touch email delivery or email templates:
-  - Read `docs/integrations/email/README.md`.
+
+- Read `docs/en/integrations/email/README.md`.
 
 IF you touch database, Prisma, migrations, Redis, or env-backed persistence:
-  - Read `docs/integrations/database/README.md`.
+
+- Read `docs/en/integrations/database/README.md`.
 
 IF you touch file upload, object storage, CDN URLs, or asset access:
-  - Read `docs/integrations/storage/README.md`.
+
+- Read `docs/en/integrations/storage/README.md`.
 
 IF you touch analytics, feature flags, or product events:
-  - Read `docs/integrations/analytics/README.md`.
+
+- Read `docs/en/integrations/analytics/README.md`.
 
 IF you touch ad attribution or conversion upload:
-  - Read `docs/integrations/ads/README.md`.
+
+- Read `docs/en/integrations/ads/README.md`.
 
 IF you touch queues, workers, processors, or scheduled jobs:
-  - Read `docs/integrations/queue/README.md`.
+
+- Read `docs/en/integrations/queue/README.md`.
 
 IF you touch anti-abuse, captcha, rate limiting, IP, country, or security boundaries:
-  - Read `docs/integrations/security/README.md` and relevant `docs/features/*/README.md`.
+
+- Read `docs/en/integrations/security/README.md` and relevant `docs/en/features/*/README.md`.
 
 ## Core Rules
 
@@ -132,4 +145,5 @@ IF you touch anti-abuse, captcha, rate limiting, IP, country, or security bounda
 
 - For production issues, ask the user for the latest Velobase Cloud runtime or deploy logs first.
 - Reproduce with the local Docker database workflow before pushing a fix when possible.
-- Use `docs/debugging/online-local-debug.md` for the full workflow.
+- Use `docs/en/debugging/online-local-debug.md` for the full workflow.
+

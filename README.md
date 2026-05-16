@@ -71,6 +71,8 @@ The fastest path — describe your product, Launchpad creates the repo, provisio
 
 ### Option B: Local Development
 
+Prerequisites: Node.js, pnpm, Docker Desktop, and Docker Compose.
+
 ```bash
 pnpm install
 cp .env.example .env
@@ -80,7 +82,24 @@ pnpm db:seed
 pnpm dev:all
 ```
 
+`pnpm docker:db:up` starts the local infrastructure from `docker-compose.yml`:
+
+| Service | Image | Local URL / Port | Used by |
+| --- | --- | --- | --- |
+| PostgreSQL | `postgres:16` | `localhost:5432` | Prisma, auth, billing, product data |
+| Redis | `redis:7` | `localhost:6379` | BullMQ workers, queues, rate limits |
+
+The default `.env.example` already points to these local services:
+
+```env
+DATABASE_URL=postgresql://velobase:velobase@localhost:5432/velobase
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+```
+
 `pnpm dev:all` starts the combined local runtime: Web on `:3000`, API on `:3002`, and Worker on `:3001`.
+
+Open the app at [http://localhost:3000](http://localhost:3000).
 
 You can also split processes across terminals:
 
@@ -90,7 +109,9 @@ pnpm api:dev
 pnpm worker:dev
 ```
 
-When you are ready to deploy, see the [Cloud Deployment Guide](./docs/deployment/cloud-deploy.md).
+When you are ready to deploy, see the [Cloud Deployment Guide](./docs/en/deployment/cloud-deploy.md).
+
+If you are not entering through Launchpad flow, run Step 0 in [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) before implementing product features: complete domain design, output the MVP scope and feature list, and wait for user confirmation before coding.
 
 ## Architecture
 
@@ -142,14 +163,14 @@ Launchpad generates an IDE prompt that tells the AI agent how to use the Harness
 | Area | English | Chinese |
 | --- | --- | --- |
 | Documentation hub | [docs/en/README.md](./docs/en/README.md) | [docs/zh-CN/README.md](./docs/zh-CN/README.md) |
-| Framework guide | [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) | [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) |
-| Integration guide | [docs/integration-guide.md](./docs/integration-guide.md) | [docs/integration-guide.md](./docs/integration-guide.md) |
-| AI task guides | [docs/ai/](./docs/ai/) | [docs/ai/](./docs/ai/) |
-| AI completion checklist | [docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md) | [docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md) |
-| Web/API/Worker split | [docs/architecture/web-api-service-split.md](./docs/architecture/web-api-service-split.md) | [docs/architecture/web-api-service-split.md](./docs/architecture/web-api-service-split.md) |
-| AI agent rules | [AGENTS.md](./AGENTS.md) | [AGENTS.md](./AGENTS.md) |
+| Framework guide | [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) | [FRAMEWORK_GUIDE.zh-CN.md](./FRAMEWORK_GUIDE.zh-CN.md) |
+| Integration guide | [docs/en/integrations/README.md](./docs/en/integrations/README.md) | [docs/zh-CN/integrations/README.md](./docs/zh-CN/integrations/README.md) |
+| AI task guides | [docs/en/ai/](./docs/en/ai/) | [docs/zh-CN/ai/](./docs/zh-CN/ai/) |
+| AI completion checklist | [docs/en/ai/completion-checklist.md](./docs/en/ai/completion-checklist.md) | [docs/zh-CN/ai/completion-checklist.md](./docs/zh-CN/ai/completion-checklist.md) |
+| Web/API/Worker split | [docs/en/architecture/web-api-service-split.md](./docs/en/architecture/web-api-service-split.md) | [docs/zh-CN/architecture/web-api-service-split.md](./docs/zh-CN/architecture/web-api-service-split.md) |
+| AI agent rules | [AGENTS.md](./AGENTS.md) | [AGENTS.zh-CN.md](./AGENTS.zh-CN.md) |
 
-Legacy Chinese-first docs remain available during migration, including [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md), [docs/integration-guide.md](./docs/integration-guide.md), and [docs/ai-completion-checklist.md](./docs/ai-completion-checklist.md).
+Legacy non-locale paths under `docs/` are compatibility shims. New documentation should use `docs/en/**` and `docs/zh-CN/**`.
 
 ## Star History
 

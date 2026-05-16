@@ -1,9 +1,12 @@
 # Example Business Module
 
-This is a reference template showing how to add a new business feature to the framework.
+This is a small reference module that shows the expected shape of a product-specific feature under `src/modules/<name>/`.
 
-> API 编码约定（Procedure 选择、瘦 Router 原则、错误码、分页）→ [`docs/conventions/api.md`](../../../docs/conventions/api.md)  
-> 后台任务添加步骤 → [`docs/integrations/queue/`](../../../docs/integrations/queue/)
+Before creating a real module, read:
+
+- [`docs/en/ai/new-module.md`](../../../docs/en/ai/new-module.md) for the full module creation flow.
+- [`docs/en/conventions/api.md`](../../../docs/en/conventions/api.md) for tRPC / HTTP API conventions.
+- [`docs/en/integrations/queue/README.md`](../../../docs/en/integrations/queue/README.md) if the module needs background jobs.
 
 ## Structure
 
@@ -21,51 +24,11 @@ src/modules/example/
     └── example-page.tsx       # React page component
 ```
 
-## How to integrate
+## Integration Points
 
-### 1. Register the tRPC router
+- Register the tRPC router in `src/server/api/root.ts`.
+- Export worker queues from `src/workers/queues/index.ts` if the module has background jobs.
+- Export processors from `src/workers/processors/index.ts` and wire them in `src/workers/index.ts`.
+- Create an App Router page under `src/app/` that imports the module component.
 
-In `src/server/api/root.ts`:
-
-```ts
-import { exampleRouter } from "@/modules/example/server/router";
-
-export const appRouter = createTRPCRouter({
-  // ... existing routers
-  example: exampleRouter,
-});
-```
-
-### 2. Register the worker (if using background jobs)
-
-In `src/workers/queues/index.ts`:
-
-```ts
-export {
-  exampleQueue,
-  EXAMPLE_QUEUE_NAME,
-  type ExampleJobData,
-} from "@/modules/example/worker/queue";
-```
-
-In `src/workers/processors/index.ts`:
-
-```ts
-export {
-  processExampleJob,
-  registerExampleScheduler,
-} from "@/modules/example/worker";
-```
-
-Then wire them up in `src/workers/index.ts` following the existing pattern.
-
-### 3. Add a page route
-
-Create `src/app/example/page.tsx`:
-
-```tsx
-import { ExamplePage } from "@/modules/example/components/example-page";
-export default function Page() {
-  return <ExamplePage />;
-}
-```
+Keep product logic inside the module service layer, keep routers thin, and route side effects through framework abstractions such as queues, storage, email, billing, and events.
