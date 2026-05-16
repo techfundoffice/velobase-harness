@@ -26,7 +26,13 @@ Velobase Harness 不是空白脚手架，而是一套能直接承接 AI SaaS 产
 
 ## 快速开始
 
-### 方式 A: 本地自托管开发
+### 方式 A: Velobase Launchpad
+
+最快的路径 — 描述你的产品想法，Launchpad 自动创建仓库、开通全部云资源、生成 AI IDE Prompt，你可以立即开始开发。
+
+👉 **[在 Velobase Cloud 启动](https://velobase.cloud/launchpad)**
+
+### 方式 B: 本地开发
 
 ```bash
 pnpm install
@@ -47,24 +53,7 @@ pnpm api:dev
 pnpm worker:dev
 ```
 
-### 方式 B: 使用 Velobase Cloud 部署
-
-Velobase Cloud 会把本仓库作为 Launchpad 创建项目时的默认应用模板。
-
-1. 在 Velobase Cloud 创建项目，或从 Launchpad 输入产品想法开始。
-2. Cloud 基于 `velobase-harness` 模板创建 GitHub 仓库，并开通 PostgreSQL、Redis、R2、Kubernetes 资源、域名和部署 API 凭证。
-3. 在 GitHub Actions Secret 中配置 `VELOBASE_API_KEY`。
-4. Push 到 `main` 分支。
-5. GitHub Actions 调用 `GET https://api.velobase.cloud/api/v1/deploy/config` 获取镜像仓库信息，构建并推送 Docker 镜像，再调用 `POST https://api.velobase.cloud/api/v1/deploy`。
-6. 部署成功后访问 `https://{subdomain}.velobase.app`。
-
-Cloud 部署要求应用满足：
-
-- 根目录提供 `Dockerfile`
-- HTTP 监听 `3000` 端口
-- 从运行时环境变量读取配置
-- 通过 `prisma migrate deploy` 执行迁移
-- 提供 `GET /healthz` 就绪检查
+准备好部署时，查看 [Cloud 部署指南](./docs/deployment/cloud-deploy.md)。
 
 ## 架构
 

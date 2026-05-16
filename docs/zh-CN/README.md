@@ -20,6 +20,7 @@
 
 | 区域 | 当前位置 |
 | --- | --- |
+| Cloud 部署 | [../deployment/cloud-deploy.md](../deployment/cloud-deploy.md) |
 | API 约定 | [../conventions/api.md](../conventions/api.md) |
 | Debug 流程 | [../debugging/online-local-debug.md](../debugging/online-local-debug.md) |
 | 第三方集成 | [../integrations/](../integrations/) |

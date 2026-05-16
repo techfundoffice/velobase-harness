@@ -61,7 +61,13 @@ An open-source AI SaaS framework, extracted from a product doing 8-figure ARR. U
 
 ## Quick Start
 
-### Option A: Self-hosted local development
+### Option A: Velobase Launchpad
+
+The fastest path — describe your product, Launchpad creates the repo, provisions all Cloud resources, and generates an AI IDE prompt so you can start building immediately.
+
+👉 **[Launch on Velobase Cloud](https://velobase.cloud/launchpad)**
+
+### Option B: Local Development
 
 ```bash
 pnpm install
@@ -82,24 +88,7 @@ pnpm api:dev
 pnpm worker:dev
 ```
 
-### Option B: Deploy with Velobase Cloud
-
-Velobase Cloud uses this repository as the default application template for Launchpad-created projects.
-
-1. Create a project in Velobase Cloud or start from Launchpad.
-2. Cloud creates a GitHub repository from the `velobase-harness` template and provisions PostgreSQL, Redis, R2, Kubernetes resources, domain, and deploy API credentials.
-3. Add `VELOBASE_API_KEY` to GitHub Actions secrets.
-4. Push to `main`.
-5. GitHub Actions calls `GET https://api.velobase.cloud/api/v1/deploy/config`, builds and pushes the Docker image, then calls `POST https://api.velobase.cloud/api/v1/deploy`.
-6. Visit `https://{subdomain}.velobase.app` after deployment succeeds.
-
-Application requirements for Cloud deployment:
-
-- A root `Dockerfile`
-- HTTP listening on port `3000`
-- Environment variables read from runtime env
-- Prisma migration through `prisma migrate deploy`
-- A `GET /healthz` readiness endpoint
+When you are ready to deploy, see the [Cloud Deployment Guide](./docs/deployment/cloud-deploy.md).
 
 ## Architecture
 

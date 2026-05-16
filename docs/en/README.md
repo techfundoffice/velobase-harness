@@ -20,6 +20,7 @@ This directory is the English documentation entry for Velobase Harness. During t
 
 | Area | Current location |
 | --- | --- |
+| Cloud deployment | [../deployment/cloud-deploy.md](../deployment/cloud-deploy.md) |
 | API conventions | [../conventions/api.md](../conventions/api.md) |
 | Debugging workflow | [../debugging/online-local-debug.md](../debugging/online-local-debug.md) |
 | Integrations | [../integrations/](../integrations/) |
