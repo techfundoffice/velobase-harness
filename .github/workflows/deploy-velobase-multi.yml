@@ -69,6 +69,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{
               \"image_tag\": \"$SHA\",
+              \"exposed_service\": \"web\",
               \"services\": [
                 {\"name\": \"web\",    \"mode\": \"web\",    \"port\": 3000, \"health\": \"/healthz\", \"image_tag\": \"web-$SHA\"},
                 {\"name\": \"api\",    \"mode\": \"api\",    \"port\": 3002, \"health\": \"/health\",  \"image_tag\": \"api-$SHA\"},

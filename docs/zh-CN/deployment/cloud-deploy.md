@@ -90,6 +90,8 @@ git push origin main
 velobase-cloud deploy trigger --branch main --watch
 ```
 
+多服务部署（Web + API + Worker）时，Deploy API 请求必须包含 `exposed_service` 字段，指定接收主域名（`{subdomain}.velobase.app`）流量的服务。单服务部署无需此字段。参考 `deploy-velobase-multi.yml` 中的示例。
+
 ## 8. 运维
 
 使用 CLI 查看状态、部署记录、日志、环境变量和回滚：

@@ -90,6 +90,8 @@ You can also trigger a deployment from the CLI:
 velobase-cloud deploy trigger --branch main --watch
 ```
 
+For multi-service deployments (Web + API + Worker), the Deploy API request must include `exposed_service` to specify which service receives traffic on the primary domain (`{subdomain}.velobase.app`). Single-service deployments do not require this field. See `deploy-velobase-multi.yml` for a working example.
+
 ## 8. Operate
 
 Use the CLI for status, deployment runs, logs, environment variables, and rollback:
