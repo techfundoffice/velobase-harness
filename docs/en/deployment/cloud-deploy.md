@@ -7,7 +7,7 @@ Use the Velobase Cloud CLI for project setup, adaptation, deployment checks, and
 ## 1. Install The CLI
 
 ```bash
-npm install -g @velobaseai/cloud-cli
+npm install -g @velobaseai/cloud-cli@latest
 ```
 
 The CLI binary is `velobase-cloud`.

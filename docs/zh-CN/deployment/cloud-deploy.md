@@ -7,7 +7,7 @@
 ## 1. 安装 CLI
 
 ```bash
-npm install -g @velobaseai/cloud-cli
+npm install -g @velobaseai/cloud-cli@latest
 ```
 
 CLI 命令是 `velobase-cloud`。
