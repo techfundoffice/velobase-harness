@@ -2,6 +2,8 @@
 
 AI Chat is a modular chat system built with tRPC, Prisma, and Vercel AI SDK. It supports agent configuration, tool registration, streaming responses, and interaction history.
 
+For the framework-facing capability guide, read [`docs/en/modules/ai-chat/README.md`](../../../docs/en/modules/ai-chat/README.md) or [`docs/zh-CN/modules/ai-chat/README.md`](../../../docs/zh-CN/modules/ai-chat/README.md).
+
 ## Features
 
 - Complete chat flow with message history and streaming responses.
@@ -21,7 +23,7 @@ AI Chat is a modular chat system built with tRPC, Prisma, and Vercel AI SDK. It 
 
 ## Quick Start
 
-Read [the integration guide](./config/INTEGRATION.md).
+Read [the framework guide](../../../docs/en/modules/ai-chat/README.md), then follow [the integration guide](./config/INTEGRATION.md).
 
 ## Structure
 
@@ -30,9 +32,7 @@ src/modules/ai-chat/
 ├── database/
 ├── server/
 │   ├── api/
-│   ├── routers/
 │   ├── services/
-│   ├── tools/
 │   └── lib/
 ├── components/
 ├── types/
@@ -55,6 +55,8 @@ The tool registry provides extension points. The module owns registry and types;
 
 ## Documentation
 
+- [Framework capability guide](../../../docs/en/modules/ai-chat/README.md)
+- [中文能力说明](../../../docs/zh-CN/modules/ai-chat/README.md)
 - [Integration guide](./config/INTEGRATION.md)
 - [Plugin development](./config/PLUGIN_DEV.md)
 - [Examples](./config/EXAMPLES.md)

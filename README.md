@@ -165,6 +165,8 @@ Launchpad generates an IDE prompt that tells the AI agent how to use the Harness
 | Documentation hub | [docs/en/README.md](./docs/en/README.md) | [docs/zh-CN/README.md](./docs/zh-CN/README.md) |
 | Framework guide | [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) | [FRAMEWORK_GUIDE.zh-CN.md](./FRAMEWORK_GUIDE.zh-CN.md) |
 | Integration guide | [docs/en/integrations/README.md](./docs/en/integrations/README.md) | [docs/zh-CN/integrations/README.md](./docs/zh-CN/integrations/README.md) |
+| Product modules | [docs/en/modules/README.md](./docs/en/modules/README.md) | [docs/zh-CN/modules/README.md](./docs/zh-CN/modules/README.md) |
+| AI Chat module | [docs/en/modules/ai-chat/README.md](./docs/en/modules/ai-chat/README.md) | [docs/zh-CN/modules/ai-chat/README.md](./docs/zh-CN/modules/ai-chat/README.md) |
 | AI task guides | [docs/en/ai/](./docs/en/ai/) | [docs/zh-CN/ai/](./docs/zh-CN/ai/) |
 | AI completion checklist | [docs/en/ai/completion-checklist.md](./docs/en/ai/completion-checklist.md) | [docs/zh-CN/ai/completion-checklist.md](./docs/zh-CN/ai/completion-checklist.md) |
 | Web/API/Worker split | [docs/en/architecture/web-api-service-split.md](./docs/en/architecture/web-api-service-split.md) | [docs/zh-CN/architecture/web-api-service-split.md](./docs/zh-CN/architecture/web-api-service-split.md) |

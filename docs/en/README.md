@@ -25,8 +25,9 @@ This directory is the English canonical documentation entry for Velobase Harness
 | Debugging workflow | [./debugging/online-local-debug.md](./debugging/online-local-debug.md) |
 | Integrations | [./integrations/](./integrations/) |
 | Built-in features | [./features/](./features/) |
+| Product modules | [./modules/README.md](./modules/README.md) |
 | Module examples | [../../src/modules/example/README.md](../../src/modules/example/README.md) |
-| AI Chat module | [../../src/modules/ai-chat/README.md](../../src/modules/ai-chat/README.md) |
+| AI Chat module | [./modules/ai-chat/README.md](./modules/ai-chat/README.md) |
 
 ## Documentation Rules
 

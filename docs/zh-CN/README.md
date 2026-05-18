@@ -25,8 +25,9 @@
 | Debug 流程 | [./debugging/online-local-debug.md](./debugging/online-local-debug.md) |
 | 第三方集成 | [./integrations/](./integrations/) |
 | 内置功能 | [./features/](./features/) |
+| 产品模块 | [./modules/README.md](./modules/README.md) |
 | 模块示例 | [../../src/modules/example/README.md](../../src/modules/example/README.md) |
-| AI Chat 模块 | [../../src/modules/ai-chat/README.md](../../src/modules/ai-chat/README.md) |
+| AI Chat 模块 | [./modules/ai-chat/README.md](./modules/ai-chat/README.md) |
 
 ## 文档规则
 
