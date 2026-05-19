@@ -92,6 +92,12 @@ git push origin main
 velobase-cloud deploy trigger --branch main --watch
 ```
 
+切换部署模式时，需要确认当前启用的 GitHub Actions workflow：
+
+- 单服务部署使用 `.github/workflows/deploy-velobase.yml`。它构建一个统一镜像，并使用镜像默认值或 Cloud 环境变量中的 `SERVICE_MODE`。
+- 多服务部署使用 `.github/workflows/deploy-velobase-multi.yml`。它默认构建并部署 Web 和 Worker 服务。
+- 同一时间只保留一个部署 workflow 监听 `main` 分支的 `push`。另一个 workflow 应禁用、移除 `push` 触发，或只保留 `workflow_dispatch`，避免一次提交触发重复部署。
+
 默认多服务部署是 Web + Worker，`exposed_service` 设置为 `web`。只有在独立 Hono routes 已启用时才增加 API 服务；此时在 services 中加入 `mode: "api"`、`port: 3002`、`health: "/health"` 的 API 条目。除非主域名（`{subdomain}.velobase.app`）确实要直接路由到 API，否则 `exposed_service` 仍保持 `web`。
 
 ## 8. 运维

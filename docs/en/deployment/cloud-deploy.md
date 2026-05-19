@@ -92,6 +92,12 @@ You can also trigger a deployment from the CLI:
 velobase-cloud deploy trigger --branch main --watch
 ```
 
+Confirm the active GitHub Actions workflow when switching deployment modes:
+
+- Single-service deployment uses `.github/workflows/deploy-velobase.yml`. It builds one unified image and uses the image or Cloud environment `SERVICE_MODE` value.
+- Multi-service deployment uses `.github/workflows/deploy-velobase-multi.yml`. It builds and deploys Web and Worker services by default.
+- Keep only one deployment workflow listening to `push` on `main`. Disable the inactive workflow, remove its `push` trigger, or leave it as `workflow_dispatch` only to avoid duplicate deployments from one commit.
+
 The default multi-service deployment is Web + Worker with `exposed_service` set to `web`. Add the API service only when standalone Hono routes are active; then include an API service entry with `mode: "api"`, `port: 3002`, and `health: "/health"`. Keep `exposed_service` as `web` unless the primary domain (`{subdomain}.velobase.app`) should route directly to API.
 
 ## 8. Operate
