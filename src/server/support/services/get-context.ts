@@ -32,7 +32,7 @@ export async function getUserContext(userId: string): Promise<UserContext | null
   });
 
   // 获取 credits 余额（via Velobase）
-  const balanceResult = await getBalance({ userId, accountType: "CREDIT" });
+  const balanceResult = await getBalance({ userId });
   const totalCredits = balanceResult.totalSummary.available;
   const usedCredits = balanceResult.totalSummary.used;
 

@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server'
 import { getVelobase } from '../velobase'
-import { VelobaseNotFoundError } from '@velobaseai/billing'
+import { isVelobaseError } from '@velobaseai/billing'
 import type { GetRecordsParams, GetRecordsOutput, RecordSummary } from '../types'
 
 export async function getRecords(params: GetRecordsParams): Promise<GetRecordsOutput> {
@@ -21,7 +21,8 @@ export async function getRecords(params: GetRecordsParams): Promise<GetRecordsOu
       id: entry.id,
       operationType: entry.operationType as RecordSummary['operationType'],
       amount: entry.amount,
-      creditType: entry.creditType,
+      wallet: entry.wallet,
+      source: entry.source,
       transactionId: entry.transactionId ?? null,
       businessType: (entry.businessType as RecordSummary['businessType']) ?? null,
       description: entry.description ?? null,
@@ -37,7 +38,7 @@ export async function getRecords(params: GetRecordsParams): Promise<GetRecordsOu
       nextCursor: res.nextCursor ?? undefined,
     }
   } catch (err) {
-    if (err instanceof VelobaseNotFoundError) {
+    if (isVelobaseError(err) && err.isType('not_found')) {
       return { records: [], total: 0, hasMore: false }
     }
     throw err

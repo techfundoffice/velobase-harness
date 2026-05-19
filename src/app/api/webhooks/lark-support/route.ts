@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     if (action === "approve") {
       const { approveDraft } = await import("@/server/support/services/approve-draft");
       const { addActionEvent } = await import("@/server/support/services/add-event");
-      const { supportSendQueue } = await import("@/workers/queues");
+      const { supportSendQueue } = await import("@/workers/queues/support-send.queue");
       const { generateReplyHtml } = await import("@/server/support/providers/smtp");
       const { executeTool } = await import("@/server/support/ai/tools");
       const { db } = await import("@/server/db");

@@ -1,14 +1,13 @@
 import { z } from "zod";
 import {
-  BillingAccountTypeSchema,
-  BillingSubAccountTypeSchema,
   BillingBusinessTypeSchema,
+  BillingSourceSchema,
 } from "./shared";
 
 export const GrantInputSchema = z.object({
   userId: z.string().min(1),
-  accountType: BillingAccountTypeSchema,
-  subAccountType: BillingSubAccountTypeSchema,
+  wallet: z.string().min(1).optional(),
+  source: BillingSourceSchema.optional(),
   amount: z.number().int().positive(),
   outerBizId: z.string().min(1),
   businessType: BillingBusinessTypeSchema.optional(),
@@ -20,9 +19,10 @@ export const GrantInputSchema = z.object({
 
 export const GrantOutputSchema = z.object({
   accountId: z.string(),
+  wallet: z.string(),
+  source: z.string(),
   totalAmount: z.number(),
   addedAmount: z.number(),
   recordId: z.string(),
   isIdempotentReplay: z.boolean(),
 });
-

@@ -205,7 +205,7 @@ export async function listForPricing({
   if (userId) {
     const [rawSubStatus, balanceData, user, offer] = await Promise.all([
       getSubscriptionStatus({ userId }).catch(() => ({ status: 'NONE' } as SubscriptionStatusResult)),
-      getBalance({ userId, accountType: 'CREDIT' }).catch(() => ({
+      getBalance({ userId }).catch(() => ({
         totalSummary: { total: 0, used: 0, frozen: 0, available: 0 },
         accounts: [],
       })),

@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server'
 import { getVelobase } from '../velobase'
+import { normalizeBillingDetail } from './sdk-details'
 import type { UnfreezeParams, UnfreezeOutput } from '../types'
 
 export async function unfreeze(params: UnfreezeParams): Promise<UnfreezeOutput> {
@@ -11,16 +12,10 @@ export async function unfreeze(params: UnfreezeParams): Promise<UnfreezeOutput> 
     transactionId: params.businessId,
   })
 
-  const details = result.unfreezeDetails as Array<{ accountId: string; creditType?: string; amount: number }>
-
   return {
     totalAmount: result.unfrozenAmount,
-    unfreezeDetails: details.map((d) => ({
-      freezeId: params.businessId,
-      accountId: d.accountId,
-      subAccountType: (d.creditType ?? 'DEFAULT') as UnfreezeOutput['unfreezeDetails'][number]['subAccountType'],
-      amount: d.amount,
-    })),
+    unfreezeDetails: result.unfreezeDetails.map((d) => ({ freezeId: params.businessId, ...normalizeBillingDetail(d) })),
     unfrozenAt: result.unfrozenAt,
+    isIdempotentReplay: result.isIdempotentReplay,
   }
 }

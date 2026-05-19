@@ -1,10 +1,11 @@
 import { TRPCError } from '@trpc/server'
 import { getVelobase } from '../velobase'
-import type { BillingAccountType, BillingBusinessType, BillingSubAccountType } from '../types'
+import { normalizeBillingDetail } from './sdk-details'
+import type { BillingBusinessType } from '../types'
 
 export type PostConsumeParams = {
   userId: string
-  accountType?: BillingAccountType
+  wallet?: string
   amount: number
   businessId: string
   businessType?: BillingBusinessType
@@ -13,8 +14,9 @@ export type PostConsumeParams = {
 }
 
 export type PostConsumeDetail = {
-  accountId: string
-  subAccountType: BillingSubAccountType
+  accountId?: string
+  wallet: string
+  source: string
   amount: number
 }
 
@@ -31,33 +33,18 @@ export async function postConsume(params: PostConsumeParams): Promise<PostConsum
 
   const vb = getVelobase()
 
-  // Velobase SDK 支持的 businessType 列表；ADMIN_DEDUCT 等不支持的类型会映射为 ADMIN_GRANT
-  const sdkBusinessTypes = ['TASK', 'ORDER', 'MEMBERSHIP', 'SUBSCRIPTION', 'FREE_TRIAL', 'ADMIN_GRANT'] as const
-  const businessTypeMap: Record<string, typeof sdkBusinessTypes[number]> = { ADMIN_DEDUCT: 'ADMIN_GRANT' }
-  const raw = params.businessType
-  const mapped = raw ? businessTypeMap[raw] : undefined
-  const bt = mapped
-    ?? (raw && sdkBusinessTypes.includes(raw as typeof sdkBusinessTypes[number])
-      ? (raw as typeof sdkBusinessTypes[number])
-      : undefined)
-
   const result = await vb.billing.deduct({
     customerId: params.userId,
     amount: params.amount,
     transactionId: params.businessId,
-    businessType: bt,
+    wallet: params.wallet,
+    businessType: params.businessType,
     description: params.description ?? undefined,
   })
 
-  const details = result.deductDetails as Array<{ accountId: string; creditType?: string; amount: number }>
-
   return {
     totalAmount: result.deductedAmount,
-    consumeDetails: details.map((d) => ({
-      accountId: d.accountId,
-      subAccountType: (d.creditType ?? 'DEFAULT') as BillingSubAccountType,
-      amount: d.amount,
-    })),
+    consumeDetails: result.deductDetails.map(normalizeBillingDetail),
     consumedAt: result.deductedAt,
   }
 }

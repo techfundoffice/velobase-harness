@@ -445,8 +445,7 @@ export const authConfig = {
             // 全额发放初始积分（Velobase 不支持 PENDING 状态，统一全额发放）
             await grant({
               userId: user.id,
-              accountType: "CREDIT",
-              subAccountType: "FIRST_LOGIN",
+              source: "first_login",
               amount,
               outerBizId: `initial_grant_${grantKey}`,
               businessType: "ADMIN_GRANT",

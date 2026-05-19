@@ -1061,9 +1061,8 @@ enum ProductStatus {
   INACTIVE
 }
 
-// Billing enums (BillingAccountType, BillingSubAccountType, BillingAccountStatus,
-// BillingOperationType, BillingBusinessType, BillingRecordStatus, BillingFreezeStatus)
-// have been migrated to Velobase. Local type definitions are in src/server/billing/types/.
+// Local billing tables and enums have been migrated to Velobase.
+// Current local type definitions are in src/server/billing/types/.
 
 enum UserSubscriptionStatus {
   UNDEFINED
@@ -1457,4 +1456,3 @@ model SupportSyncCursor {
 
   @@map("support_sync_cursors")
 }
-

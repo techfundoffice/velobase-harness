@@ -104,7 +104,7 @@ export function UserCreditsDisplay({ userId, userName, className }: UserCreditsD
             <TableBody>
               {data.accounts.map((account, idx) => (
                 <TableRow key={idx}>
-                  <TableCell className="font-medium">{account.creditType ?? account.subAccountType}</TableCell>
+                  <TableCell className="font-medium">{account.source}</TableCell>
                   <TableCell className="text-right">{account.available}</TableCell>
                   <TableCell className="text-right">{account.total}</TableCell>
                   <TableCell className="text-right">{account.used}</TableCell>
@@ -153,7 +153,7 @@ export function UserCreditsDisplay({ userId, userName, className }: UserCreditsD
                 <TableBody>
                   {grantRecords.map((record) => (
                     <TableRow key={record.id}>
-                      <TableCell className="font-medium">{record.creditType}</TableCell>
+                      <TableCell className="font-medium">{record.source}</TableCell>
                       <TableCell className="text-right font-medium text-green-600">
                         +{record.amount}
                       </TableCell>
@@ -216,7 +216,7 @@ export function UserCreditsDisplay({ userId, userName, className }: UserCreditsD
                       <TableCell className="text-right font-medium text-amber-600">
                         -{record.amount}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{record.creditType}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{record.source}</TableCell>
                       <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
                         {record.description || "-"}
                       </TableCell>

@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server'
 import { getVelobase } from '../velobase'
-import { VelobaseNotFoundError } from '@velobaseai/billing'
+import { isVelobaseError } from '@velobaseai/billing'
 import type { GetBalanceParams, GetBalanceOutput, AccountSummary } from '../types'
 
 export async function getBalance(params: GetBalanceParams): Promise<GetBalanceOutput> {
@@ -11,31 +11,40 @@ export async function getBalance(params: GetBalanceParams): Promise<GetBalanceOu
   try {
     const customer = await vb.customers.get(params.userId)
 
-    const summaries: AccountSummary[] = customer.accounts
-      .filter((a: { available: number }) => a.available > 0)
-      .map((a: { accountType: string; creditType: string; total: number; used: number; frozen: number; available: number; startsAt: string | null; expiresAt: string | null }) => ({
-        accountType: (a.accountType ?? 'CREDIT') as AccountSummary['accountType'],
-        subAccountType: (a.creditType ?? 'DEFAULT') as AccountSummary['subAccountType'],
-        creditType: a.creditType ?? 'DEFAULT',
-        total: a.total,
-        used: a.used,
-        frozen: a.frozen,
-        available: a.available,
-        startsAt: a.startsAt ? new Date(a.startsAt) : null,
-        expiresAt: a.expiresAt ? new Date(a.expiresAt) : null,
-      }))
+    const walletEntries = Object.entries(customer.wallets)
+      .filter(([wallet]) => !params.wallet || wallet === params.wallet)
+
+    const summaries: AccountSummary[] = walletEntries.flatMap(([wallet, balance]) =>
+      balance.sources
+        .filter((source) => source.available > 0)
+        .map((source) => ({
+          wallet,
+          source: source.source,
+          total: source.total,
+          used: source.used,
+          frozen: source.frozen,
+          available: source.available,
+          startsAt: source.startsAt ? new Date(source.startsAt) : null,
+          expiresAt: source.expiresAt ? new Date(source.expiresAt) : null,
+        })),
+    )
+
+    const totals = walletEntries.reduce(
+      (acc, [, balance]) => ({
+        total: acc.total + balance.total,
+        used: acc.used + balance.used,
+        frozen: acc.frozen + balance.frozen,
+        available: acc.available + balance.available,
+      }),
+      { total: 0, used: 0, frozen: 0, available: 0 },
+    )
 
     return {
-      totalSummary: {
-        total: customer.balance.total,
-        used: customer.balance.used,
-        frozen: customer.balance.frozen,
-        available: customer.balance.available,
-      },
+      totalSummary: totals,
       accounts: summaries,
     }
   } catch (err) {
-    if (err instanceof VelobaseNotFoundError) {
+    if (isVelobaseError(err) && err.isType('not_found')) {
       return {
         totalSummary: { total: 0, used: 0, frozen: 0, available: 0 },
         accounts: [],

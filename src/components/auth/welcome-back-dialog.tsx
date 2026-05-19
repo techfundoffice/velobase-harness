@@ -37,7 +37,6 @@ export function WelcomeBackDialog({ onTopUp, open: controlledOpen, onOpenChange 
   const { data: balance } = api.billing.getBalance.useQuery(
     { 
       userId: session?.user?.id ?? "",
-      accountType: "CREDIT" 
     },
     { 
       enabled: !!session?.user?.id && !isControlled,
@@ -137,4 +136,3 @@ export function WelcomeBackDialog({ onTopUp, open: controlledOpen, onOpenChange 
     </Dialog>
   );
 }
-

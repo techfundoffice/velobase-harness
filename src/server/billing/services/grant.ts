@@ -12,7 +12,8 @@ export async function grant(params: GrantParams): Promise<GrantOutput> {
   const result = await vb.customers.deposit({
     customerId: params.userId,
     amount: params.amount,
-    creditType: params.subAccountType ?? 'DEFAULT',
+    wallet: params.wallet,
+    source: params.source ?? 'default',
     idempotencyKey: params.outerBizId,
     startsAt: params.startsAt?.toISOString(),
     expiresAt: params.expiresAt?.toISOString(),
@@ -21,6 +22,8 @@ export async function grant(params: GrantParams): Promise<GrantOutput> {
 
   return {
     accountId: result.accountId,
+    wallet: result.wallet,
+    source: result.source,
     totalAmount: result.totalAmount,
     addedAmount: result.addedAmount,
     recordId: result.recordId,

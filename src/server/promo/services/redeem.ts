@@ -1,7 +1,7 @@
 import { db } from "@/server/db"
 import { grant } from '@/server/billing/services/grant'
 import { processFulfillmentByPayment } from '@/server/fulfillment/manager'
-import type { BillingAccountType, BillingSubAccountType, BillingBusinessType } from '@/server/billing/types'
+import type { BillingBusinessType } from '@/server/billing/types'
 import { Prisma } from '@prisma/client'
 import type { RedeemCodeParams, RedeemCodeResult } from '../types'
 import { validateCode } from './validate'
@@ -72,8 +72,7 @@ export async function redeemCode(params: RedeemCodeParams): Promise<RedeemCodeRe
         const outerBizId = `promo_${promo.id}_${userId}`
         const grantRes = await grant({
           userId,
-          accountType: 'CREDIT' as BillingAccountType,
-          subAccountType: 'PROMO_CODE' as BillingSubAccountType,
+          source: "promo_code",
           amount: promo.creditsAmount,
           outerBizId,
           businessType: 'ADMIN_GRANT' as BillingBusinessType,
@@ -158,6 +157,5 @@ export async function redeemCode(params: RedeemCodeParams): Promise<RedeemCodeRe
 
   return { success: false, message: 'unsupported grant type' }
 }
-
 
 

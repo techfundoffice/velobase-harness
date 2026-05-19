@@ -72,7 +72,6 @@ export function parseTextContent(content: string): string {
 
 let messageHandler: ((data: MessageEventData) => Promise<void> | void) | null = null;
 let cardActionHandler: ((data: CardActionEventData) => Promise<LarkCard | void> | LarkCard | void) | null = null;
-
 export function onMessage(handler: (data: MessageEventData) => Promise<void> | void): void {
   messageHandler = handler;
 }

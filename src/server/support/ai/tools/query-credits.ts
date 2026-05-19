@@ -3,7 +3,7 @@
  */
 
 import { getVelobase } from "@/server/billing/velobase";
-import { VelobaseNotFoundError } from "@velobaseai/billing";
+import { isVelobaseError } from "@velobaseai/billing";
 
 export interface CreditsInfo {
   available: number;
@@ -22,23 +22,30 @@ export async function queryCredits(userId: string): Promise<CreditsInfo> {
 
   try {
     const customer = await vb.customers.get(userId);
+    const totals = Object.values(customer.wallets).reduce(
+      (acc, wallet) => ({
+        available: acc.available + wallet.available,
+        used: acc.used + wallet.used,
+        frozen: acc.frozen + wallet.frozen,
+        total: acc.total + wallet.total,
+      }),
+      { available: 0, used: 0, frozen: 0, total: 0 },
+    );
 
     return {
-      available: customer.balance.available,
-      used: customer.balance.used,
-      frozen: customer.balance.frozen,
-      total: customer.balance.total,
-      accounts: customer.accounts.map((a) => ({
-        type: a.creditType,
-        available: a.available,
-        expiresAt: a.expiresAt ? new Date(a.expiresAt) : undefined,
-      })),
+      ...totals,
+      accounts: Object.values(customer.wallets).flatMap((wallet) =>
+        wallet.sources.map((source) => ({
+          type: source.source,
+          available: source.available,
+          expiresAt: source.expiresAt ? new Date(source.expiresAt) : undefined,
+        })),
+      ),
     };
   } catch (err) {
-    if (err instanceof VelobaseNotFoundError) {
+    if (isVelobaseError(err) && err.isType("not_found")) {
       return { available: 0, used: 0, frozen: 0, total: 0, accounts: [] };
     }
     throw err;
   }
 }
-

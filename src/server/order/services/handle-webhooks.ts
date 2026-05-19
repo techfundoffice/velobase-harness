@@ -851,8 +851,7 @@ export async function handleStripeSubscriptionRenewal(
 
       await grant({
         userId: subscription.userId,
-        accountType: "CREDIT",
-        subAccountType: "MEMBERSHIP",
+        source: "membership",
         amount: creditsPerPeriod,
         outerBizId,
         businessType: "SUBSCRIPTION",
