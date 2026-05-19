@@ -12,7 +12,8 @@ const RecordSummarySchema = z.object({
   id: z.string(),
   operationType: z.string(),
   amount: z.number(),
-  creditType: z.string(),
+  wallet: z.string(),
+  source: z.string(),
   transactionId: z.string().nullable().optional(),
   businessType: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
@@ -27,4 +28,3 @@ export const GetRecordsOutputSchema = z.object({
   hasMore: z.boolean(),
   nextCursor: z.string().optional(),
 });
-

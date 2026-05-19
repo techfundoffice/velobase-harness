@@ -23,8 +23,7 @@ export const creditsFulfiller: Fulfiller = {
 
     await grant({
       userId: ctx.order.userId,
-      accountType: 'CREDIT',
-      subAccountType: 'ORDER',
+      source: "order",
       amount: amount * purchaseQuantity,
       outerBizId: `order_${ctx.order.id}_credits`,
       businessType: 'ORDER',

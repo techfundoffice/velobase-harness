@@ -73,50 +73,65 @@ let messageHandler: ((data: MessageEventData) => Promise<void> | void) | null = 
 // 卡片交互处理器
 let cardActionHandler: ((data: CardActionEventData) => Promise<LarkCard | void> | LarkCard | void) | null = null;
 
-// EventDispatcher（带 autoChallenge）
-const eventDispatcher = new lark.EventDispatcher({
-  encryptKey: env.LARK_ENCRYPT_KEY ?? '',
-  verificationToken: env.LARK_VERIFICATION_TOKEN ?? '',
-}).register({
-  'im.message.receive_v1': async (data) => {
-    const typed = data as MessageEventData;
-    logger.info(
-      { chatId: typed.message?.chat_id, senderId: typed.sender?.sender_id?.open_id },
-      'Message received',
-    );
-    if (messageHandler) {
-      await messageHandler(typed);
-    }
-  },
-});
+let eventDispatcher: ReturnType<typeof createEventDispatcher> | null = null;
+let cardDispatcher: ReturnType<typeof createCardDispatcher> | null = null;
 
-// CardActionHandler（处理卡片按钮点击）
-const cardDispatcher = new lark.CardActionHandler(
-  {
+function createEventDispatcher() {
+  return new lark.EventDispatcher({
     encryptKey: env.LARK_ENCRYPT_KEY ?? '',
     verificationToken: env.LARK_VERIFICATION_TOKEN ?? '',
-  },
-  async (data: lark.InteractiveCardActionEvent) => {
-    const typed = data as unknown as CardActionEventData;
-    logger.info(
-      {
-        openId: typed.open_id,
-        messageId: typed.open_message_id,
-        action: typed.action,
-      },
-      'Card action received',
-    );
-    if (cardActionHandler) {
-      const result = await cardActionHandler(typed);
-      // 如果返回卡片，则更新原卡片
-      if (result) {
-        // 返回卡片内容，SDK 会自动更新原卡片
-        return result as unknown;
+  }).register({
+    'im.message.receive_v1': async (data) => {
+      const typed = data as MessageEventData;
+      logger.info(
+        { chatId: typed.message?.chat_id, senderId: typed.sender?.sender_id?.open_id },
+        'Message received',
+      );
+      if (messageHandler) {
+        await messageHandler(typed);
       }
-    }
-    return undefined;
-  },
-);
+    },
+  });
+}
+
+function createCardDispatcher() {
+  return new lark.CardActionHandler(
+    {
+      encryptKey: env.LARK_ENCRYPT_KEY ?? '',
+      verificationToken: env.LARK_VERIFICATION_TOKEN ?? '',
+    },
+    async (data: lark.InteractiveCardActionEvent) => {
+      const typed = data as unknown as CardActionEventData;
+      logger.info(
+        {
+          openId: typed.open_id,
+          messageId: typed.open_message_id,
+          action: typed.action,
+        },
+        'Card action received',
+      );
+      if (cardActionHandler) {
+        const result = await cardActionHandler(typed);
+        // 如果返回卡片，则更新原卡片
+        if (result) {
+          // 返回卡片内容，SDK 会自动更新原卡片
+          return result as unknown;
+        }
+      }
+      return undefined;
+    },
+  );
+}
+
+function getEventDispatcher() {
+  eventDispatcher ??= createEventDispatcher();
+  return eventDispatcher;
+}
+
+function getCardDispatcher() {
+  cardDispatcher ??= createCardDispatcher();
+  return cardDispatcher;
+}
 
 /**
  * 注册消息事件处理器
@@ -175,12 +190,12 @@ export async function handleEventRequest(
     // 判断是卡片交互还是消息事件
     if (isCardActionRequest(body)) {
       logger.info('Processing as card action request');
-      const result = (await cardDispatcher.invoke(merged)) as unknown;
+      const result = (await getCardDispatcher().invoke(merged)) as unknown;
       return result ?? { success: true };
     }
 
     // 默认作为消息事件处理
-    const result = (await eventDispatcher.invoke(merged)) as unknown;
+    const result = (await getEventDispatcher().invoke(merged)) as unknown;
     return result ?? { success: true };
   } catch (error) {
     logger.error({ error }, 'EventDispatcher invoke error');

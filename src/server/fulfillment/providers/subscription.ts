@@ -170,8 +170,7 @@ export const subscriptionFulfiller: Fulfiller = {
               const outerBizId = `subscription_cycle_${activeCycle.id}_credits_week_${dayStr}`
               await grant({
                 userId: ctx.order.userId,
-                accountType: 'CREDIT',
-                subAccountType: 'MEMBERSHIP',
+                source: "membership",
                 amount: creditsPerPeriod,
                 outerBizId,
                 businessType: 'SUBSCRIPTION',
@@ -227,8 +226,7 @@ export const subscriptionFulfiller: Fulfiller = {
       // 授予 Trial 积分（使用 FREE_TRIAL 维度，便于后续分析）
       await grant({
         userId: ctx.order.userId,
-        accountType: 'CREDIT',
-        subAccountType: 'FREE_TRIAL',
+        source: "free_trial",
         amount: trialCredits,
         outerBizId: `subscription_trial_${trialCycle.id}`,
         businessType: 'FREE_TRIAL',
@@ -302,8 +300,7 @@ export const subscriptionFulfiller: Fulfiller = {
           const dayStr = creditStartsAt.toISOString().slice(0, 10) // YYYY-MM-DD
           await grant({
             userId: ctx.order.userId,
-            accountType: 'CREDIT',
-            subAccountType: 'MEMBERSHIP',
+            source: "membership",
             amount: creditsPerPeriod,
             outerBizId: `subscription_cycle_${cycle.id}_credits_week_${dayStr}`,
             businessType: 'SUBSCRIPTION',
@@ -319,8 +316,7 @@ export const subscriptionFulfiller: Fulfiller = {
         const monthStr = startsAt.toISOString().slice(0, 7) // YYYY-MM
         await grant({
           userId: ctx.order.userId,
-          accountType: 'CREDIT',
-          subAccountType: 'MEMBERSHIP',
+          source: "membership",
           amount: creditsPerPeriod,
           outerBizId: `subscription_cycle_${cycle.id}_credits_${monthStr}`,
           businessType: 'SUBSCRIPTION',

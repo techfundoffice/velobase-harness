@@ -1,14 +1,13 @@
 import { z } from "zod";
-import { BillingAccountTypeSchema } from "./shared";
 
 export const GetBalanceInputSchema = z.object({
   userId: z.string().min(1),
-  accountType: BillingAccountTypeSchema.optional(),
+  wallet: z.string().min(1).optional(),
 });
 
 const AccountSummarySchema = z.object({
-  accountType: BillingAccountTypeSchema,
-  subAccountType: z.string(),
+  wallet: z.string(),
+  source: z.string(),
   total: z.number(),
   used: z.number(),
   frozen: z.number(),
@@ -26,4 +25,3 @@ export const GetBalanceOutputSchema = z.object({
   }),
   accounts: z.array(AccountSummarySchema),
 });
-

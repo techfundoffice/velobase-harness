@@ -2,11 +2,16 @@ import { getRequestConfig } from "next-intl/server";
 import { cookies, headers } from "next/headers";
 import { defaultLocale, locales, type Locale } from "./config";
 
+type MessagesModule = {
+  default: Record<string, unknown>;
+};
+
 export default getRequestConfig(async () => {
   const locale = await resolveLocale();
+  const messagesModule = (await import(`../../messages/${locale}.json`)) as MessagesModule;
   return {
     locale,
-    messages: (await import(`../../messages/${locale}.json`)).default,
+    messages: messagesModule.default,
   };
 });
 

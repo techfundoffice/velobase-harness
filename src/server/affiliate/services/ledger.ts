@@ -470,8 +470,7 @@ export async function exchangeAffiliateCredits(params: {
     const outerBizId = `affiliate_exchange_${params.payoutRequestId}`;
     await grant({
       userId: params.userId,
-      accountType: 'CREDIT',
-      subAccountType: 'DEFAULT',
+      source: "default",
       amount: params.credits,
       outerBizId,
       businessType: 'ADMIN_GRANT',

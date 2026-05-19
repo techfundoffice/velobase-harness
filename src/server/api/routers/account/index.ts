@@ -57,7 +57,7 @@ export const accountRouter = createTRPCRouter({
       const subPromise: Promise<SubscriptionStatusResult> = getSubscriptionStatus({ userId }).catch(
         () => ({ status: 'NONE' } as SubscriptionStatusResult)
       )
-      const balancePromise: Promise<GetBalanceOutput> = getBalance({ userId, accountType: 'CREDIT' }).catch(
+      const balancePromise: Promise<GetBalanceOutput> = getBalance({ userId }).catch(
         () => ({ totalSummary: { total: 0, used: 0, frozen: 0, available: 0 }, accounts: [] } as GetBalanceOutput)
       )
       const userPromise = ctx.db.user

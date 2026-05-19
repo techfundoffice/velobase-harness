@@ -3,7 +3,7 @@
  *
  * 测试计费服务的核心操作：
  * 1. grant 幂等性 — Stripe webhook 重试不会重复发放
- * 2. ADMIN_DEDUCT businessType 映射 — SDK 不支持的类型正确降级
+ * 2. 管理员扣减 — 使用 SDK 支持的 ADMIN_GRANT businessType 记录人工操作
  * 3. 初始积分全额可用 — 不存在 PENDING 锁定
  *
  * 前置条件：Velobase Billing 可用，.env 配置完成
@@ -46,8 +46,7 @@ async function testGrantIdempotency() {
 
   const first = await grant({
     userId,
-    accountType: 'CREDIT',
-    subAccountType: 'MEMBERSHIP',
+    source: "membership",
     amount: 100,
     outerBizId,
     businessType: 'SUBSCRIPTION',
@@ -62,8 +61,7 @@ async function testGrantIdempotency() {
 
   const second = await grant({
     userId,
-    accountType: 'CREDIT',
-    subAccountType: 'MEMBERSHIP',
+    source: "membership",
     amount: 100,
     outerBizId,
     businessType: 'SUBSCRIPTION',
@@ -77,7 +75,7 @@ async function testGrantIdempotency() {
   }
 
   const { getBalance } = await import('../../../../src/server/billing/services/get-balance')
-  const balance = await getBalance({ userId, accountType: 'CREDIT' })
+  const balance = await getBalance({ userId })
 
   if (balance.totalSummary.available === 100) {
     ok('余额正确', `available=${balance.totalSummary.available}（不是 200）`)
@@ -87,10 +85,10 @@ async function testGrantIdempotency() {
 }
 
 // ════════════════════════════════════════════════════════════════════
-// 测试 2：ADMIN_DEDUCT businessType 映射
+// 测试 2：管理员扣减
 // ════════════════════════════════════════════════════════════════════
 async function testAdminDeduct() {
-  console.log('\n── 2. ADMIN_DEDUCT businessType 映射 ──')
+  console.log('\n── 2. 管理员扣减 ──')
   console.log('场景：管理员手动扣减用户积分 / 滥用检测回收积分')
   console.log('')
 
@@ -102,8 +100,7 @@ async function testAdminDeduct() {
 
   await grant({
     userId,
-    accountType: 'CREDIT',
-    subAccountType: 'FIRST_LOGIN',
+    source: "first_login",
     amount: 50,
     outerBizId: `test_grant_${userId}`,
     businessType: 'ADMIN_GRANT',
@@ -112,10 +109,9 @@ async function testAdminDeduct() {
 
   await postConsume({
     userId,
-    accountType: 'CREDIT',
     amount: 10,
     businessId: `admin_deduct_${userId}_${Date.now()}`,
-    businessType: 'ADMIN_DEDUCT',
+    businessType: "ADMIN_GRANT",
     description: 'Admin manual deduction test',
   })
 
@@ -126,7 +122,7 @@ async function testAdminDeduct() {
 
   if (deductRecord) {
     if (deductRecord.businessType === 'ADMIN_GRANT') {
-      ok('businessType 映射', `ADMIN_DEDUCT → ADMIN_GRANT（SDK 限制，通过 description 区分）`)
+      ok('businessType', `ADMIN_GRANT（通过 description 区分扣减场景）`)
     } else {
       fail('businessType 映射', `businessType="${deductRecord.businessType}"，预期 ADMIN_GRANT`)
     }
@@ -136,7 +132,7 @@ async function testAdminDeduct() {
   }
 
   const { getBalance } = await import('../../../../src/server/billing/services/get-balance')
-  const balance = await getBalance({ userId, accountType: 'CREDIT' })
+  const balance = await getBalance({ userId })
 
   if (balance.totalSummary.available === 40) {
     ok('余额正确', `50 - 10 = ${balance.totalSummary.available}`)
@@ -160,15 +156,14 @@ async function testNoPendingStatus() {
 
   await grant({
     userId,
-    accountType: 'CREDIT',
-    subAccountType: 'FIRST_LOGIN',
+    source: "first_login",
     amount: 500,
     outerBizId: `initial_grant_${userId}`,
     businessType: 'ADMIN_GRANT',
     description: 'Welcome Gift: 500 Credits',
   })
 
-  const balance = await getBalance({ userId, accountType: 'CREDIT' })
+  const balance = await getBalance({ userId })
 
   if (balance.totalSummary.available === 500) {
     ok('全额可用', `available=${balance.totalSummary.available}（没有 PENDING 锁定）`)
@@ -179,14 +174,13 @@ async function testNoPendingStatus() {
   const { postConsume } = await import('../../../../src/server/billing/services/post-consume')
   await postConsume({
     userId,
-    accountType: 'CREDIT',
     amount: 500,
     businessId: `abuse_clawback_${userId}_${Date.now()}`,
-    businessType: 'ADMIN_DEDUCT',
+    businessType: "ADMIN_GRANT",
     description: 'Abuse clawback: same IP detected',
   })
 
-  const afterClawback = await getBalance({ userId, accountType: 'CREDIT' })
+  const afterClawback = await getBalance({ userId })
 
   if (afterClawback.totalSummary.available === 0) {
     ok('回收成功', `available=${afterClawback.totalSummary.available}（积分已回收）`)

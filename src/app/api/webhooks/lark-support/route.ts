@@ -8,7 +8,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createLogger } from "@/lib/logger";
 import { approveDraft, rejectDraft } from "@/server/support/services/approve-draft";
 import { addActionEvent } from "@/server/support/services/add-event";
-import { supportSendQueue } from "@/workers/queues";
 import { generateReplyHtml } from "@/server/support/providers/smtp";
 import { executeTool, type ToolName } from "@/server/support/ai/tools";
 import { db } from "@/server/db";
@@ -102,6 +101,7 @@ export async function POST(req: NextRequest) {
       }
 
       // 入发送队列
+      const { supportSendQueue } = await import("@/workers/queues/support-send.queue");
       await supportSendQueue.add(
         `send-${ticketId}`,
         {
@@ -160,4 +160,3 @@ export async function GET(req: NextRequest) {
   }
   return NextResponse.json({ status: "ok" });
 }
-

@@ -203,14 +203,13 @@ export async function checkAndBlockEmailAbuse(
       const { postConsume } = await import("@/server/billing/services/post-consume");
       const { getBalance } = await import("@/server/billing/services/get-balance");
 
-      const balance = await getBalance({ userId, accountType: "CREDIT" });
+      const balance = await getBalance({ userId });
       if (balance.totalSummary.available > 0) {
         await postConsume({
           userId,
-          accountType: "CREDIT",
           amount: balance.totalSummary.available,
           businessId: `abuse_clawback_${userId}_${Date.now()}`,
-          businessType: "ADMIN_DEDUCT",
+          businessType: "ADMIN_GRANT",
           description: `Abuse clawback: ${result.reason}`,
         });
       }

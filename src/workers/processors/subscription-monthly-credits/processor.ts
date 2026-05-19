@@ -149,8 +149,7 @@ async function processSingleCycle(cycleId: string): Promise<void> {
   // grant 自身具备基于 outerBizId 的幂等性；这里不再额外查询 BillingAccount
   await grant({
     userId: cycle.subscription.userId,
-    accountType: "CREDIT",
-    subAccountType: "MEMBERSHIP",
+    source: "membership",
     amount: creditsPerPeriod,
     outerBizId,
     businessType: "SUBSCRIPTION",

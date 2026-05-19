@@ -336,8 +336,7 @@ async function testEnforceClawback() {
   // 模拟已发放 500 初始积分
   await grant({
     userId,
-    accountType: 'CREDIT',
-    subAccountType: 'FIRST_LOGIN',
+    source: "first_login",
     amount: 500,
     outerBizId: `initial_grant_${userId}`,
     businessType: 'ADMIN_GRANT',
@@ -345,7 +344,7 @@ async function testEnforceClawback() {
   })
 
   // 确认发放成功
-  const before = await getBalance({ userId, accountType: 'CREDIT' })
+  const before = await getBalance({ userId })
   if (before.totalSummary.available === 500) {
     ok('初始积分发放', `available=${before.totalSummary.available}`)
   } else {
@@ -362,7 +361,7 @@ async function testEnforceClawback() {
   }
 
   // 验证积分已被回收
-  const after = await getBalance({ userId, accountType: 'CREDIT' })
+  const after = await getBalance({ userId })
   if (after.totalSummary.available === 0) {
     ok('积分回收', `available=${after.totalSummary.available}（全部回收）`)
   } else {
@@ -395,8 +394,7 @@ async function testEnforceNoClawback() {
 
   await grant({
     userId,
-    accountType: 'CREDIT',
-    subAccountType: 'FIRST_LOGIN',
+    source: "first_login",
     amount: 300,
     outerBizId: `initial_grant_${userId}`,
     businessType: 'ADMIN_GRANT',
@@ -411,7 +409,7 @@ async function testEnforceNoClawback() {
     fail('非滥用判定', 'enforceSignupAbuse 不应返回 true')
   }
 
-  const after = await getBalance({ userId, accountType: 'CREDIT' })
+  const after = await getBalance({ userId })
   if (after.totalSummary.available === 300) {
     ok('积分保留', `available=${after.totalSummary.available}（未被回收）`)
   } else {

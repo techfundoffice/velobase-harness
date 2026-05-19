@@ -55,8 +55,7 @@ export async function addCredits(
   try {
     const result = await grant({
       userId,
-      accountType: "CREDIT",
-      subAccountType: "DEFAULT",
+      source: "default",
       amount,
       outerBizId: `support_grant_${userId}_${Date.now()}`,
       businessType: "ADMIN_GRANT", // Using same type as admin for consistency

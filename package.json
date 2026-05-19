@@ -88,7 +88,7 @@
     "@trpc/react-query": "^11.0.0",
     "@trpc/server": "^11.0.0",
     "@types/sharp": "^0.32.0",
-    "@velobaseai/billing": "^0.1.4",
+    "@velobaseai/billing": "^1.1.0",
     "ai": "^5.0.68",
     "bcryptjs": "^3.0.3",
     "browser-image-compression": "^2.0.2",

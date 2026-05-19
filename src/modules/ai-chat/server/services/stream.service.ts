@@ -277,7 +277,6 @@ async function handleBilling(params: {
     
     await postConsume({
       userId,
-      accountType: 'CREDIT',
       amount: cost,
       businessId,
       businessType: 'TOKEN_USAGE',

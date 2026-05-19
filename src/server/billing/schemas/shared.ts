@@ -1,20 +1,6 @@
 import { z } from "zod";
 
-/**
- * Shared billing enums and types
- */
-export const BillingAccountTypeSchema = z.enum(["UNDEFINED", "QUOTA", "CREDIT"]);
-
-export const BillingSubAccountTypeSchema = z.enum([
-  "UNDEFINED",
-  "DEFAULT",
-  "FREE_TRIAL",
-  "MEMBERSHIP",
-  "ORDER",
-  "DAILY_LOGIN",
-  "FIRST_LOGIN",
-  "PROMO_CODE",
-]);
+export const BillingSourceSchema = z.string().min(1);
 
 export const BillingBusinessTypeSchema = z.enum([
   "UNDEFINED",
@@ -24,5 +10,5 @@ export const BillingBusinessTypeSchema = z.enum([
   "SUBSCRIPTION",
   "FREE_TRIAL",
   "ADMIN_GRANT",
+  "TOKEN_USAGE",
 ]);
-

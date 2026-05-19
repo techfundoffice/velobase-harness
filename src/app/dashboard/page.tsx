@@ -267,7 +267,6 @@ function BillingTestPanel({ userId }: { userId: string }) {
     try {
       const freezeRes = await freezeMutation.mutateAsync({
         userId,
-        accountType: "CREDIT",
         businessId: txId,
         businessType: "TASK",
         amount: 15,
@@ -296,7 +295,6 @@ function BillingTestPanel({ userId }: { userId: string }) {
     try {
       const freezeRes = await freezeMutation.mutateAsync({
         userId,
-        accountType: "CREDIT",
         businessId: txId,
         businessType: "TASK",
         amount: 20,

@@ -21,7 +21,6 @@ import { getLarkBot, LARK_CHAT_IDS } from '@/lib/lark';
 import type { LarkCard } from '@/lib/lark';
 import { generateHourlyReport } from '@/workers/processors/conversion-alert/generate-report';
 import { buildMetricsCard } from '@/workers/processors/conversion-alert/build-card';
-import { handleSupportCardAction } from '@/server/support/handlers/card-action';
 
 const logger = createLogger('lark-webhook');
 
@@ -76,6 +75,7 @@ onCardAction(async (data: CardActionEventData): Promise<LarkCard | void> => {
 
   // 检查是否是客诉审核卡片的操作
   if (actionValue && typeof actionValue === 'object' && 'ticketId' in actionValue) {
+    const { handleSupportCardAction } = await import('@/server/support/handlers/card-action');
     return handleSupportCardAction(data);
   }
 

@@ -1,21 +1,12 @@
-export type BillingAccountType = 'UNDEFINED' | 'QUOTA' | 'CREDIT'
-export type BillingSubAccountType =
-  | 'UNDEFINED'
-  | 'DEFAULT'
-  | 'FREE_TRIAL'
-  | 'MEMBERSHIP'
-  | 'ORDER'
-  | 'DAILY_LOGIN'
-  | 'FIRST_LOGIN'
-  | 'PROMO_CODE'
-
-export type BillingAccountStatus =
-  | 'UNDEFINED'
-  | 'PENDING'
-  | 'ACTIVE'
-  | 'EXPIRED'
-  | 'DEPLETED'
-  | 'INVALID'
+export type BillingSource =
+  | 'default'
+  | 'free_trial'
+  | 'membership'
+  | 'order'
+  | 'daily_login'
+  | 'first_login'
+  | 'promo_code'
+  | (string & {})
 
 export type BillingOperationType =
   | 'UNDEFINED'
@@ -23,8 +14,8 @@ export type BillingOperationType =
   | 'CONSUME'
   | 'UNFREEZE'
   | 'GRANT'
-  | 'EXPIRE'
-  | 'POST_CONSUME'
+  | 'AUTO_UNFREEZE'
+  | 'AUTO_CONSUME'
 
 export type BillingBusinessType =
   | 'UNDEFINED'
@@ -34,7 +25,6 @@ export type BillingBusinessType =
   | 'SUBSCRIPTION'
   | 'FREE_TRIAL'
   | 'ADMIN_GRANT'
-  | 'ADMIN_DEDUCT'
   | 'TOKEN_USAGE'
 
 export type BillingRecordStatus = 'UNDEFINED' | 'COMPLETED' | 'FAILED'
@@ -43,8 +33,8 @@ export type BillingFreezeStatus = 'UNDEFINED' | 'FROZEN' | 'CONSUMED' | 'UNFROZE
 
 export type GrantParams = {
   userId: string
-  accountType: BillingAccountType
-  subAccountType: BillingSubAccountType
+  wallet?: string
+  source?: BillingSource
   amount: number
   outerBizId: string
   businessType?: BillingBusinessType
@@ -56,6 +46,8 @@ export type GrantParams = {
 
 export type GrantOutput = {
   accountId: string
+  wallet: string
+  source: string
   totalAmount: number
   addedAmount: number
   recordId: string
@@ -64,45 +56,51 @@ export type GrantOutput = {
 
 export type FreezeParams = {
   userId: string
-  accountType: BillingAccountType
+  wallet?: string
   businessId: string
   businessType: BillingBusinessType
   amount: number
-  targetAccountId?: string
   description?: string
+  unfreezeAfterSeconds?: number
+  consumeAfterSeconds?: number
 }
 
 export type FreezeDetail = {
   freezeId: string
-  accountId: string
-  accountType: BillingAccountType
-  subAccountType: BillingSubAccountType
+  accountId?: string
+  wallet: string
+  source: string
   amount: number
 }
 
 export type FreezeOutput = {
   totalAmount: number
   freezeDetails: FreezeDetail[]
+  unfreezeAfter?: string | null
+  consumeAfter?: string | null
   isIdempotentReplay: boolean
 }
 
 export type ConsumeParams = {
   businessId: string
-  actualAmount?: number  // Optional: actual amount to consume (defaults to full frozen amount)
+  actualAmount?: number
 }
 
 export type ConsumeDetail = {
   freezeId: string
-  accountId: string
-  subAccountType: BillingSubAccountType
+  accountId?: string
+  wallet: string
+  source: string
   amount: number
 }
 
 export type ConsumeOutput = {
   totalAmount: number
-  returnedAmount?: number  // Amount returned (if actualAmount < frozen)
+  returnedAmount?: number
+  overageAmount?: number
   consumeDetails: ConsumeDetail[]
   consumedAt: string
+  isIdempotentReplay: boolean
 }
 
 export type UnfreezeParams = {
@@ -111,8 +109,9 @@ export type UnfreezeParams = {
 
 export type UnfreezeDetail = {
   freezeId: string
-  accountId: string
-  subAccountType: BillingSubAccountType
+  accountId?: string
+  wallet: string
+  source: string
   amount: number
 }
 
@@ -120,17 +119,17 @@ export type UnfreezeOutput = {
   totalAmount: number
   unfreezeDetails: UnfreezeDetail[]
   unfrozenAt: string
+  isIdempotentReplay: boolean
 }
 
 export type GetBalanceParams = {
   userId: string
-  accountType?: BillingAccountType
+  wallet?: string
 }
 
 export type AccountSummary = {
-  accountType: BillingAccountType
-  subAccountType: BillingSubAccountType
-  creditType?: string
+  wallet: string
+  source: string
   total: number
   used: number
   frozen: number
@@ -161,7 +160,8 @@ export type RecordSummary = {
   id: string
   operationType: BillingOperationType
   amount: number
-  creditType: string
+  wallet: string
+  source: string
   transactionId?: string | null
   businessType?: BillingBusinessType | null
   description?: string | null
@@ -176,5 +176,3 @@ export type GetRecordsOutput = {
   hasMore: boolean
   nextCursor?: string
 }
-
-

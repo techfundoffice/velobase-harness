@@ -8,7 +8,7 @@ import { postConsume } from "@/server/billing/services/post-consume";
 export const getUserCredits = adminProcedure
   .input(z.object({ userId: z.string() }))
   .query(async ({ input }) => {
-    return getBalance({ userId: input.userId, accountType: "CREDIT" });
+    return getBalance({ userId: input.userId });
   });
 
 export const grantCredits = adminProcedure
@@ -22,8 +22,7 @@ export const grantCredits = adminProcedure
   .mutation(async ({ input }) => {
     await grant({
       userId: input.userId,
-      accountType: "CREDIT",
-      subAccountType: "DEFAULT",
+      source: "default",
       amount: input.amount,
       outerBizId: `admin_grant_${input.userId}_${Date.now()}`,
       businessType: "ADMIN_GRANT",
@@ -43,10 +42,9 @@ export const deductCredits = adminProcedure
   .mutation(async ({ input }) => {
     await postConsume({
       userId: input.userId,
-      accountType: "CREDIT",
       amount: input.amount,
       businessId: `admin_deduct_${input.userId}_${Date.now()}`,
-      businessType: "ADMIN_DEDUCT",
+      businessType: "ADMIN_GRANT",
       description: input.reason || "Admin manual deduction",
     });
     return { success: true };

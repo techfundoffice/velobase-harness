@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server'
 import { getVelobase } from '../velobase'
+import { normalizeBillingDetail } from './sdk-details'
 import type { ConsumeParams, ConsumeOutput } from '../types'
 
 export async function consume(params: ConsumeParams): Promise<ConsumeOutput> {
@@ -12,17 +13,12 @@ export async function consume(params: ConsumeParams): Promise<ConsumeOutput> {
     actualAmount: params.actualAmount,
   })
 
-  const details = result.consumeDetails as Array<{ accountId: string; creditType?: string; amount: number }>
-
   return {
     totalAmount: result.consumedAmount,
     returnedAmount: (result.returnedAmount ?? 0) > 0 ? result.returnedAmount : undefined,
-    consumeDetails: details.map((d) => ({
-      freezeId: params.businessId,
-      accountId: d.accountId,
-      subAccountType: (d.creditType ?? 'DEFAULT') as ConsumeOutput['consumeDetails'][number]['subAccountType'],
-      amount: d.amount,
-    })),
+    overageAmount: (result.overageAmount ?? 0) > 0 ? result.overageAmount : undefined,
+    consumeDetails: result.consumeDetails.map((d) => ({ freezeId: params.businessId, ...normalizeBillingDetail(d) })),
     consumedAt: result.consumedAt,
+    isIdempotentReplay: result.isIdempotentReplay,
   }
 }

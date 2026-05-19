@@ -40,8 +40,7 @@ export async function grantDailyBonus(userId: string): Promise<DailyBonusResult>
   try {
     const result = await grant({
       userId,
-      accountType: 'CREDIT',
-      subAccountType: 'DAILY_LOGIN',
+      source: "daily_login",
       amount,
       outerBizId: idempotencyKey,
       businessType: 'FREE_TRIAL',

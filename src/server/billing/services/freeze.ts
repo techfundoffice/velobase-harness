@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server'
 import { getVelobase } from '../velobase'
+import { normalizeBillingDetail } from './sdk-details'
 import type { FreezeParams, FreezeOutput } from '../types'
 
 export async function freeze(params: FreezeParams): Promise<FreezeOutput> {
@@ -13,27 +14,18 @@ export async function freeze(params: FreezeParams): Promise<FreezeOutput> {
     customerId: params.userId,
     amount: params.amount,
     transactionId: params.businessId,
-    businessType: mapBusinessType(params.businessType),
+    wallet: params.wallet,
+    businessType: params.businessType,
     description: params.description ?? undefined,
+    unfreezeAfterSeconds: params.unfreezeAfterSeconds,
+    consumeAfterSeconds: params.consumeAfterSeconds,
   })
-
-  const details = result.freezeDetails as Array<{ accountId: string; creditType?: string; amount: number }>
 
   return {
     totalAmount: result.frozenAmount,
-    freezeDetails: details.map((d) => ({
-      freezeId: params.businessId,
-      accountId: d.accountId,
-      accountType: params.accountType,
-      subAccountType: (d.creditType ?? 'DEFAULT') as FreezeOutput['freezeDetails'][number]['subAccountType'],
-      amount: d.amount,
-    })),
+    freezeDetails: result.freezeDetails.map((d) => ({ freezeId: params.businessId, ...normalizeBillingDetail(d) })),
+    unfreezeAfter: result.unfreezeAfter,
+    consumeAfter: result.consumeAfter,
     isIdempotentReplay: result.isIdempotentReplay,
   }
-}
-
-function mapBusinessType(bt?: string): 'TASK' | 'ORDER' | 'MEMBERSHIP' | 'SUBSCRIPTION' | 'FREE_TRIAL' | 'ADMIN_GRANT' | undefined {
-  const valid = ['TASK', 'ORDER', 'MEMBERSHIP', 'SUBSCRIPTION', 'FREE_TRIAL', 'ADMIN_GRANT'] as const
-  if (!bt || !valid.includes(bt as typeof valid[number])) return undefined
-  return bt as typeof valid[number]
 }
