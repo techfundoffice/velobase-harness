@@ -50,6 +50,7 @@ If environment variables changed:
 - Update `src/env.js`; do not read `process.env` directly in application code.
 - Fail early in production or have a clear module-disable path.
 - If the env controls a pluggable module, manage enablement in `src/config/modules.ts`.
+- Confirm the intended `SERVICE_MODE`. The default is `web,worker`; enable `api` only when real Hono routes need a standalone service.
 
 ## 5. API And Permissions
 
@@ -60,6 +61,7 @@ For tRPC, Hono, Next.js API routes, or Server Actions:
 - List queries are paginated.
 - Errors do not leak secrets, tokens, connection strings, or sensitive provider responses.
 - New routers are mounted and disabled modules do not expose routes.
+- New external HTTP or webhook endpoints should stay in Web unless there is a clear reason to enable the optional Hono API service.
 
 ## 6. Security And Data Boundaries
 

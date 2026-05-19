@@ -32,10 +32,11 @@ Examples:
 
 - `storage.*`
 - `auth/[...nextauth]`
-- `webhooks/stripe`
-- `webhooks/nowpayments`
-- `webhooks/resend`
-- Future Lark / Telegram webhook routes.
+- `src/app/api/webhooks/stripe`
+- `src/app/api/webhooks/nowpayments`
+- `src/app/api/webhooks/resend`
+- `src/app/api/webhooks/telegram`
+- `src/app/api/lark/webhook`
 
 Rules:
 
@@ -76,8 +77,10 @@ General rules:
 
 ## Hono And Webhook Rules
 
-- Hono routes live under `src/api/routes/`.
+- Current production webhooks live in Web under `src/app/api/**`.
+- Hono routes live under `src/api/routes/` only when the optional API service is explicitly enabled.
 - Hono routes must not import Next.js-only APIs such as `next/headers` or `next/server`.
+- Do not move an existing Next Route Handler to Hono unless the deployment will enable the API service.
 - Webhooks must verify signatures before processing.
 - Webhooks and workers must be idempotent.
 - Disabled pluggable modules must not expose active webhook endpoints.

@@ -50,6 +50,7 @@ pnpm format:check
 - 更新 `src/env.js`；应用代码不要直接读 `process.env`。
 - 生产环境缺变量时应尽早失败，或有明确的模块禁用路径。
 - 如果 env 控制可插拔模块，在 `src/config/modules.ts` 集中管理启停。
+- 确认目标 `SERVICE_MODE`。默认是 `web,worker`；只有真实 Hono routes 需要独立服务时才启用 `api`。
 
 ## 5. API 与权限
 
@@ -60,6 +61,7 @@ pnpm format:check
 - 列表查询要分页。
 - 错误不泄露密钥、token、连接串或 provider 敏感响应。
 - 新 router 已挂载，禁用模块不会暴露 routes。
+- 新外部 HTTP 或 webhook endpoint 默认应留在 Web，除非有明确理由启用可选 Hono API 服务。
 
 ## 6. 安全与数据边界
 

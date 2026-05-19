@@ -98,6 +98,7 @@ IF you touch anti-abuse, captcha, rate limiting, IP, country, or security bounda
 - Routers stay thin: choose procedure, validate input, call service.
 - Business logic belongs in service modules, not router bodies.
 - Hono routes live under `src/api/routes/` and must not import Next.js-only APIs such as `next/headers` or `next/server`.
+- The Hono API service is disabled by default. Use it only for intentional standalone external HTTP routes; current production webhooks live in Web under `src/app/api/**`.
 
 ### Billing And Payment
 

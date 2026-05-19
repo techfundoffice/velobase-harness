@@ -38,7 +38,7 @@ else
 fi
 
 # --- Resource readiness summary ---
-echo "[entrypoint] SERVICE_MODE=${SERVICE_MODE:-all}"
+echo "[entrypoint] SERVICE_MODE=${SERVICE_MODE:-web,worker}"
 [ -n "$DATABASE_URL" ]    && echo "[entrypoint] DATABASE_URL=set"    || echo "[entrypoint] DATABASE_URL=NOT SET"
 [ -n "$REDIS_URL" ]       && echo "[entrypoint] REDIS_URL=set"       || echo "[entrypoint] REDIS_HOST=${REDIS_HOST:-NOT SET}"
 [ -n "$STORAGE_BUCKET" ]  && echo "[entrypoint] STORAGE_BUCKET=${STORAGE_BUCKET}" || echo "[entrypoint] STORAGE_BUCKET=NOT SET"

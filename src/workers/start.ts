@@ -3,7 +3,7 @@
  *
  * Exports `startWorker()` which can be called either:
  *  - from `src/workers/index.ts` (standalone worker process)
- *  - from `src/server/standalone.ts` (SERVICE_MODE=all or SERVICE_MODE=worker)
+ *  - from `src/server/standalone.ts` when SERVICE_MODE includes worker/all
  *
  * Returns a `shutdown` function for graceful termination.
  */

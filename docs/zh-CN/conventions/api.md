@@ -32,10 +32,11 @@
 
 - `storage.*`
 - `auth/[...nextauth]`
-- `webhooks/stripe`
-- `webhooks/nowpayments`
-- `webhooks/resend`
-- 未来的 Lark / Telegram webhook routes。
+- `src/app/api/webhooks/stripe`
+- `src/app/api/webhooks/nowpayments`
+- `src/app/api/webhooks/resend`
+- `src/app/api/webhooks/telegram`
+- `src/app/api/lark/webhook`
 
 规则：
 
@@ -76,8 +77,10 @@ Procedure 选择：
 
 ## Hono 与 Webhook 规则
 
-- Hono routes 放在 `src/api/routes/`。
+- 当前生产 webhook 在 Web runtime 的 `src/app/api/**` 下。
+- 只有显式启用可选 API 服务时，Hono routes 才放在 `src/api/routes/`。
 - Hono routes 不要导入 `next/headers`、`next/server` 等 Next.js-only APIs。
+- 除非部署会启用 API 服务，否则不要把已有 Next Route Handler 迁到 Hono。
 - Webhook 处理前必须验证签名。
 - Webhook 和 worker 必须幂等。
 - 禁用的可插拔模块不能暴露可用 webhook endpoints。

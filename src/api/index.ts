@@ -1,8 +1,8 @@
 /**
  * API Service Entry Point (standalone process)
  *
- * Used by `api:dev` and `api:prod` scripts. When running inside
- * SERVICE_MODE=all, `src/server/standalone.ts` calls `startApi()` directly
+ * Used by `api:dev` and `api:prod` scripts. When API is enabled inside
+ * `src/server/standalone.ts`, that launcher calls `startApi()` directly
  * instead of this file.
  */
 import "dotenv/config";

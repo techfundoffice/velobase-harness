@@ -15,8 +15,8 @@
 
 向用户索要：
 
-- 页面、React、tRPC 问题：Web runtime logs。
-- Hono、webhook、外部 HTTP 问题：API runtime logs。
+- 页面、React、tRPC、认证、Next Route Handler、当前生产 webhook 问题：Web runtime logs。
+- 只有 `src/api/routes/*` 下的可选 Hono routes 问题才看 API runtime logs。
 - queues、processors、schedulers、支付对账、邮件、广告、touch jobs：Worker logs。
 
 如果 runtime logs 可用，不要只根据截图猜测。
@@ -35,9 +35,10 @@ pnpm dev:all
 
 ```bash
 pnpm dev
-pnpm api:dev
 pnpm worker:dev
 ```
+
+只有失败路径是可选 Hono API route 时才启动 `pnpm api:dev`。
 
 ## 3. 修复
 

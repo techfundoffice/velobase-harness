@@ -3,7 +3,7 @@
  *
  * Exports `startApi()` which can be called either:
  *  - from `src/api/index.ts` (standalone API process)
- *  - from `src/server/standalone.ts` (SERVICE_MODE=all or SERVICE_MODE=api)
+ *  - from `src/server/standalone.ts` when SERVICE_MODE includes api/all
  *
  * Returns a `shutdown` function for graceful termination.
  */

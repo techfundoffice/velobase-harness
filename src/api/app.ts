@@ -3,7 +3,7 @@
  *
  * Creates and configures the Hono app with middleware and route groups.
  * Separated from the server entry so that the app can be tested or
- * composed into the standalone (SERVICE_MODE=all) process.
+ * composed into the standalone SERVICE_MODE process when API is enabled.
  */
 import { Hono } from "hono";
 import { cors } from "hono/cors";

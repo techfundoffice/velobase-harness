@@ -75,5 +75,6 @@
 - 使用 `db` 和 `redis` 单例，不创建新的 PrismaClient 或临时 Redis 连接。
 - Router 保持薄层，业务逻辑放在 service modules。
 - 支付、邮件、存储、analytics、ads 和 workers 都使用框架封装。
+- Hono API 服务默认不启用。只有明确需要独立外部 HTTP routes 时才使用它；当前生产 webhook 在 Web runtime 的 `src/app/api/**` 下。
 - 用户可见 UI 文案使用 `useTranslations()` 或 `getTranslations()`。
 - 生产问题使用 `docs/zh-CN/debugging/online-local-debug.md` 的流程。

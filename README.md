@@ -94,7 +94,7 @@ REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 ```
 
-`pnpm dev:all` starts the combined local runtime: Web on `:3000`, API on `:3002`, and Worker on `:3001`.
+`pnpm dev:all` starts the default combined local runtime: Web on `:3000` and Worker on `:3001`. The optional Hono API service is disabled by default; run `SERVICE_MODE=all pnpm dev:all` or `pnpm api:dev` when you need it.
 
 Open the app at [http://localhost:3000](http://localhost:3000).
 
@@ -102,9 +102,10 @@ You can also split processes across terminals:
 
 ```bash
 pnpm dev
-pnpm api:dev
 pnpm worker:dev
 ```
+
+Add `pnpm api:dev` only when you are actively developing standalone Hono routes.
 
 When you are ready to deploy, see the [Cloud Deployment Guide](./docs/en/deployment/cloud-deploy.md).
 
@@ -116,9 +117,9 @@ If you are not entering through Launchpad flow, run Step 0 in [FRAMEWORK_GUIDE.m
 flowchart TB
   browser[Browser] --> nextApp[Next.js Web]
   nextApp --> trpc[tRPC Routers]
-  external[External Integrations] --> hono[Hono API]
+  external[External Integrations] --> nextRoutes[Next Route Handlers]
+  nextRoutes --> services
   trpc --> services[Domain Services]
-  hono --> services
   services --> db[(PostgreSQL)]
   services --> redis[(Redis)]
   services --> events[Event Bus]
@@ -126,6 +127,7 @@ flowchart TB
   worker[BullMQ Worker] --> redis
   worker --> services
   modules --> growth[Growth Operations]
+  hono[Optional Hono API] -. enable when needed .-> services
 ```
 
 The same codebase can run as one process or as separate services:
@@ -133,11 +135,11 @@ The same codebase can run as one process or as separate services:
 | Runtime | Entry | Port | Command |
 | --- | --- | --- | --- |
 | Web | Next.js App Router | `3000` | `pnpm dev` / `pnpm start` |
-| API | Hono HTTP service | `3002` | `pnpm api:dev` / `pnpm api:prod` |
 | Worker | BullMQ processors | `3001` | `pnpm worker:dev` / `pnpm worker:prod` |
-| Combined | `src/server/standalone.ts` | `3000`, `3002`, `3001` | `pnpm dev:all` / `pnpm start:all` |
+| Combined default | `src/server/standalone.ts` | `3000`, `3001` | `pnpm dev:all` / `pnpm start:all` |
+| Optional API | Hono HTTP service | `3002` | `pnpm api:dev` / `pnpm api:prod` |
 
-`SERVICE_MODE` supports `all`, `web`, `api`, `worker`, and combinations such as `web,api`.
+`SERVICE_MODE` defaults to `web,worker`. It also supports `all`, `web`, `api`, `worker`, and combinations such as `web,api`. See [Web/API/Worker split](./docs/en/architecture/web-api-service-split.md) before enabling API in production.
 
 ## From Template to Cloud
 
@@ -180,7 +182,7 @@ Legacy non-locale paths under `docs/` are compatibility shims. New documentation
 ```text
 src/
 ├── app/              # Next.js pages and API routes
-├── api/              # Standalone Hono API entry
+├── api/              # Optional standalone Hono API entry
 ├── config/           # Module configuration
 ├── modules/          # Product modules and templates
 ├── server/           # Auth, billing, order, events, modules, features

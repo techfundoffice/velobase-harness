@@ -50,8 +50,10 @@ This writes `.velobase/ai-prompt.md`. Open it in the IDE and let the local AI ad
 
 Use `SERVICE_MODE`:
 
-- `all` for combined local or small deployments.
-- `web`, `api`, and `worker` for split production deployments.
+- `web,worker` for the default combined runtime without the optional API service.
+- `web` and `worker` for split production deployments.
+- `api` only after adding real Hono routes that need a separate service.
+- `all` when you explicitly want Web, API, and Worker in one process.
 - `web,api` or other comma-separated combinations when needed.
 
 See `docs/en/architecture/web-api-service-split.md`.
@@ -90,7 +92,7 @@ You can also trigger a deployment from the CLI:
 velobase-cloud deploy trigger --branch main --watch
 ```
 
-For multi-service deployments (Web + API + Worker), the Deploy API request must include `exposed_service` to specify which service receives traffic on the primary domain (`{subdomain}.velobase.app`). Single-service deployments do not require this field. See `deploy-velobase-multi.yml` for a working example.
+The default multi-service deployment is Web + Worker with `exposed_service` set to `web`. Add the API service only when standalone Hono routes are active; then include an API service entry with `mode: "api"`, `port: 3002`, and `health: "/health"`. Keep `exposed_service` as `web` unless the primary domain (`{subdomain}.velobase.app`) should route directly to API.
 
 ## 8. Operate
 
@@ -105,6 +107,6 @@ velobase-cloud env list
 velobase-cloud deploy rollback <deployment-id>
 ```
 
-- Check Web, API, and Worker health endpoints.
+- Check Web and Worker health endpoints. Check API health only when the optional API service is enabled.
 - Confirm required modules initialize from logs.
 - For production issues, collect Cloud runtime logs first, then follow `docs/en/debugging/online-local-debug.md`.

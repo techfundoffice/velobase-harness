@@ -4,11 +4,12 @@
  * Reads `SERVICE_MODE` from the environment and starts the selected services
  * within a single Node.js process:
  *
- *   SERVICE_MODE=all       (default) — Web :3000 + API :3002 + Worker :3001 (starts Web first)
- *   SERVICE_MODE=web       — Next.js only
- *   SERVICE_MODE=api       — Hono API only
- *   SERVICE_MODE=worker    — BullMQ Worker only
- *   SERVICE_MODE=web,api   — any comma-separated combination
+ *   SERVICE_MODE=web,worker (default) — Web :3000 + Worker :3001
+ *   SERVICE_MODE=all        — Web :3000 + API :3002 + Worker :3001
+ *   SERVICE_MODE=web        — Next.js only
+ *   SERVICE_MODE=api        — Hono API only
+ *   SERVICE_MODE=worker     — BullMQ Worker only
+ *   SERVICE_MODE=web,api    — any comma-separated combination
  *
  * Each service exposes a `shutdown()` function. On SIGTERM / SIGINT the
  * process tears them all down gracefully.
@@ -20,7 +21,7 @@ import { redis } from "@/server/redis";
 
 const log = createLogger("standalone");
 
-const SERVICE_MODE = process.env.SERVICE_MODE ?? "all";
+const SERVICE_MODE = process.env.SERVICE_MODE ?? "web,worker";
 const modes = SERVICE_MODE.split(",").map((m) => m.trim().toLowerCase());
 
 function shouldStart(service: string): boolean {

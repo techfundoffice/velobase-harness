@@ -18,7 +18,7 @@ Velobase Harness 是 T3 风格的 AI SaaS 底座：
 
 - Next.js App Router 和 React 作为 Web。
 - tRPC 提供类型安全应用 API。
-- Hono 提供独立 HTTP API 和 webhooks。
+- 可选 Hono API 用于不适合由 Web 承接的独立外部 HTTP routes。
 - Prisma、PostgreSQL、Redis 提供持久化和队列依赖。
 - NextAuth 提供认证。
 - BullMQ workers 处理可重试后台任务。
@@ -28,8 +28,8 @@ Runtime services：
 
 | 服务 | 职责 | 文档 |
 | --- | --- | --- |
-| Web | Pages、UI、App Router、tRPC | [`docs/zh-CN/architecture/web-api-service-split.md`](./docs/zh-CN/architecture/web-api-service-split.md) |
-| API | Hono routes、webhooks、外部 HTTP | [`docs/zh-CN/architecture/web-api-service-split.md`](./docs/zh-CN/architecture/web-api-service-split.md) |
+| Web | Pages、UI、App Router、tRPC、当前生产 webhook | [`docs/zh-CN/architecture/web-api-service-split.md`](./docs/zh-CN/architecture/web-api-service-split.md) |
+| API | 用于独立外部 HTTP 的可选 Hono routes | [`docs/zh-CN/architecture/web-api-service-split.md`](./docs/zh-CN/architecture/web-api-service-split.md) |
 | Worker | BullMQ processors 和 schedulers | [`docs/zh-CN/integrations/queue/README.md`](./docs/zh-CN/integrations/queue/README.md) |
 
 ## 本地开发
@@ -47,9 +47,10 @@ pnpm dev:all
 
 ```bash
 pnpm dev
-pnpm api:dev
 pnpm worker:dev
 ```
+
+只有在开发可选独立 Hono routes 时才启动 `pnpm api:dev`。
 
 ## 代码边界
 
@@ -63,7 +64,7 @@ pnpm worker:dev
 | `src/server/modules` | 事件驱动可插拔模块 |
 | `src/modules/<name>` | 产品特定模块 |
 | `src/workers` | 队列和 processor runtime |
-| `src/api` | 独立 Hono API runtime |
+| `src/api` | 可选独立 Hono API runtime |
 
 ## 产品实现流程
 
@@ -107,7 +108,7 @@ business service -> appEvents.emit() -> pluggable modules -> providers / side ef
 部署前：
 
 - 配置 auth、database、Redis 和所需 provider keys。
-- 确认 `SERVICE_MODE` 部署形态。
+- 确认 `SERVICE_MODE` 部署形态。默认是 `web,worker`；只有真实 Hono routes 需要承载时才启用 API。
 - 运行质量检查。
 - 确认 migrations。
 - 支付或 worker 变更要验证 webhooks、queues 和 idempotency。

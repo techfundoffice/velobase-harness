@@ -1,12 +1,12 @@
 .PHONY: help db db-stop db-init db-reset stripe stripe-stop build dev api worker deploy \
-       test-build test-standalone test-split test-standalone-down test-split-down
+       test-build test-standalone test-split test-api test-standalone-down test-split-down test-api-down
 
 help:
 	@echo "Available commands:"
 	@echo ""
 	@echo "  Development:"
-	@echo "    make dev           - Start all services (Web + API + Worker) via SERVICE_MODE=all"
-	@echo "    make api           - Start API service only (Hono :3002)"
+	@echo "    make dev           - Start default services (Web + Worker) via SERVICE_MODE=web,worker"
+	@echo "    make api           - Start optional API service only (Hono :3002)"
 	@echo "    make worker        - Start Worker service only (BullMQ :3001)"
 	@echo ""
 	@echo "  Database:"
@@ -25,10 +25,12 @@ help:
 	@echo ""
 	@echo "  Testing (Docker):"
 	@echo "    make test-build          - Build unified Docker image for testing"
-	@echo "    make test-standalone     - Test SERVICE_MODE=all (single container)"
-	@echo "    make test-split          - Test SERVICE_MODE=web/api/worker (three containers)"
+	@echo "    make test-standalone     - Test SERVICE_MODE=web,worker (single container)"
+	@echo "    make test-split          - Test SERVICE_MODE=web/worker with optional api profile"
+	@echo "    make test-api            - Test optional SERVICE_MODE=api"
 	@echo "    make test-standalone-down - Stop standalone test containers"
 	@echo "    make test-split-down     - Stop split test containers"
+	@echo "    make test-api-down       - Stop optional api test containers"
 
 db:
 	docker compose up -d
@@ -57,7 +59,7 @@ build:
 	pnpm build
 
 dev:
-	SERVICE_MODE=all pnpm dev:all
+	SERVICE_MODE=web,worker pnpm dev:all
 
 api:
 	pnpm api:dev
@@ -70,10 +72,11 @@ deploy:
 	@echo "Push to dev/pre/prod branch to trigger the CI pipeline."
 	@echo ""
 	@echo "SERVICE_MODE options for Kubernetes Deployments:"
-	@echo "  all    - Single pod runs Web + API + Worker (dev/small-scale)"
-	@echo "  web    - Next.js only"
-	@echo "  api    - Hono API only"
-	@echo "  worker - BullMQ Worker only"
+	@echo "  web,worker - Default single pod runs Web + Worker"
+	@echo "  all        - Explicitly run Web + API + Worker"
+	@echo "  web        - Next.js only"
+	@echo "  api        - Optional Hono API only"
+	@echo "  worker     - BullMQ Worker only"
 
 # --- Docker Testing ---
 
@@ -93,9 +96,18 @@ test-split:
 	@sleep 10
 	node scripts/test-service-mode.mjs split
 
+test-api:
+	docker compose -f docker-compose.test.yml --profile api up -d
+	@echo "Waiting 10s for services to start..."
+	@sleep 10
+	node scripts/test-service-mode.mjs api
+
 test-standalone-down:
 	docker compose -f docker-compose.test.yml --profile standalone down -v
 
 test-split-down:
 	docker compose -f docker-compose.test.yml --profile split down -v
+
+test-api-down:
+	docker compose -f docker-compose.test.yml --profile api down -v
 

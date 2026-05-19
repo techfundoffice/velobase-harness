@@ -50,8 +50,10 @@ velobase-cloud adapt
 
 使用 `SERVICE_MODE`：
 
-- `all` 用于本地组合模式或小规模部署。
-- `web`、`api`、`worker` 用于生产拆分部署。
+- `web,worker` 用于默认组合 runtime，不启用可选 API 服务。
+- `web` 和 `worker` 用于生产拆分部署。
+- `api` 仅在新增真实 Hono routes 且需要独立服务后使用。
+- `all` 用于明确希望 Web、API 和 Worker 在同一进程中启动的场景。
 - 需要时使用 `web,api` 等逗号分隔组合。
 
 详见 `docs/zh-CN/architecture/web-api-service-split.md`。
@@ -90,7 +92,7 @@ git push origin main
 velobase-cloud deploy trigger --branch main --watch
 ```
 
-多服务部署（Web + API + Worker）时，Deploy API 请求必须包含 `exposed_service` 字段，指定接收主域名（`{subdomain}.velobase.app`）流量的服务。单服务部署无需此字段。参考 `deploy-velobase-multi.yml` 中的示例。
+默认多服务部署是 Web + Worker，`exposed_service` 设置为 `web`。只有在独立 Hono routes 已启用时才增加 API 服务；此时在 services 中加入 `mode: "api"`、`port: 3002`、`health: "/health"` 的 API 条目。除非主域名（`{subdomain}.velobase.app`）确实要直接路由到 API，否则 `exposed_service` 仍保持 `web`。
 
 ## 8. 运维
 
@@ -105,6 +107,6 @@ velobase-cloud env list
 velobase-cloud deploy rollback <deployment-id>
 ```
 
-- 检查 Web、API 和 Worker health endpoints。
+- 检查 Web 和 Worker health endpoints。只有启用可选 API 服务时才检查 API health。
 - 从日志确认必需模块已初始化。
 - 生产问题先收集 Cloud runtime logs，再按 `docs/zh-CN/debugging/online-local-debug.md` 排查。

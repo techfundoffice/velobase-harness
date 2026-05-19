@@ -8,10 +8,11 @@
 #   docker build -t myapp .
 #
 # Run (examples):
-#   docker run -e SERVICE_MODE=all    -p 3000:3000 -p 3001:3001 -p 3002:3002 myapp
-#   docker run -e SERVICE_MODE=web    -p 3000:3000 myapp
-#   docker run -e SERVICE_MODE=api    -p 3002:3002 myapp
-#   docker run -e SERVICE_MODE=worker -p 3001:3001 myapp
+#   docker run -e SERVICE_MODE=web,worker -p 3000:3000 -p 3001:3001 myapp
+#   docker run -e SERVICE_MODE=all        -p 3000:3000 -p 3001:3001 -p 3002:3002 myapp
+#   docker run -e SERVICE_MODE=web        -p 3000:3000 myapp
+#   docker run -e SERVICE_MODE=api        -p 3002:3002 myapp
+#   docker run -e SERVICE_MODE=worker     -p 3001:3001 myapp
 # =============================================================================
 
 # ── Stage 1: Build ───────────────────────────────────────────────────────────
@@ -82,8 +83,8 @@ RUN chmod +x docker-entrypoint.sh
 
 USER appuser
 
-# Default: all-in-one mode
-ENV SERVICE_MODE=all
-EXPOSE 3000 3001 3002
+# Default: Web + Worker. Expose 3002 only when enabling SERVICE_MODE=api/all.
+ENV SERVICE_MODE=web,worker
+EXPOSE 3000 3001
 
 CMD ["./docker-entrypoint.sh"]

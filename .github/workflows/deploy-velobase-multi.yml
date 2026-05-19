@@ -54,16 +54,20 @@ jobs:
           SHA=${{ github.sha }}
 
           docker build -f Dockerfile.web    -t $REPO:web-$SHA .
-          docker build -f Dockerfile.api    -t $REPO:api-$SHA .
           docker build -f Dockerfile.worker -t $REPO:worker-$SHA .
 
           docker push $REPO:web-$SHA
-          docker push $REPO:api-$SHA
           docker push $REPO:worker-$SHA
+
+          # Optional API service:
+          # docker build -f Dockerfile.api -t $REPO:api-$SHA .
+          # docker push $REPO:api-$SHA
 
       - name: Deploy (multi-pod)
         run: |
           SHA=${{ github.sha }}
+          # To enable the optional API service, also add:
+          # {\"name\": \"api\", \"mode\": \"api\", \"port\": 3002, \"health\": \"/health\", \"image_tag\": \"api-$SHA\"}
           curl -f -X POST https://api.velobase.cloud/api/v1/deploy \
             -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}" \
             -H "Content-Type: application/json" \
@@ -72,7 +76,6 @@ jobs:
               \"exposed_service\": \"web\",
               \"services\": [
                 {\"name\": \"web\",    \"mode\": \"web\",    \"port\": 3000, \"health\": \"/healthz\", \"image_tag\": \"web-$SHA\"},
-                {\"name\": \"api\",    \"mode\": \"api\",    \"port\": 3002, \"health\": \"/health\",  \"image_tag\": \"api-$SHA\"},
                 {\"name\": \"worker\", \"mode\": \"worker\", \"port\": 3001, \"health\": \"/health\",  \"image_tag\": \"worker-$SHA\"}
               ],
               \"commit_sha\": \"$SHA\",

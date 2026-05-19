@@ -20,7 +20,7 @@ Velobase Harness is a T3-style AI SaaS foundation:
 
 - Next.js App Router and React for Web.
 - tRPC for typed application APIs.
-- Hono for standalone HTTP APIs and webhooks.
+- Optional Hono API for standalone external HTTP routes when Web should not own them.
 - Prisma, PostgreSQL, and Redis for persistence and queues.
 - NextAuth for authentication.
 - BullMQ workers for retryable background jobs.
@@ -30,8 +30,8 @@ Runtime services:
 
 | Service | Responsibility | Docs |
 | --- | --- | --- |
-| Web | Pages, UI, App Router, tRPC | [`docs/en/architecture/web-api-service-split.md`](./docs/en/architecture/web-api-service-split.md) |
-| API | Hono routes, webhooks, external HTTP | [`docs/en/architecture/web-api-service-split.md`](./docs/en/architecture/web-api-service-split.md) |
+| Web | Pages, UI, App Router, tRPC, current production webhooks | [`docs/en/architecture/web-api-service-split.md`](./docs/en/architecture/web-api-service-split.md) |
+| API | Optional Hono routes for independent external HTTP | [`docs/en/architecture/web-api-service-split.md`](./docs/en/architecture/web-api-service-split.md) |
 | Worker | BullMQ processors and schedulers | [`docs/en/integrations/queue/README.md`](./docs/en/integrations/queue/README.md) |
 
 ## Local Development
@@ -49,9 +49,10 @@ Split services when debugging service-specific behavior:
 
 ```bash
 pnpm dev
-pnpm api:dev
 pnpm worker:dev
 ```
+
+Start `pnpm api:dev` only when working on optional standalone Hono routes.
 
 ## Code Ownership Boundaries
 
@@ -65,7 +66,7 @@ Framework code should remain generic. Product behavior belongs in `src/modules/<
 | `src/server/modules` | Pluggable event-driven modules |
 | `src/modules/<name>` | Product-specific modules |
 | `src/workers` | Queue and processor runtime |
-| `src/api` | Standalone Hono API runtime |
+| `src/api` | Optional standalone Hono API runtime |
 
 ## Product Implementation Flow
 
@@ -109,7 +110,7 @@ Rules:
 Before deploying:
 
 - Configure auth, database, Redis, and required provider keys.
-- Confirm `SERVICE_MODE` deployment shape.
+- Confirm `SERVICE_MODE` deployment shape. The default is `web,worker`; enable API only for real Hono routes.
 - Run quality checks.
 - Confirm migrations.
 - Verify webhooks, queues, and idempotency for payment or worker changes.

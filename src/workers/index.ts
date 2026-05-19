@@ -1,9 +1,9 @@
 /**
  * Worker Entry Point (standalone process)
  *
- * Used by `worker:dev` and `worker:prod` scripts. When running inside
- * SERVICE_MODE=all, `src/server/standalone.ts` calls `startWorker()` directly
- * instead of this file.
+ * Used by `worker:dev` and `worker:prod` scripts. When Worker is enabled
+ * inside `src/server/standalone.ts`, that launcher calls `startWorker()`
+ * directly instead of this file.
  */
 import "dotenv/config";
 

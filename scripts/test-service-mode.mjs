@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Three-Service Framework Smoke Test
+ * Service Mode Smoke Test
  *
  * Validates that each SERVICE_MODE correctly starts the expected services
  * and that health check endpoints respond properly.
@@ -14,7 +14,11 @@
  *   docker compose -f docker-compose.test.yml --profile split up -d
  *   node scripts/test-service-mode.mjs split
  *
- *   # Run both sequentially
+ *   # Optional API mode
+ *   docker compose -f docker-compose.test.yml --profile api up -d
+ *   node scripts/test-service-mode.mjs api
+ *
+ *   # Run default runtime tests sequentially
  *   node scripts/test-service-mode.mjs all
  */
 
@@ -84,40 +88,26 @@ async function sleep(ms) {
 // ── Test suites ──────────────────────────────────────────────────────────────
 
 async function testStandalone() {
-  console.log("\n═══ Test A: Standalone Mode (SERVICE_MODE=all) ═══\n");
+  console.log("\n═══ Test A: Standalone Mode (SERVICE_MODE=web,worker) ═══\n");
 
   console.log("[Web :4000]");
   await check("GET /api/health", `${STANDALONE.web}/api/health`);
-
-  console.log("\n[API :4002]");
-  await check("GET /health", `${STANDALONE.api}/health`);
-  await check("GET /ready", `${STANDALONE.api}/ready`);
 
   console.log("\n[Worker :4001]");
   await check("GET /health", `${STANDALONE.worker}/health`);
   await check("GET /ready", `${STANDALONE.worker}/ready`);
 
-  console.log("\n[Cross-check: all three ports open in one container]");
+  console.log("\n[Cross-check: default ports in one container]");
   await check("Web responds", `${STANDALONE.web}/api/health`);
-  await check("API responds", `${STANDALONE.api}/health`);
   await check("Worker responds", `${STANDALONE.worker}/health`);
+  await expectRefused("API is disabled by default", `${STANDALONE.api}/health`);
 }
 
 async function testSplit() {
-  console.log("\n═══ Test B: Split Mode (SERVICE_MODE=web/api/worker) ═══\n");
+  console.log("\n═══ Test B: Split Mode (SERVICE_MODE=web/worker) ═══\n");
 
   console.log("[Web container :5000]");
   await check("GET /api/health", `${SPLIT.web}/api/health`);
-
-  console.log("\n[API container :5002]");
-  await check("GET /health", `${SPLIT.api}/health`);
-  await check("GET /ready", `${SPLIT.api}/ready`);
-  await check("POST /webhooks/example", `${SPLIT.api}/webhooks/example`, 200, {
-    method: "POST",
-    body: JSON.stringify({ event_id: "test-001", type: "test" }),
-    headers: { "Content-Type": "application/json" },
-    expectBodyKey: "received",
-  });
 
   console.log("\n[Worker container :5001]");
   await check("GET /health", `${SPLIT.worker}/health`);
@@ -127,12 +117,27 @@ async function testSplit() {
   // Web container should NOT have API or Worker ports
   await expectRefused("Web container :3002 (API)", "http://localhost:5000:3002/health");
   await expectRefused("Web container :3001 (Worker)", "http://localhost:5000:3001/health");
+  await expectRefused("Optional API service not started", `${SPLIT.api}/health`);
+}
+
+async function testApi() {
+  console.log("\n═══ Test C: Optional API Mode (SERVICE_MODE=api) ═══\n");
+
+  console.log("[API container :5002]");
+  await check("GET /health", `${SPLIT.api}/health`);
+  await check("GET /ready", `${SPLIT.api}/ready`);
+  await check("POST /webhooks/example", `${SPLIT.api}/webhooks/example`, 200, {
+    method: "POST",
+    body: JSON.stringify({ event_id: "test-001", type: "test" }),
+    headers: { "Content-Type": "application/json" },
+    expectBodyKey: "received",
+  });
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log("Three-Service Framework Smoke Test");
+  console.log("Service Mode Smoke Test");
   console.log(`Mode: ${MODE}`);
   console.log("Waiting 5s for services to be ready...");
   await sleep(5000);
@@ -143,6 +148,10 @@ async function main() {
 
   if (MODE === "split" || MODE === "all") {
     await testSplit();
+  }
+
+  if (MODE === "api") {
+    await testApi();
   }
 
   console.log(`\n${"═".repeat(50)}`);

@@ -1,5 +1,5 @@
 # =============================================================================
-# docker-compose.test.yml — 三服务框架拆分验证
+# docker-compose.test.yml — Web + Worker 默认运行时验证
 #
 # 用法：
 #   1. 先构建：  pnpm build && docker build -t velobase-harness-test .
@@ -9,8 +9,9 @@
 #
 # 包含三个测试 profile：
 #   - (默认)      基础设施 (postgres + redis)
-#   - standalone   SERVICE_MODE=all 单 Pod 全能模式
-#   - split        SERVICE_MODE=web/api/worker 三 Pod 拆分模式
+#   - standalone   SERVICE_MODE=web,worker 单 Pod 默认模式
+#   - split        SERVICE_MODE=web/worker 双 Pod 拆分模式
+#   - api          SERVICE_MODE=api 可选 API 服务模式
 # =============================================================================
 
 services:
@@ -44,7 +45,7 @@ services:
       retries: 5
 
   # =====================================================================
-  # Test A: standalone mode (SERVICE_MODE=all, single container)
+  # Test A: standalone mode (SERVICE_MODE=web,worker, single container)
   # =====================================================================
   app-standalone:
     image: velobase-harness-test
@@ -57,9 +58,8 @@ services:
     ports:
       - "4000:3000"   # Web
       - "4001:3001"   # Worker
-      - "4002:3002"   # API
     environment:
-      SERVICE_MODE: "all"
+      SERVICE_MODE: "web,worker"
       NODE_ENV: production
       SKIP_ENV_VALIDATION: "true"
       DATABASE_URL: postgresql://velobase:velobase@postgres:5432/velobase
@@ -68,10 +68,9 @@ services:
       AUTH_SECRET: test-secret-for-docker-validation
       AUTH_URL: http://localhost:4000
       WORKER_PORT: "3001"
-      API_PORT: "3002"
 
   # =====================================================================
-  # Test B: split mode (three separate containers, same image)
+  # Test B: split mode (Web + Worker containers, same image)
   # =====================================================================
   app-web:
     image: velobase-harness-test
@@ -96,7 +95,7 @@ services:
 
   app-api:
     image: velobase-harness-test
-    profiles: ["split"]
+    profiles: ["api"]
     depends_on:
       postgres:
         condition: service_healthy

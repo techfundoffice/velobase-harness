@@ -43,14 +43,16 @@ spec:
             name: velobase-harness-worker
             port:
               number: 80
-  - host: api.your-domain.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: velobase-harness-api
-            port:
-              number: 80
+# Optional API host. Uncomment only when deployment-api.yaml and service-api.yaml
+# are enabled in kustomization.yaml.
+#  - host: api.your-domain.com
+#    http:
+#      paths:
+#      - path: /
+#        pathType: Prefix
+#        backend:
+#          service:
+#            name: velobase-harness-api
+#            port:
+#              number: 80
 

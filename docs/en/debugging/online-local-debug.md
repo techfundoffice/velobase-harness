@@ -15,8 +15,8 @@ Use this workflow when debugging production issues from Velobase Cloud or anothe
 
 Ask for:
 
-- Web runtime logs for page, React, or tRPC issues.
-- API runtime logs for Hono, webhook, or external HTTP issues.
+- Web runtime logs for page, React, tRPC, auth, Next Route Handler, and current production webhook issues.
+- API runtime logs only for optional Hono routes under `src/api/routes/*`.
 - Worker logs for queues, processors, schedulers, payment reconciliation, email, ads, or touch jobs.
 
 Do not guess from screenshots alone when runtime logs are available.
@@ -35,9 +35,10 @@ Use split commands when the issue is service-specific:
 
 ```bash
 pnpm dev
-pnpm api:dev
 pnpm worker:dev
 ```
+
+Start `pnpm api:dev` only when the failing path is an optional Hono API route.
 
 ## 3. Fix
 
