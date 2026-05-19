@@ -1,7 +1,6 @@
-<!-- TODO: Replace with actual hero banner -->
-<!-- <p align="center">
-  <img src="public/banner.png" alt="Velobase Harness" width="800" />
-</p> -->
+<p align="center">
+  <img src="public/banner.gif" alt="Velobase Harness" width="800" />
+</p>
 
 <h1 align="center">Velobase Harness</h1>
 
