@@ -199,6 +199,14 @@ pnpm build
 
 `package.json` does not define a general unit-test script in this template. Service-mode smoke coverage lives in `docker-compose.test.yml` and `scripts/test-service-mode.mjs`.
 
+## Contributing
+
+We'd love for you to help shape what's coming next — whether it's fixing bugs, building new features, or improving docs.
+
+- 📘 Check out our [Contribution Guide](CONTRIBUTING.md) to get started
+- 💻 Submit ideas, issues, or PRs on [GitHub](https://github.com/velobase/velobase-harness)
+- 💬 Join the conversation in our [Discord](https://discord.gg/UnzEZJRnUf) — it's where the community lives
+
 ## License
 
 [MIT](LICENSE) — use it, fork it, ship it, make money with it.
