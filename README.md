@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="public/banner.gif" alt="Velobase Harness" width="800" />
+  <img src="public/banner.gif" alt="Velobase Harness" />
 </p>
-
-<h1 align="center">Velobase Harness</h1>
 
 <p align="center">
   <strong>An open-source framework that takes your AI app from code to cash.</strong>
