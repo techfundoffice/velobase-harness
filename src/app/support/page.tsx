@@ -44,7 +44,7 @@ export default function SupportPage() {
 
             {/* Discord */}
               <a
-                href="https://discord.gg/vfjrh3JTqc"
+                href="https://discord.gg/UnzEZJRnUf"
                 target="_blank"
                 rel="noopener noreferrer"
               className="group flex items-center justify-between p-6 rounded-2xl bg-white/50 dark:bg-black/20 border border-border/50 hover:border-indigo-500/30 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/10 transition-all duration-300"
