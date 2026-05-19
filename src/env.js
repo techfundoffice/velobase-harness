@@ -94,6 +94,7 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_APP_ENV: z.enum(["dev", "staging", "prod"]).default("dev"),
+    NEXT_PUBLIC_DISABLE_TEST_LOGIN: z.string().optional(),
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
     NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: z.string().optional(),
@@ -167,6 +168,7 @@ export const env = createEnv({
     VELOBASE_API_KEY: process.env.VELOBASE_API_KEY,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
+    NEXT_PUBLIC_DISABLE_TEST_LOGIN: process.env.NEXT_PUBLIC_DISABLE_TEST_LOGIN,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
     NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME,

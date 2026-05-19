@@ -1,88 +1,209 @@
-# AI SaaS Framework
+<!-- TODO: Replace with actual hero banner -->
+<!-- <p align="center">
+  <img src="public/banner.png" alt="Velobase Harness" width="800" />
+</p> -->
 
-A production-ready, full-stack AI SaaS framework built with the T3 Stack. Designed for solo developers who want to ship AI products fast without rebuilding common infrastructure.
+<h1 align="center">Velobase Harness</h1>
 
-## Tech Stack
+<p align="center">
+  <strong>An open-source framework that takes your AI app from code to cash.</strong>
+</p>
 
-- **Framework**: Next.js 15 (App Router) + React 19 + TypeScript
-- **API**: tRPC v11 (end-to-end type safety)
-- **Database**: PostgreSQL + Prisma 6 ORM + Redis
-- **Auth**: NextAuth v5 (Google, GitHub, Email Magic Link)
-- **Styling**: Tailwind CSS v4 + Radix UI (shadcn/ui)
-- **Background Jobs**: BullMQ + Redis
-- **AI**: Vercel AI SDK (OpenAI, Anthropic, Google Gemini, xAI, OpenRouter)
-- **Payments**: Stripe + NowPayments (crypto)
+<p align="center">
+  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-15-black" alt="Next.js" /></a>
+  <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61dafb" alt="React" /></a>
+  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-5-blue" alt="TypeScript" /></a>
+  <a href="https://pnpm.io"><img src="https://img.shields.io/badge/pnpm-10-f69220" alt="pnpm" /></a>
+  <a href="#license"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License" /></a>
+</p>
+
+<p align="center">
+  <a href="https://x.com/VelobaseX"><img src="https://img.shields.io/badge/Follow_on_X-000000?style=for-the-badge&logo=x&logoColor=white" alt="Follow on X" /></a>&nbsp;&nbsp;
+  <a href="https://discord.gg/HXXWfsx64q"><img src="https://img.shields.io/badge/Join_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord" /></a>
+</p>
+
+<p align="center">
+  Help us reach more developers — <a href="https://github.com/velobase/velobase-harness"><strong>Star this repo!</strong></a>
+</p>
+
+<p align="center">
+  <a href="./README.zh-CN.md">中文</a> · <a href="#quick-start">Quick Start</a> · <a href="#documentation">Docs</a> · <a href="#architecture">Architecture</a>
+</p>
+
+---
+
+### Ship fast. Get paid faster.
+
+In the vibe-coding era, everyone can build. But almost none of them make a dollar from it.
+
+We went from the same problem to 8-figure ARR. The secret was not a better product — it was the growth and monetization infrastructure behind it. We just open-sourced all of it. That is Velobase Harness.
+
+<!-- TODO: Replace with product screenshot or demo GIF -->
+<!-- <p align="center">
+  <img src="public/demo.gif" alt="Harness Demo" width="720" />
+</p> -->
+
+## Why Velobase Harness
+
+An open-source AI SaaS framework, extracted from a product doing 8-figure ARR. Unlike every other boilerplate, it does not stop at shipping — it covers the full path from build to revenue.
+
+**📡 Ad Attribution** — Server-side tracking that tells you which ads actually convert. Google Ads offline conversion upload, X pixel, PropellerAds.
+
+**🤝 Affiliate Engine** — Financial-grade double-entry ledger, refund clawback, USDT cashout. Your users become your salesforce.
+
+**💳 Usage-Based Billing** — Full credits lifecycle, subscriptions, multi-currency, metering dashboard, and `@velobaseai/billing` integration. Charges from day one.
+
+**🛡️ Anti-Abuse Guardrails** — Redis rate limits, Turnstile, disposable email and Gmail trick checks, signup IP/device signals, guest chat quotas, and credit clawback to reduce free-credit and model-cost abuse.
+
+**📧 Email Outreach** — A/B testing, scheduled campaigns, dual-provider failover. Brings people back automatically.
+
+**Plus:** Auth & anti-abuse · Multi-LLM AI chat · 11 BullMQ background workers · Stripe & crypto payments · PostHog analytics · Affiliate/Referral · Promo codes · Admin dashboard · Pluggable modules (toggle via env vars) · Docker, Kubernetes & GitOps docs
+
+> We checked every boilerplate on the market. They help you build. **We help you build AND make money.**
 
 ## Quick Start
 
+### Option A: Velobase Launchpad
+
+The fastest path — describe your product, Launchpad creates the repo, provisions all Cloud resources, and generates an AI IDE prompt so you can start building immediately.
+
+👉 **[Launch on Velobase Cloud](https://velobase.cloud/launchpad)**
+
+### Option B: Local Development
+
+Prerequisites: Node.js, pnpm, Docker Desktop, and Docker Compose.
+
 ```bash
-pnpm install                # Install dependencies
-cp .env.example .env        # Copy and configure environment variables
-docker compose up -d        # Start PostgreSQL + Redis
-pnpm db:migrate             # Run database migration
-pnpm dev                    # Web server → http://localhost:3000
-pnpm worker:dev             # Worker server → http://localhost:3001
+pnpm install
+cp .env.example .env
+pnpm docker:db:up
+pnpm db:push
+pnpm db:seed
+pnpm dev:all
 ```
 
-See [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) for detailed setup and production deployment checklist.
+`pnpm docker:db:up` starts the local infrastructure from `docker-compose.yml`:
+
+| Service | Image | Local URL / Port | Used by |
+| --- | --- | --- | --- |
+| PostgreSQL | `postgres:16` | `localhost:5432` | Prisma, auth, billing, product data |
+| Redis | `redis:7` | `localhost:6379` | BullMQ workers, queues, rate limits |
+
+The default `.env.example` already points to these local services:
+
+```env
+DATABASE_URL=postgresql://velobase:velobase@localhost:5432/velobase
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+```
+
+`pnpm dev:all` starts the combined local runtime: Web on `:3000`, API on `:3002`, and Worker on `:3001`.
+
+Open the app at [http://localhost:3000](http://localhost:3000).
+
+You can also split processes across terminals:
+
+```bash
+pnpm dev
+pnpm api:dev
+pnpm worker:dev
+```
+
+When you are ready to deploy, see the [Cloud Deployment Guide](./docs/en/deployment/cloud-deploy.md).
+
+If you are not entering through Launchpad flow, run Step 0 in [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) before implementing product features: complete domain design, output the MVP scope and feature list, and wait for user confirmation before coding.
+
+## Architecture
+
+```mermaid
+flowchart TB
+  browser[Browser] --> nextApp[Next.js Web]
+  nextApp --> trpc[tRPC Routers]
+  external[External Integrations] --> hono[Hono API]
+  trpc --> services[Domain Services]
+  hono --> services
+  services --> db[(PostgreSQL)]
+  services --> redis[(Redis)]
+  services --> events[Event Bus]
+  events --> modules[Pluggable Modules]
+  worker[BullMQ Worker] --> redis
+  worker --> services
+  modules --> growth[Growth Operations]
+```
+
+The same codebase can run as one process or as separate services:
+
+| Runtime | Entry | Port | Command |
+| --- | --- | --- | --- |
+| Web | Next.js App Router | `3000` | `pnpm dev` / `pnpm start` |
+| API | Hono HTTP service | `3002` | `pnpm api:dev` / `pnpm api:prod` |
+| Worker | BullMQ processors | `3001` | `pnpm worker:dev` / `pnpm worker:prod` |
+| Combined | `src/server/standalone.ts` | `3000`, `3002`, `3001` | `pnpm dev:all` / `pnpm start:all` |
+
+`SERVICE_MODE` supports `all`, `web`, `api`, `worker`, and combinations such as `web,api`.
+
+## From Template to Cloud
+
+```mermaid
+flowchart LR
+  idea[Product Idea] --> launchpad[Velobase Launchpad]
+  launchpad --> repo[GitHub Repo from Harness]
+  launchpad --> cloud[Velobase Cloud Resources]
+  repo --> ide[IDE Agent Development]
+  ide --> push[Git Push]
+  push --> actions[GitHub Actions]
+  actions --> deployApi[Velobase Deploy API]
+  deployApi --> liveApp[Live SaaS App]
+```
+
+Launchpad generates an IDE prompt that tells the AI agent how to use the Harness docs, where to implement product features, how to keep framework boundaries intact, and how to push changes back for Cloud deployment.
 
 ## Documentation
 
-| Document | Description |
-| --- | --- |
-| [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) | Architecture, quick start, code boundaries, production checklist |
-| [AGENTS.md](./AGENTS.md) | AI coding rules and constraints |
-| [docs/conventions/api.md](./docs/conventions/api.md) | API three-zone system and coding conventions |
-| [docs/integration-guide.md](./docs/integration-guide.md) | Third-party integration roadmap and 6-step process |
-| [docs/integrations/](./docs/integrations/) | Detailed docs per integration (auth, email, database, payment, storage, queue, security) |
-| [docs/features/](./docs/features/) | Built-in framework features (daily-bonus, anti-abuse, cdn-adapters) |
+| Area | English | Chinese |
+| --- | --- | --- |
+| Documentation hub | [docs/en/README.md](./docs/en/README.md) | [docs/zh-CN/README.md](./docs/zh-CN/README.md) |
+| Framework guide | [FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md) | [FRAMEWORK_GUIDE.zh-CN.md](./FRAMEWORK_GUIDE.zh-CN.md) |
+| Integration guide | [docs/en/integrations/README.md](./docs/en/integrations/README.md) | [docs/zh-CN/integrations/README.md](./docs/zh-CN/integrations/README.md) |
+| Product modules | [docs/en/modules/README.md](./docs/en/modules/README.md) | [docs/zh-CN/modules/README.md](./docs/zh-CN/modules/README.md) |
+| AI Chat module | [docs/en/modules/ai-chat/README.md](./docs/en/modules/ai-chat/README.md) | [docs/zh-CN/modules/ai-chat/README.md](./docs/zh-CN/modules/ai-chat/README.md) |
+| AI task guides | [docs/en/ai/](./docs/en/ai/) | [docs/zh-CN/ai/](./docs/zh-CN/ai/) |
+| AI completion checklist | [docs/en/ai/completion-checklist.md](./docs/en/ai/completion-checklist.md) | [docs/zh-CN/ai/completion-checklist.md](./docs/zh-CN/ai/completion-checklist.md) |
+| Web/API/Worker split | [docs/en/architecture/web-api-service-split.md](./docs/en/architecture/web-api-service-split.md) | [docs/zh-CN/architecture/web-api-service-split.md](./docs/zh-CN/architecture/web-api-service-split.md) |
+| AI agent rules | [AGENTS.md](./AGENTS.md) | [AGENTS.zh-CN.md](./AGENTS.zh-CN.md) |
+
+Legacy non-locale paths under `docs/` are compatibility shims. New documentation should use `docs/en/**` and `docs/zh-CN/**`.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=velobase/velobase-harness&type=Date)](https://star-history.com/#velobase/velobase-harness&Date)
 
 ## Project Structure
 
-```
+```text
 src/
 ├── app/              # Next.js pages and API routes
-├── modules/          # Business modules (see modules/example/ for template)
-├── server/           # Server-side code
-│   ├── api/          # tRPC routers (root.ts is the registry)
-│   ├── auth/         # Authentication
-│   ├── billing/      # Credits and billing (Velobase SDK)
-│   ├── order/        # Orders and payment processing
-│   ├── email/        # Unified email service (Resend / SendGrid)
-│   ├── features/     # Built-in features (anti-abuse, cdn-adapters, daily-bonus)
-│   └── ...
-├── workers/          # BullMQ workers, queues, and processors
+├── api/              # Standalone Hono API entry
+├── config/           # Module configuration
+├── modules/          # Product modules and templates
+├── server/           # Auth, billing, order, events, modules, features
+├── workers/          # BullMQ queues and processors
 ├── components/       # Shared UI components
-└── analytics/        # PostHog event tracking
+└── analytics/        # PostHog and ads event tracking
 ```
 
-## Adding a New Feature
-
-See `src/modules/example/` for a complete template, or read [docs/conventions/api.md](./docs/conventions/api.md) for coding conventions.
+## Quality Commands
 
 ```bash
-# 1. Create module
-mkdir -p src/modules/my-feature/server
-
-# 2. Add service + router
-# 3. Register router in src/server/api/root.ts
-# 4. Add Prisma models if needed
-npx prisma db push
+pnpm lint
+pnpm typecheck
+pnpm check
+pnpm format:check
+pnpm build
 ```
 
-## Environment Variables
-
-See `.env.example` for the full list with comments. Key variables:
-
-| Variable | Description |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `REDIS_HOST` / `REDIS_PORT` | Redis for BullMQ and caching |
-| `NEXTAUTH_SECRET` | NextAuth secret (`npx auth secret`) |
-| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth |
-| `STRIPE_SECRET_KEY` | Stripe payments |
-| `RESEND_API_KEY` | Email sending |
+`package.json` does not define a general unit-test script in this template. Service-mode smoke coverage lives in `docker-compose.test.yml` and `scripts/test-service-mode.mjs`.
 
 ## License
 
-Private — All rights reserved.
+[MIT](LICENSE) — use it, fork it, ship it, make money with it.

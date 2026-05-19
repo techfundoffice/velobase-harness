@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/layout/header";
 import { Background } from "@/components/layout/background";
@@ -12,18 +9,6 @@ import { useTranslations } from "next-intl";
 
 export default function HomePage() {
   const t = useTranslations("landing");
-  const { status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/dashboard");
-    }
-  }, [status, router]);
-
-  if (status === "authenticated") {
-    return null;
-  }
 
   return (
     <div

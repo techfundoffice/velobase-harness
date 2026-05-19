@@ -4,7 +4,7 @@
  * Reads `SERVICE_MODE` from the environment and starts the selected services
  * within a single Node.js process:
  *
- *   SERVICE_MODE=all       (default) — Web :3000 + API :3002 + Worker :3001
+ *   SERVICE_MODE=all       (default) — Web :3000 + API :3002 + Worker :3001 (starts Web first)
  *   SERVICE_MODE=web       — Next.js only
  *   SERVICE_MODE=api       — Hono API only
  *   SERVICE_MODE=worker    — BullMQ Worker only
@@ -16,6 +16,7 @@
 import "dotenv/config";
 
 import { createLogger } from "@/lib/logger";
+import { redis } from "@/server/redis";
 
 const log = createLogger("standalone");
 
@@ -44,6 +45,12 @@ async function start() {
   log.info({ SERVICE_MODE, modes }, "Starting services...");
   logResourceStatus();
 
+  if (shouldStart("web")) {
+    const { startWeb } = await import("@/web/start");
+    const { shutdown } = await startWeb();
+    shutdowns.push(shutdown);
+  }
+
   if (shouldStart("api")) {
     const { startApi } = await import("@/api/start");
     const { shutdown } = await startApi();
@@ -53,12 +60,6 @@ async function start() {
   if (shouldStart("worker")) {
     const { startWorker } = await import("@/workers/start");
     const { shutdown } = await startWorker();
-    shutdowns.push(shutdown);
-  }
-
-  if (shouldStart("web")) {
-    const { startWeb } = await import("@/web/start");
-    const { shutdown } = await startWeb();
     shutdowns.push(shutdown);
   }
 
@@ -74,6 +75,10 @@ async function shutdown(signal: string) {
       log.error({ error: err }, "Error during service shutdown");
     }
   }
+  try {
+    await redis.quit();
+    log.info("Redis connection closed");
+  } catch {}
   process.exit(0);
 }
 

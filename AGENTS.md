@@ -1,204 +1,149 @@
-# AI Agent 项目指南
+# AI Agent Guide
 
-本文件为 AI 编码工具提供项目上下文和编码规则。适用于 Cursor、Claude Code、GitHub Copilot、Windsurf 等。
+This file is the universal entry point for AI coding tools such as Cursor, Claude Code, GitHub Copilot, Windsurf, and generic agent runners.
 
-> **定位**：本文件只包含 AI 写代码时必须遵守的**约束规则**。  
-> 架构设计、快速启动、分阶段 Checklist → 见 `[FRAMEWORK_GUIDE.md](./FRAMEWORK_GUIDE.md)`  
-> API 三区制与编码约定 → 见 `[docs/conventions/api.md](./docs/conventions/api.md)`  
-> 第三方集成详细文档 → 见 `[docs/integrations/](./docs/integrations/)`  
-> 框架内置功能详细文档 → 见 `[docs/features/](./docs/features/)`
+Read this file first. Then follow the task and integration routers below before editing code.
 
-## 技术栈
+## Task Router
 
-- Next.js 15 (App Router) + React 19 + TypeScript
-- tRPC v11 + Zod（类型安全 API）
-- Hono（独立 API 服务）
-- Prisma 6 + PostgreSQL（数据库）+ Redis（缓存/队列）
-- NextAuth v5（认证）
-- Tailwind CSS 4 + Radix UI（UI）
-- BullMQ + Fastify（后台任务 + Worker HTTP）
+IF the user asks to build a new product from scratch:
 
-## 项目结构
+- MUST read `docs/en/ai/design.md`.
+- MUST complete domain design before writing product code.
 
-```
-src/
-├── app/              # Next.js 页面和 API 路由
-├── api/              # 独立 Hono API 服务（Webhook、集成接口）
-│   ├── app.ts        # Hono 应用工厂
-│   ├── start.ts      # startApi() 启动函数
-│   ├── index.ts      # 独立进程入口
-│   └── routes/       # API 路由（health、webhooks 等）
-├── web/              # Web 服务启动封装
-│   └── start.ts      # startWeb() 启动函数（SERVICE_MODE=all 用）
-├── modules/          # 业务功能模块（参考 modules/example/）
-├── server/           # 服务端代码
-│   ├── api/          # tRPC 路由（root.ts 是注册中心）
-│   ├── standalone.ts # SERVICE_MODE 统一入口
-│   ├── auth/         # 认证
-│   ├── email/        # 统一邮件服务
-│   ├── billing/      # 计费（Velobase SDK）
-│   ├── order/        # 订单
-│   ├── features/     # 框架内置功能（anti-abuse / cdn-adapters / daily-bonus）
-│   └── ...
-├── components/       # 共享 UI 组件
-├── workers/          # BullMQ 后台任务
-│   ├── start.ts      # startWorker() 启动函数
-│   ├── registry.ts   # WorkerRegistry 自动注册
-│   ├── index.ts      # 独立进程入口
-│   └── ...
-└── analytics/        # 事件追踪
-```
+IF you are about to create a new business module under `src/modules/`:
 
-## 三服务架构
+- MUST read `docs/en/ai/new-module.md` first.
 
-本框架支持三类运行时进程，通过 `SERVICE_MODE` 环境变量灵活组合：
+IF you are about to create or modify tests (`*.test.ts`, `*.spec.ts`, or `e2e/*`):
 
-- `SERVICE_MODE=all`（默认）：Web + API + Worker 在同一进程
-- `SERVICE_MODE=web`：仅 Next.js
-- `SERVICE_MODE=api`：仅 Hono API
-- `SERVICE_MODE=worker`：仅 BullMQ Worker
-- 支持逗号组合：`SERVICE_MODE=web,api`
+- MUST read `docs/en/ai/testing.md` first.
 
-统一入口：`src/server/standalone.ts`
+After development is complete:
 
-## 添加新功能
+- MUST run the checks in `docs/en/ai/completion-checklist.md`.
+- MUST tell the user which checks were run and which were skipped.
 
-> 详细步骤和代码模式 → `[docs/conventions/api.md](./docs/conventions/api.md)`
+## Integration Router
 
-1. 参考 `src/modules/example/` 的结构（含 README）
-2. 在 `prisma/schema.prisma` 添加数据模型
-3. 创建 `src/modules/<name>/server/service.ts`（业务逻辑）+ `router.ts`（瘦 Router）
-4. 在 `src/server/api/root.ts` 注册新 router
-5. 运行 `npx prisma db push`
-6. 前端通过 `api.<name>.<procedure>.useQuery/useMutation()` 调用
+IF you touch authentication or login:
 
-## 编码规则
+- Read `docs/en/integrations/auth/README.md`.
 
-### 通用
+IF you touch billing, orders, payments, subscriptions, products, credits, or promo codes:
 
-- 所有 mutation 必须使用 `protectedProcedure`（类型强制）
-- 所有用户输入必须用 Zod 校验
-- 数据库查询必须分页（cursor-based pagination，默认 limit=20）
-- 使用 `createLogger("module-name")` 创建结构化日志
-- 环境变量通过 `src/env.js`（T3 Env）统一管理，不要直接读 `process.env`
+- Read `docs/en/integrations/payment/README.md`.
 
-### 认证
+IF you touch email delivery or email templates:
 
-> 详细架构和 Provider 配置 → `[docs/integrations/auth/](./docs/integrations/auth/)`
+- Read `docs/en/integrations/email/README.md`.
 
-- Server Component 获取用户：`const session = await auth()`（从 `@/server/auth` 导入）
-- 客户端获取用户：`useSession()` from `next-auth/react`
-- 登录统一通过 `useLogin()` hook（`@/components/auth/use-login`），**禁止**直接调用 `signIn()`
-- **禁止**在客户端存储敏感认证信息或直接操作 JWT/session token
+IF you touch database, Prisma, migrations, Redis, or env-backed persistence:
 
-### 邮件
+- Read `docs/en/integrations/database/README.md`.
 
-> 详细架构和 Provider 配置 → `[docs/integrations/email/](./docs/integrations/email/)`
+IF you touch file upload, object storage, CDN URLs, or asset access:
 
-- 统一使用 `sendEmail()` from `@/server/email`，**禁止**直接调用 Resend/SendGrid SDK
-- 同时提供 `react` 和 `html` 版本以确保所有 provider 兼容
-- Support 模块的 SMTP（nodemailer）是独立的客服回复通道，不走 `sendEmail()`
+- Read `docs/en/integrations/storage/README.md`.
 
-### 数据库
+IF you touch analytics, feature flags, or product events:
 
-> 详细架构和启动方式 → `[docs/integrations/database/](./docs/integrations/database/)`
+- Read `docs/en/integrations/analytics/README.md`.
 
-- 使用 `db` from `@/server/db`，**禁止**自己创建 PrismaClient
-- 使用 `redis` from `@/server/redis`，**禁止**自己创建 Redis 连接
-- 修改 schema 后运行 `npx prisma db push`
+IF you touch ad attribution or conversion upload:
 
-### 支付
+- Read `docs/en/integrations/ads/README.md`.
 
-> 详细架构和网关配置 → `[docs/integrations/payment/](./docs/integrations/payment/)`
+IF you touch queues, workers, processors, or scheduled jobs:
 
-- Stripe 客户端**必须**通过 `getStripe()` from `@/server/order/services/stripe/client` 获取，**禁止**自行 `new Stripe()` 或 `import("stripe")`
-- `apiVersion` 由 `client.ts` 的 `STRIPE_API_VERSION` 统一管理，**禁止**在其他文件中硬编码
-- 发起支付通过 `trpc.order.checkout`，**禁止**在前端直接调用 Stripe SDK
-- 支付状态更新仅由 Webhook 驱动，前端 `confirmPayment` 仅作补偿轮询
-- 权益发放通过 `fulfillment/manager.ts`，**禁止**在 Webhook handler 中直接操作余额
-- 积分操作通过 `billing` 域的 `grant/deduct`，不直接写 DB
-- **禁止**硬编码商品价格，应通过 Product 表查询
+- Read `docs/en/integrations/queue/README.md`.
 
-### 存储
+IF you touch anti-abuse, captcha, rate limiting, IP, country, or security boundaries:
 
-> 详细架构和 Provider 配置 → `[docs/integrations/storage/](./docs/integrations/storage/)`
+- Read `docs/en/integrations/security/README.md` and relevant `docs/en/features/*/README.md`.
 
-- 统一使用 `@/server/storage` 导出的函数，**禁止**直接调用 S3 SDK
+## Core Rules
 
-### 独立 API 服务（Hono）
+### General
 
-- API 路由写在 `src/api/routes/` 目录下，使用 Hono 路由语法
-- 在 `src/api/app.ts` 中通过 `app.route()` 注册新路由
-- 适合放到 API 服务的：Webhook 接收、对外集成接口、不依赖 Next.js 的 HTTP 端点
-- 仍需 Next.js 能力的（SSR、tRPC、NextAuth 回调）保留在 `src/app/api/`
-- **禁止**在 API 服务中导入 Next.js 特有模块（`next/server`、`next/headers` 等）
+- Keep framework code generic. Put product-specific behavior in `src/modules/<name>/` unless an existing framework extension point is the correct owner.
+- Validate all user input with Zod or an equivalent schema.
+- Paginate list queries with cursor-based pagination; default page size should be 20.
+- Use `createLogger("module-name")` for structured logs.
+- Use `src/env.js` for environment variables. Do not read `process.env` directly in application code.
+- Do not revert user changes unless the user explicitly asks.
 
-### 后台任务
+### Productization
 
-> 详细架构和添加新队列的步骤 → `[docs/integrations/queue/](./docs/integrations/queue/)`
+- When building a new product, customize `src/app/page.tsx` and i18n copy. Do not ship the default template landing page.
+- `/` is a public landing page. Do not redirect signed-in users away from it by default.
+- Route authenticated CTAs to the product's real main workflow, not to an unused template dashboard.
 
-- 参考 `src/modules/example/worker/` 创建新的后台任务
-- 使用 `createWorkerInstance()` 工厂函数创建 Worker，**禁止**直接 `new Worker()`
-- 新队列必须在 `src/workers/queues/index.ts` + `processors/index.ts` 导出，并在 `src/workers/start.ts` 中通过 `registry.register()` 注册
+### Auth
 
-### 分析（Analytics）
+- Server Components use `await auth()` from `@/server/auth`.
+- Client Components use `useSession()` from `next-auth/react`.
+- Login UI must use `useLogin()` from `@/components/auth/use-login`.
+- Never store sensitive auth data, JWTs, or session tokens in client state or local storage.
 
-> 详细架构和事件定义 → `[docs/integrations/analytics/](./docs/integrations/analytics/)`
+### Database
 
-- **客户端**埋点用 `track()` from `@/analytics`，**服务端**埋点用 `safeTrack()` from `@/analytics/server`
-- **绝不在服务端代码中导入 `@/analytics`**（只能导入 `@/analytics/server` 和 `@/analytics/events/*`）
-- 新事件先在 `src/analytics/events/` 定义常量 + Properties interface，再使用
-- Feature Flag 客户端用 `useFeatureFlagVariantKey()`，服务端用 `getFeatureFlag()` from `@/server/experiments`
+- Use `db` from `@/server/db`; never create a new PrismaClient.
+- Use `redis` from `@/server/redis`; never create ad hoc Redis connections.
+- Schema changes may use `npx prisma db push` locally, but committed deployable changes require `prisma/migrations/*`.
 
-### 广告（Ads）
+### API
 
-> 详细架构和归因链路 → `[docs/integrations/ads/](./docs/integrations/ads/)`
+- Mutations must use `protectedProcedure` unless the endpoint is intentionally public.
+- Routers stay thin: choose procedure, validate input, call service.
+- Business logic belongs in service modules, not router bodies.
+- Hono routes live under `src/api/routes/` and must not import Next.js-only APIs such as `next/headers` or `next/server`.
 
-- 前端广告追踪从 `@/analytics/ads` 导入，**禁止**直接调用 `window.gtag` 或 `window.twq`
-- 支付履约后调用 `enqueueGoogleAdsUploadsForPayment(paymentId)` 触发服务端离线回传
-- 修改 Google Ads ID → `src/analytics/ads/google.ts`；修改 Twitter 事件 ID → `src/analytics/ads/twitter.ts`
+### Billing And Payment
 
-### 框架内置功能
+- Get Stripe through `getStripe()` from `@/server/order/services/stripe/client`.
+- Do not call payment SDKs directly from frontend code.
+- Do not hard-code prices. Query product data.
+- Payment status changes are webhook-driven; frontend confirmation is only compensating polling.
+- Entitlement delivery goes through fulfillment and billing services. Do not grant credits directly in webhook handlers.
 
-> 功能清单和各功能详细文档 → `[docs/features/](./docs/features/)`
+### Email And Storage
 
-- **每日签到赠送**：`src/server/features/daily-bonus/` — 修改赠送额度看代码中常量
-- **注册反滥用**：`src/server/features/anti-abuse/` — 修改检测策略看代码中策略函数
-- **CDN 适配**：`src/server/features/cdn-adapters/` — IP/国家提取、Flexible SSL 检测
+- Send email through `sendEmail()` from `@/server/email`; do not call provider SDKs directly.
+- Use `@/server/storage` exports for storage; do not call S3-compatible SDKs directly in product code.
 
-### 国际化（i18n）
+### Workers
 
-> 架构设计详见 `[docs/architecture/i18n-locale.md](./docs/architecture/i18n-locale.md)`  
-> 语言配置 → `src/i18n/config.ts`；请求解析 → `src/i18n/request.ts`；文案 → `messages/*.json`
+- Create workers through `createWorkerInstance()`, not `new Worker()`.
+- New queues must be exported from `src/workers/queues/index.ts` and processors from `src/workers/processors/index.ts`.
+- Worker jobs must be idempotent, especially for billing, entitlement, email, and webhook side effects.
 
-**核心规则：**
+### Analytics, Ads, And Side Effects
 
-- 所有用户可见文案**必须**通过 `useTranslations(namespace)`（Client Component）或 `getTranslations(namespace)`（Server Component）获取
-- **禁止**在组件 / 页面的 JSX 中硬编码用户可见的英文字符串
-- Client Component 中 `useTranslations` 可直接使用，无需额外配置（根 Layout 已注入 `NextIntlClientProvider`）
-- Server Component 中使用 `getTranslations`（从 `next-intl/server` 导入），无副作用可直接 `await`
+- Client analytics use `track()` from `@/analytics`.
+- Server analytics use `safeTrack()` from `@/analytics/server`.
+- Never import `@/analytics` in server code.
+- Define new analytics events under `src/analytics/events/` before using them.
+- Core flows emit domain events through `appEvents.emit()` from `@/server/events/bus`.
+- Do not call pluggable modules such as PostHog, Google Ads, Lark, or Telegram directly from core flows.
 
-**命名空间（namespace）边界：**
+### Modules
 
-| 命名空间 | 归属 | 说明 |
-|---|---|---|
-| `common` `nav` `auth` `billing` `payment` `aiChat` `errors` `account` `admin` | **框架** | 由框架维护，**禁止**在此下新增业务 key |
-| `landing` `product` 及其他自定义 key | **业务方** | 开发者在 `messages/en.json` 下自由添加 |
+- Module enablement belongs in `src/config/modules.ts`.
+- Pluggable modules implement `FrameworkModule` from `@/server/modules/registry`.
+- Disabled modules must not expose routers or webhook endpoints.
+- Modules communicate through the event bus, not direct imports between modules.
 
-**新增 module 的文案约定：**
-- 命名空间：`{moduleName}` （如 `aiChat`、`explorer`）
-- key 结构：`{component}.{key}`（如 `aiChat.errorNetwork`）
+### Internationalization
 
-**语言切换：**
-- 用户切换语言通过 `LocaleSwitcher` 组件（写 `NEXT_LOCALE` Cookie → `location.reload()`）
-- Cookie 优先级最高，其次 `Accept-Language`，兜底 `en`
-- 禁止直接操作 `NEXT_LOCALE` Cookie，统一通过 `LocaleSwitcher`
+- User-visible UI copy must use `useTranslations()` or `getTranslations()`.
+- Do not hard-code user-visible English strings in JSX.
+- Framework namespaces are reserved: `common`, `nav`, `auth`, `billing`, `payment`, `aiChat`, `errors`, `account`, `admin`.
+- Product copy belongs under `landing`, `product`, or module-specific namespaces.
 
-**邮件模板：**
-- 邮件渲染不在 Next.js 请求上下文中，**不使用** `next-intl`
-- 需要多语言时，通过 `locale` 参数显式传入，使用独立的消息加载函数
+### Debugging
 
-**tRPC 错误处理：**
-- 服务端 `TRPCError.message` 保持 code 字符串（如 `"USER_NOT_FOUND"`），**禁止**在服务端做语言翻译
-- 前端展示错误时通过 `t('errors.USER_NOT_FOUND')` 在 Client 侧翻译
+- For production issues, ask the user for the latest Velobase Cloud runtime or deploy logs first.
+- Reproduce with the local Docker database workflow before pushing a fix when possible.
+- Use `docs/en/debugging/online-local-debug.md` for the full workflow.
 

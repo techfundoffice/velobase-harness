@@ -14,6 +14,11 @@ export type LoginView = "main" | "email" | "email-sent";
 
 // ============ Constants ============
 const PASSWORD_LOGIN_PREFIX = "testadmin";
+const TEST_LOGIN_EMAIL = "testadmin@example.com";
+const TEST_LOGIN_PASSWORD = "Testadmin2024!";
+
+export const TEST_ACCOUNT_LOGIN_ENABLED =
+  env.NEXT_PUBLIC_DISABLE_TEST_LOGIN !== "true";
 
 export const COMMON_EMAIL_DOMAINS = [
   "outlook.com",
@@ -331,6 +336,34 @@ export function useLogin() {
     }
   };
 
+  const handleTestAccountLogin = async () => {
+    setError(null);
+    setShowAutocomplete(false);
+    setEmail(TEST_LOGIN_EMAIL);
+    setPassword(TEST_LOGIN_PASSWORD);
+    setIsLoading(true);
+    track(AUTH_EVENTS.LOGIN_METHOD_SELECT, { method: "test_credentials" });
+
+    try {
+      ensureDeviceKey();
+
+      await signIn("credentials", {
+        email: TEST_LOGIN_EMAIL,
+        password: TEST_LOGIN_PASSWORD,
+        redirectTo: getCallbackUrl(),
+      });
+    } catch (err) {
+      if ((err as Error).message === "NEXT_REDIRECT") {
+        return;
+      }
+      console.error(err);
+      track(AUTH_EVENTS.LOGIN_FAILED, { method: "test_credentials", reason: "unknown" });
+      setError("Invalid test account credentials. Run database seed first.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -370,6 +403,7 @@ export function useLogin() {
     error,
     turnstileToken,
     isPasswordMode,
+    isTestAccountLoginEnabled: TEST_ACCOUNT_LOGIN_ENABLED,
     
     // Autocomplete
     showAutocomplete,
@@ -395,6 +429,7 @@ export function useLogin() {
     handleAutocompleteSuggestionClick,
     handleFormSubmit,
     handleUseDifferentEmail,
+    handleTestAccountLogin,
     
     // Helpers
     getEmailProvider,
