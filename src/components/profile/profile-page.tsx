@@ -110,7 +110,7 @@ export function ProfilePage() {
         
         <div className="bg-card/50 border rounded-2xl overflow-hidden divide-y">
           <a 
-            href="https://discord.gg/vfjrh3JTqc" 
+            href="https://discord.gg/UnzEZJRnUf" 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center p-4 hover:bg-muted/50 transition-colors"
