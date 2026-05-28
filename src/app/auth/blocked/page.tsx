@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { VibeLogo } from "@/components/ui/vibe-logo";
+import { AppLogo } from "@/components/ui/app-logo";
 import { Button } from "@/components/ui/button";
 import { ShieldX, Trash2, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -17,7 +17,7 @@ export default function BlockedPage() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-50 dark:bg-slate-950">
       <div className="flex max-w-md flex-col items-center gap-6 px-6 text-center">
-        <VibeLogo size="lg" />
+        <AppLogo size="lg" />
 
         <div className={`flex h-16 w-16 items-center justify-center rounded-full ${
           isDeleted || isSignupDisabled

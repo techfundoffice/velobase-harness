@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 
-interface VibeLogoProps {
+interface AppLogoProps {
   className?: string;
   size?: "sm" | "md" | "lg";
   variant?: "default" | "minimal";
@@ -19,7 +19,7 @@ const textClasses = {
   lg: "text-2xl",
 };
 
-export function VibeLogo({ className, size = "md", variant = "default" }: VibeLogoProps) {
+export function AppLogo({ className, size = "md", variant = "default" }: AppLogoProps) {
   return (
     <div className={cn("flex items-center gap-2 font-poppins group", className)}>
       <Logo size={logoSizeMap[size]} className="text-primary" />

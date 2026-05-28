@@ -104,9 +104,9 @@ async function testSeedAgents() {
   assert("系统 Agent 数量 >= 6", agents.length >= 6, `实际 ${agents.length}`);
 
   const defaultAgent = await prisma.agent.findFirst({
-    where: { id: "agent_vibe_creator" },
+    where: { id: "agent_default_assistant" },
   });
-  assert("默认 AI 助手存在 (agent_vibe_creator)", !!defaultAgent);
+  assert("默认 AI 助手存在 (agent_default_assistant)", !!defaultAgent);
 }
 
 async function testSeedProducts() {

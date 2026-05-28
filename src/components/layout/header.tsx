@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, Coins, CreditCard, ArrowRight, Tag, User, History } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/components/auth/store/auth-store";
-import { VibeLogo } from "@/components/ui/vibe-logo";
+import { AppLogo } from "@/components/ui/app-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { api } from "@/trpc/react";
 import { cn } from "@/lib/utils";
@@ -58,7 +58,7 @@ export function Header({ variant = "default", className }: HeaderProps) {
         className
       )}>
         <Link href="/" className="hover:opacity-80 transition-opacity">
-          <VibeLogo size="sm" className="text-white" />
+          <AppLogo size="sm" className="text-white" />
         </Link>
         <Link href="/">
           <Button
@@ -82,7 +82,7 @@ export function Header({ variant = "default", className }: HeaderProps) {
         <div className="flex h-20 items-center px-6 md:px-8">
           <div className="flex items-center flex-1">
             <button onClick={handleLogoClick} className="hover:opacity-80 transition-opacity">
-              <VibeLogo size="md" className="text-foreground drop-shadow-md" />
+              <AppLogo size="md" className="text-foreground drop-shadow-md" />
             </button>
           </div>
 

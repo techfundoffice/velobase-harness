@@ -43,7 +43,7 @@ ChatPanel
 - `Agent` 存储可复用的模型 instructions、模型名称、启用工具集、头像、颜色和系统预设状态。
 - `UserAgent` 连接用户和 `Agent`，保存默认状态、启用状态，以及用户级 custom instructions 或模型覆盖配置。
 
-`prisma/seed-vibe-creator-agent.ts` 和 `prisma/seed-agent-apps.ts` 会创建默认助手和系统预设 Agent。
+`prisma/seed-default-assistant-agent.ts` 和 `prisma/seed-agent-apps.ts` 会创建默认助手和系统预设 Agent。
 
 ## Agent 和工具扩展
 

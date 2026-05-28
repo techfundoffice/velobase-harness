@@ -63,7 +63,7 @@ export function MobileAffiliateLanding() {
           <h1 className="text-3xl font-extrabold tracking-tight">
             Become a <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
-              Vibe Partner
+              Creator Partner
             </span>
           </h1>
           <p className="text-muted-foreground text-sm leading-relaxed">

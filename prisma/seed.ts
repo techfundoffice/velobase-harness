@@ -9,7 +9,7 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { seedAgentApps } from './seed-agent-apps';
-import { seedVibeCreatorAgent } from './seed-vibe-creator-agent';
+import { seedDefaultAssistantAgent } from './seed-default-assistant-agent';
 import { seedProducts } from './seed-products';
 import { seedPasswordLoginTestUsers } from './seed-password-login-users';
 import { seedTouchScenes } from './seed-touch-scenes';
@@ -26,7 +26,7 @@ async function main() {
 
   // 1. Seed default AI assistant agent
   console.log('📦 Step 1: Seeding default AI assistant agent...');
-  await seedVibeCreatorAgent();
+  await seedDefaultAssistantAgent();
   console.log('');
 
   // 2. Seed other System Agents

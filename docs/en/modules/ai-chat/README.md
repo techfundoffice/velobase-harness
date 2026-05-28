@@ -43,7 +43,7 @@ Core records live in `prisma/schema.prisma`:
 - `Agent` stores reusable model instructions, model name, enabled tool sets, avatar, color, and system preset status.
 - `UserAgent` connects a user to an `Agent`, stores default/enabled state, and allows user-specific custom instructions or model overrides.
 
-Seed scripts in `prisma/seed-vibe-creator-agent.ts` and `prisma/seed-agent-apps.ts` create the default assistant and system agent presets.
+Seed scripts in `prisma/seed-default-assistant-agent.ts` and `prisma/seed-agent-apps.ts` create the default assistant and system agent presets.
 
 ## Agent And Tool Extension
 

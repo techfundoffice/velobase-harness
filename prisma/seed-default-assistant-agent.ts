@@ -9,11 +9,11 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function seedVibeCreatorAgent() {
+export async function seedDefaultAssistantAgent() {
   console.log('🌱 Seeding default AI assistant agent...');
 
   const agent = await prisma.agent.upsert({
-    where: { id: 'agent_vibe_creator' },
+    where: { id: 'agent_default_assistant' },
     update: {
       name: 'AI Assistant',
       description:
@@ -40,7 +40,7 @@ General guidelines:
       updatedAt: new Date(),
     },
     create: {
-      id: 'agent_vibe_creator',
+      id: 'agent_default_assistant',
       name: 'AI Assistant',
       description:
         'General-purpose AI assistant. Customize this agent with your own instructions and tools.',

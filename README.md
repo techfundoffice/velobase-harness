@@ -31,7 +31,7 @@
 
 ### Ship fast. Get paid faster.
 
-In the vibe-coding era, everyone can build. But almost none of them make a dollar from it.
+In the AI app-building era, everyone can build. But almost none of them make a dollar from it.
 
 We went from the same problem to 8-figure ARR. The secret was not a better product — it was the growth and monetization infrastructure behind it. We just open-sourced all of it. That is Velobase Harness.
 

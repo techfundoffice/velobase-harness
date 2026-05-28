@@ -55,7 +55,7 @@ export const GUEST_MODE_CONFIG = {
   /**
    * Default agent ID for guest users
    */
-  DEFAULT_GUEST_AGENT: 'agent_vibe_creator',
+  DEFAULT_GUEST_AGENT: 'agent_default_assistant',
   
   // =============================================================================
   // UI Configuration

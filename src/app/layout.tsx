@@ -32,6 +32,7 @@ export const metadata: Metadata = {
   title: "AI SaaS Framework",
   description: "Production-ready AI SaaS framework with auth, billing, payments, and AI chat built in.",
   icons: [
+    { rel: "icon", url: "/favicon.ico", sizes: "any" },
     { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" },
   ],
 };

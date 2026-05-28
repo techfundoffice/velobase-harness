@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   X 
 } from "lucide-react";
-import { VibeLogo } from "@/components/ui/vibe-logo";
+import { AppLogo } from "@/components/ui/app-logo";
 import { cn } from "@/lib/utils";
 import {
   Drawer,
@@ -107,7 +107,7 @@ export function LoginModalMobile() {
           {login.view === "main" && (
             <div className="flex flex-col items-center pt-8 animate-in slide-in-from-bottom-4 duration-300">
               <div className="mb-6 scale-110">
-                <VibeLogo size="lg" />
+                <AppLogo size="lg" />
               </div>
 
               <div className="text-center mb-8 space-y-2">

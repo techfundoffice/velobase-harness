@@ -16,10 +16,10 @@ export const userAgentRouter = createTRPCRouter({
     // Auto-install default agent if user has none
     if (userAgents.length === 0) {
       try {
-        // Find unified Vibe Creator agent or any system agent
+        // Find the default assistant agent or any system agent
         const defaultAgent = await ctx.db.agent.findFirst({
           where: {
-            id: 'agent_vibe_creator',
+            id: 'agent_default_assistant',
             isSystem: true,
             enabled: true,
           },
@@ -66,10 +66,10 @@ export const userAgentRouter = createTRPCRouter({
     // Auto-install default agent if user has none
     if (userAgents.length === 0) {
       try {
-        // Find unified Vibe Creator agent or any system agent
+        // Find the default assistant agent or any system agent
         const defaultAgent = await ctx.db.agent.findFirst({
           where: {
-            id: 'agent_vibe_creator',
+            id: 'agent_default_assistant',
             isSystem: true,
             enabled: true,
           },
