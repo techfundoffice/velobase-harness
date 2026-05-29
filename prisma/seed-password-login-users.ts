@@ -12,8 +12,6 @@ import { PASSWORD_LOGIN_ALLOWLIST } from '../src/server/auth/password-login-allo
 
 const prisma = new PrismaClient();
 
-const TEST_CREDITS = 1000;
-
 export async function seedPasswordLoginTestUsers() {
   if (PASSWORD_LOGIN_ALLOWLIST.length === 0) {
     console.log('   ℹ️  No password login users configured, skipping');
@@ -28,7 +26,7 @@ export async function seedPasswordLoginTestUsers() {
       const defaultPassword = localPart.charAt(0).toUpperCase() + localPart.slice(1) + '2024!';
       const passwordHash = await bcrypt.hash(defaultPassword, 12);
 
-      const testUser = await prisma.user.upsert({
+      await prisma.user.upsert({
         where: { email: testEmail },
         update: { passwordHash, isBlocked: false },
         create: {
@@ -48,4 +46,3 @@ export async function seedPasswordLoginTestUsers() {
     }
   }
 }
-
