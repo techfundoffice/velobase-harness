@@ -7,48 +7,15 @@
  *
  * Returns a `shutdown` function for graceful termination.
  */
+import {
+  collectDisabledSchedulerContributions,
+  collectEnabledWorkerContributions,
+  MODULE_STATES,
+} from "@/config/modules";
+import { createLogger } from "@/lib/logger";
 import { WorkerRegistry } from "./registry";
 import { createServer } from "./server";
-import { createLogger } from "@/lib/logger";
-
-import {
-  orderCompensationQueue,
-  subscriptionMonthlyCreditsQueue,
-  subscriptionCompensationQueue,
-  staleJobCleanupQueue,
-  conversionAlertQueue,
-  paymentReconciliationQueue,
-  touchDeliveryQueue,
-  supportSyncQueue,
-  supportProcessQueue,
-  supportSendQueue,
-  googleAdsUploadQueue,
-} from "./queues";
-
-import {
-  processOrderCompensationJob,
-  registerOrderCompensationScheduler,
-  processSubscriptionMonthlyCreditsJob,
-  registerSubscriptionMonthlyCreditsScheduler,
-  processSubscriptionCompensationJob,
-  registerSubscriptionCompensationScheduler,
-  processStaleJobCleanup,
-  registerStaleJobCleanupScheduler,
-  processConversionAlert,
-  registerConversionAlertScheduler,
-  processPaymentReconciliation,
-  registerPaymentReconciliationScheduler,
-  processTouchDeliveryJob,
-  registerTouchDeliveryScheduler,
-  processSupportSyncJob,
-  registerSupportSyncScheduler,
-  processSupportProcessJob,
-  registerSupportProcessScheduler,
-  processSupportSendJob,
-  registerSupportSendScheduler,
-  processGoogleAdsUploadJob,
-  registerGoogleAdsUploadScheduler,
-} from "./processors";
+import { getPlatformWorkerContributions } from "./platform";
 
 const log = createLogger("worker");
 
@@ -67,86 +34,27 @@ export async function startWorker(): Promise<WorkerHandle> {
 
   const registry = new WorkerRegistry();
 
-  // --- Register workers -----------------------------------------------------
+  registry.registerContributions(getPlatformWorkerContributions());
 
-  registry.register(orderCompensationQueue, processOrderCompensationJob, {
-    concurrency: 1,
-    lockDuration: 300000,
-  });
-
-  registry.register(
-    subscriptionMonthlyCreditsQueue,
-    processSubscriptionMonthlyCreditsJob,
-    { concurrency: 1, lockDuration: 300000 },
-  );
-
-  registry.register(
-    subscriptionCompensationQueue,
-    processSubscriptionCompensationJob,
-    { concurrency: 1, lockDuration: 300000 },
-  );
-
-  registry.register(staleJobCleanupQueue, processStaleJobCleanup, {
-    concurrency: 1,
-    lockDuration: 300000,
-  });
-
-  registry.register(conversionAlertQueue, processConversionAlert, {
-    concurrency: 1,
-    lockDuration: 60000,
-  });
-
-  registry.register(
-    paymentReconciliationQueue,
-    processPaymentReconciliation,
-    { concurrency: 1, lockDuration: 300000 },
-  );
-
-  registry.register(touchDeliveryQueue, processTouchDeliveryJob, {
-    concurrency: 2,
-    lockDuration: 300000,
-  });
-
-  registry.register(supportSyncQueue, processSupportSyncJob, {
-    concurrency: 1,
-    lockDuration: 120000,
-  });
-
-  registry.register(supportProcessQueue, processSupportProcessJob, {
-    concurrency: 5,
-    lockDuration: 300000,
-  });
-
-  registry.register(supportSendQueue, processSupportSendJob, {
-    concurrency: 3,
-    lockDuration: 60000,
-  });
-
-  registry.register(googleAdsUploadQueue, processGoogleAdsUploadJob, {
-    concurrency: 1,
-    lockDuration: 300000,
-  });
-
-  // --- Register schedulers ---------------------------------------------------
-
-  registry.registerScheduler(registerOrderCompensationScheduler);
-  registry.registerScheduler(registerSubscriptionMonthlyCreditsScheduler);
-  registry.registerScheduler(registerSubscriptionCompensationScheduler);
-  registry.registerScheduler(registerStaleJobCleanupScheduler);
-  registry.registerScheduler(registerConversionAlertScheduler);
-  registry.registerScheduler(registerPaymentReconciliationScheduler);
-  registry.registerScheduler(registerTouchDeliveryScheduler);
-  registry.registerScheduler(registerSupportSyncScheduler);
-  registry.registerScheduler(registerSupportProcessScheduler);
-  registry.registerScheduler(registerSupportSendScheduler);
-  registry.registerScheduler(registerGoogleAdsUploadScheduler);
-
-  // --- Start HTTP server + schedulers ----------------------------------------
+  const moduleWorkerContributions = await collectEnabledWorkerContributions();
+  const disabledSchedulers = await collectDisabledSchedulerContributions();
+  registry.registerContributions(moduleWorkerContributions);
 
   const server = await createServer(registry.getQueues());
-  await registry.startAll();
+  await registry.startAll(disabledSchedulers);
   await server.listen({ port, host: "0.0.0.0" });
 
+  log.info(
+    {
+      modules: MODULE_STATES.map((state) => ({
+        id: state.id,
+        mode: state.mode,
+        enabled: state.enabled,
+        reason: state.reason,
+      })),
+    },
+    "Module states resolved",
+  );
   log.info({ port }, `Worker ready - HTTP server listening on port ${port}`);
   log.info("Bull Board UI: /_worker/queues");
   log.info("Health check: /health");

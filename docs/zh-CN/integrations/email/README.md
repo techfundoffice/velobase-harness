@@ -21,6 +21,14 @@
 - `SENDGRID_API_KEY`
 - 启用时需要 provider-specific webhook 或 domain settings。
 
+客服自动化使用独立的客服邮箱，不走通用出信 provider chain：
+
+- `SUPPORT_EMAIL_ADDRESS`
+- `SUPPORT_EMAIL_PASSWORD`
+- `SUPPORT_IMAP_HOST`
+- `SUPPORT_SMTP_HOST`
+- 可选 `SUPPORT_IMAP_PORT`、`SUPPORT_SMTP_PORT`、`SUPPORT_EMAIL_FROM`
+
 新增邮件配置时更新 `.env.example` 和 `src/env.js`。
 
 ## 规则

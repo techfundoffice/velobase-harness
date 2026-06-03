@@ -16,12 +16,20 @@ import type { SubscriptionCompensationJobData } from "../../queues/subscription-
 import type { PaymentWebhookResult } from "@/server/order/providers/types";
 import { handleStripeSubscriptionRenewal } from "@/server/order/services/handle-webhooks";
 import { getStripe } from "@/server/order/services/stripe/client";
+import { MODULES } from "@/config/modules";
 
 const logger = createLogger("subscription-compensation");
 
 export async function processSubscriptionCompensationJob(
-  job: Job<SubscriptionCompensationJobData>
+  job: Job<SubscriptionCompensationJobData>,
 ): Promise<void> {
+  if (!MODULES.integrations.payment.stripe.enabled) {
+    logger.info(
+      "Skipping subscription compensation because Stripe is disabled",
+    );
+    return;
+  }
+
   const { type, subscriptionId } = job.data;
 
   if (type === "manual-check" && subscriptionId) {
@@ -62,7 +70,7 @@ async function scanAndCompensateSubscriptions(): Promise<void> {
 
   logger.info(
     { count: subscriptions.length },
-    "Scanning subscriptions for potential compensation"
+    "Scanning subscriptions for potential compensation",
   );
 
   for (const sub of subscriptions) {
@@ -71,13 +79,15 @@ async function scanAndCompensateSubscriptions(): Promise<void> {
     } catch (error) {
       logger.error(
         { subscriptionId: sub.id, error },
-        "Failed to compensate subscription"
+        "Failed to compensate subscription",
       );
     }
   }
 }
 
-async function compensateSingleSubscription(subscriptionId: string): Promise<void> {
+async function compensateSingleSubscription(
+  subscriptionId: string,
+): Promise<void> {
   await compensateSubscriptionIfNeeded(subscriptionId);
 }
 
@@ -87,7 +97,9 @@ async function compensateSingleSubscription(subscriptionId: string): Promise<voi
  * - Stripe 侧已经有付费的 invoice （billing_reason=subscription_update 或 subscription_cycle）
  * - 则构造一个 PaymentWebhookResult，复用 handleSubscriptionWebhook 现有逻辑
  */
-async function compensateSubscriptionIfNeeded(subscriptionId: string): Promise<void> {
+async function compensateSubscriptionIfNeeded(
+  subscriptionId: string,
+): Promise<void> {
   const subscription = await db.userSubscription.findUnique({
     where: { id: subscriptionId },
     include: {
@@ -102,12 +114,15 @@ async function compensateSubscriptionIfNeeded(subscriptionId: string): Promise<v
     return;
   }
 
-  if (subscription.gateway !== "STRIPE" || !subscription.gatewaySubscriptionId) {
+  if (
+    subscription.gateway !== "STRIPE" ||
+    !subscription.gatewaySubscriptionId
+  ) {
     return;
   }
 
   const activeTrial = subscription.cycles.find(
-    (c) => c.status === "ACTIVE" && c.type === "TRIAL"
+    (c) => c.status === "ACTIVE" && c.type === "TRIAL",
   );
   const hasRegularCycle = subscription.cycles.some((c) => c.type === "REGULAR");
 
@@ -130,7 +145,7 @@ async function compensateSubscriptionIfNeeded(subscriptionId: string): Promise<v
         gatewaySubscriptionId: subscription.gatewaySubscriptionId,
         error,
       },
-      "Failed to list invoices from Stripe"
+      "Failed to list invoices from Stripe",
     );
     return;
   }
@@ -145,7 +160,7 @@ async function compensateSubscriptionIfNeeded(subscriptionId: string): Promise<v
       inv.status === "paid" &&
       (inv.amount_paid ?? 0) > 0 &&
       (inv.billing_reason === "subscription_update" ||
-        inv.billing_reason === "subscription_cycle")
+        inv.billing_reason === "subscription_cycle"),
   );
 
   if (!paidInvoice) {
@@ -173,12 +188,9 @@ async function compensateSubscriptionIfNeeded(subscriptionId: string): Promise<v
       billingReason: paidInvoice.billing_reason,
       amountPaid: paidInvoice.amount_paid,
     },
-    "Triggering subscription renewal compensation via worker"
+    "Triggering subscription renewal compensation via worker",
   );
 
   // 直接复用现有的续费履约逻辑
   await handleStripeSubscriptionRenewal(result);
 }
-
-
-

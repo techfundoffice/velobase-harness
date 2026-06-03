@@ -1,3 +1,5 @@
 export { processSupportSyncJob } from "./processor";
-export { registerSupportSyncScheduler } from "./scheduler";
-
+export {
+  registerSupportSyncScheduler,
+  supportSyncScheduler,
+} from "./scheduler";

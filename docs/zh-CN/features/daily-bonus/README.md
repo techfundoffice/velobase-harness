@@ -13,6 +13,14 @@ Daily Bonus 会在登录用户每天首次符合条件访问时发放积分。
 - Velobase Billing：发放积分和读取 ledger history。
 - Auth：获取当前 `userId`。
 
+## 边界
+
+不要把 Daily Bonus 和 `subscription-monthly-credits` worker 合并。
+
+- Daily Bonus 是用户当天首次符合条件访问时触发的留存赠送。
+- Subscription monthly credits 是付费订阅周期内的权益发放。
+- 两者都会调用 billing `grant()`，但策略、幂等 key、有效期窗口和失败处理不同。
+
 ## 代码
 
 ```text

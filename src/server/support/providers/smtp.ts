@@ -4,21 +4,22 @@
 
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
+import { env } from "@/env";
 import { logger } from "@/lib/logger";
 import { APP_NAME, SUPPORT_EMAIL } from "@/config/brand";
 
 // 飞书 SMTP 配置
 const SMTP_CONFIG = {
-  host: process.env.SUPPORT_SMTP_HOST ?? "smtp.larksuite.com",
-  port: parseInt(process.env.SUPPORT_SMTP_PORT ?? "465", 10),
+  host: env.SUPPORT_SMTP_HOST ?? "smtp.larksuite.com",
+  port: env.SUPPORT_SMTP_PORT,
   secure: true,
   auth: {
-    user: process.env.SUPPORT_EMAIL_ADDRESS ?? SUPPORT_EMAIL,
-    pass: process.env.SUPPORT_EMAIL_PASSWORD ?? "",
+    user: env.SUPPORT_EMAIL_ADDRESS ?? SUPPORT_EMAIL,
+    pass: env.SUPPORT_EMAIL_PASSWORD ?? "",
   },
 };
 
-const FROM_ADDRESS = process.env.SUPPORT_EMAIL_FROM ?? `${APP_NAME} Support <${SUPPORT_EMAIL}>`;
+const FROM_ADDRESS = env.SUPPORT_EMAIL_FROM ?? `${APP_NAME} Support <${SUPPORT_EMAIL}>`;
 
 let transporter: Transporter | null = null;
 

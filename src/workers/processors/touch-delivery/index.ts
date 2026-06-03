@@ -1,4 +1,5 @@
 export { processTouchDeliveryJob } from "./processor";
-export { registerTouchDeliveryScheduler } from "./scheduler";
-
-
+export {
+  registerTouchDeliveryScheduler,
+  touchDeliveryScheduler,
+} from "./scheduler";

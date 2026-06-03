@@ -32,7 +32,7 @@ ChatPanel
   -> stream the model response and persist interactions
 ```
 
-The module is enabled by `MODULES.features.aiChat`. It requires at least one supported provider key, such as `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, or `OPENAI_API_KEY`, unless the feature is explicitly disabled with `DISABLE_AI_CHAT`.
+The module is enabled by `MODULES.features.aiChat`. `AI_CHAT_MODE=auto` requires at least one supported provider key, such as `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, or `OPENAI_API_KEY`. Use `AI_CHAT_MODE=off` to disable it, or `AI_CHAT_MODE=on` to fail startup when no provider key is configured.
 
 ## Data Model
 

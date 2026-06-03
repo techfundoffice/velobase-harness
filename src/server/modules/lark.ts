@@ -1,6 +1,7 @@
 import type { FrameworkModule } from "@/server/modules/registry";
 import type { AppEventBus } from "@/server/events/bus";
 import { createLogger } from "@/lib/logger";
+import { MODULES } from "@/config/modules";
 
 const log = createLogger("module:lark");
 
@@ -11,55 +12,69 @@ export const larkModule: FrameworkModule = {
   registerEventHandlers(bus: AppEventBus) {
     bus.on("payment:succeeded", async ({ paymentId }) => {
       try {
-        const { sendOrderPaymentNotificationByPaymentId } = await import(
-          "@/server/order/services/send-order-payment-notification"
-        );
-        await sendOrderPaymentNotificationByPaymentId(paymentId, { source: "webhook" });
+        const { sendOrderPaymentNotificationByPaymentId } =
+          await import("@/server/order/services/send-order-payment-notification");
+        await sendOrderPaymentNotificationByPaymentId(paymentId, {
+          source: "webhook",
+        });
       } catch (error) {
         log.warn({ error, paymentId }, "Lark payment notification failed");
       }
     });
 
-    bus.on("payment:failed", async ({ paymentId, orderId, userId, gateway, failureReason }) => {
-      try {
-        const { asyncSendPaymentNotification } = await import("@/lib/lark");
-        const { db } = await import("@/server/db");
-        const user = await db.user.findUnique({
-          where: { id: userId },
-          select: { name: true, email: true, utmSource: true, utmMedium: true, utmCampaign: true },
-        });
-        const order = await db.order.findUnique({
-          where: { id: orderId },
-          include: { product: true },
-        });
+    bus.on(
+      "payment:failed",
+      async ({ paymentId, orderId, userId, gateway, failureReason }) => {
+        try {
+          const { asyncSendPaymentNotification } = await import("@/lib/lark");
+          const { db } = await import("@/server/db");
+          const user = await db.user.findUnique({
+            where: { id: userId },
+            select: {
+              name: true,
+              email: true,
+              utmSource: true,
+              utmMedium: true,
+              utmCampaign: true,
+            },
+          });
+          const order = await db.order.findUnique({
+            where: { id: orderId },
+            include: { product: true },
+          });
 
-        asyncSendPaymentNotification({
-          userName: user?.name ?? user?.email ?? userId,
-          userEmail: user?.email ?? undefined,
-          amountCents: order?.amount ?? 0,
-          currency: order?.currency ?? "usd",
-          productName: order?.product?.name ?? "Unknown",
-          orderId,
-          paymentId,
-          gateway: gateway as "stripe" | "nowpayments" | "other",
-          status: "failed",
-          failureReason,
-          isTest: process.env.NODE_ENV !== "production",
-          utm: {
-            source: user?.utmSource ?? undefined,
-            medium: user?.utmMedium ?? undefined,
-            campaign: user?.utmCampaign ?? undefined,
-          },
-          originalAmountCents: order?.product?.originalPrice ?? undefined,
-        });
-      } catch (error) {
-        log.warn({ error, paymentId }, "Lark payment failure notification failed");
-      }
-    });
+          asyncSendPaymentNotification({
+            userName: user?.name ?? user?.email ?? userId,
+            userEmail: user?.email ?? undefined,
+            amountCents: order?.amount ?? 0,
+            currency: order?.currency ?? "usd",
+            productName: order?.product?.name ?? "Unknown",
+            orderId,
+            paymentId,
+            gateway: gateway as "stripe" | "nowpayments" | "other",
+            status: "failed",
+            failureReason,
+            isTest: process.env.NODE_ENV !== "production",
+            utm: {
+              source: user?.utmSource ?? undefined,
+              medium: user?.utmMedium ?? undefined,
+              campaign: user?.utmCampaign ?? undefined,
+            },
+            originalAmountCents: order?.product?.originalPrice ?? undefined,
+          });
+        } catch (error) {
+          log.warn(
+            { error, paymentId },
+            "Lark payment failure notification failed",
+          );
+        }
+      },
+    );
 
     bus.on("fraud:efw", async ({ warning }) => {
       try {
-        const { asyncSendBackendAlert } = await import("@/lib/lark/notifications");
+        const { asyncSendBackendAlert } =
+          await import("@/lib/lark/notifications");
         asyncSendBackendAlert({
           title: "Stripe Early Fraud Warning",
           severity: "critical",
@@ -74,19 +89,9 @@ export const larkModule: FrameworkModule = {
 
   async onInit() {
     try {
-      const { onMessage, onCardAction, parseTextContent } = await import(
-        "@/lib/lark/event-handler"
-      );
-      const { getLarkBot, LARK_CHAT_IDS } = await import("@/lib/lark");
-      const { generateHourlyReport } = await import(
-        "@/workers/processors/conversion-alert/generate-report"
-      );
-      const { buildMetricsCard } = await import(
-        "@/workers/processors/conversion-alert/build-card"
-      );
-      const { handleSupportCardAction } = await import(
-        "@/server/support/handlers/card-action"
-      );
+      const { onMessage, onCardAction, parseTextContent } =
+        await import("@/lib/lark/event-handler");
+      const { LARK_CHAT_IDS } = await import("@/lib/lark");
 
       type MessageEventData = Parameters<Parameters<typeof onMessage>[0]>[0];
       type CardActionEventData = Parameters<
@@ -94,6 +99,10 @@ export const larkModule: FrameworkModule = {
       >[0];
 
       onMessage(async (data: MessageEventData) => {
+        if (!MODULES.features.conversionAlert.enabled) {
+          return;
+        }
+
         const text = parseTextContent(data.message.content);
         const chatId = data.message.chat_id;
 
@@ -105,6 +114,11 @@ export const larkModule: FrameworkModule = {
         if (chatId === LARK_CHAT_IDS.CONVERSION_ALERT) {
           try {
             log.info("Generating hourly report on demand");
+            const { getLarkBot } = await import("@/lib/lark");
+            const { generateHourlyReport } =
+              await import("@/workers/processors/conversion-alert/generate-report");
+            const { buildMetricsCard } =
+              await import("@/workers/processors/conversion-alert/build-card");
             const report = await generateHourlyReport({ isDaily: false });
             const card = buildMetricsCard(report, { isDaily: false });
             const bot = getLarkBot();
@@ -118,6 +132,11 @@ export const larkModule: FrameworkModule = {
         if (chatId === LARK_CHAT_IDS.CONVERSION_ALERT_DAILY) {
           try {
             log.info("Generating daily report on demand");
+            const { getLarkBot } = await import("@/lib/lark");
+            const { generateHourlyReport } =
+              await import("@/workers/processors/conversion-alert/generate-report");
+            const { buildMetricsCard } =
+              await import("@/workers/processors/conversion-alert/build-card");
             const report = await generateHourlyReport({ isDaily: true });
             const card = buildMetricsCard(report, { isDaily: true });
             const bot = getLarkBot();
@@ -135,10 +154,13 @@ export const larkModule: FrameworkModule = {
         log.info({ actionValue }, "Processing card action");
 
         if (
+          MODULES.features.supportAutomation.enabled &&
           actionValue &&
           typeof actionValue === "object" &&
           "ticketId" in actionValue
         ) {
+          const { handleSupportCardAction } =
+            await import("@/server/support/handlers/card-action");
           return handleSupportCardAction(data);
         }
 

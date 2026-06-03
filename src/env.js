@@ -23,16 +23,25 @@ export const env = createEnv({
     // Redis: either REDIS_URL (Velobase Cloud / managed) or individual REDIS_HOST+PORT fields
     REDIS_URL: z.string().url().optional(),
     REDIS_HOST: z.string().optional(),
-    REDIS_PORT: z.string().optional().transform((val) => val ? parseInt(val, 10) : undefined),
+    REDIS_PORT: z
+      .string()
+      .optional()
+      .transform((val) => (val ? parseInt(val, 10) : undefined)),
     REDIS_USER: z.string().optional(),
     REDIS_PASSWORD: z.string().optional(),
-    REDIS_DB: z.string().transform((val) => parseInt(val, 10)).default("0"),
+    REDIS_DB: z
+      .string()
+      .transform((val) => parseInt(val, 10))
+      .default("0"),
     ANTHROPIC_API_KEY: z.string().optional(),
     OPENROUTER_API_KEY: z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
     OPENAI_BASE_URL: z.string().url().optional(),
     CDN_BASE_URL: z.string().url().optional(),
-    STORAGE_PROVIDER: z.enum(["aws", "aliyun", "gcs", "minio", "r2"]).optional().default("aws"),
+    STORAGE_PROVIDER: z
+      .enum(["aws", "aliyun", "gcs", "minio", "r2"])
+      .optional()
+      .default("aws"),
     STORAGE_REGION: z.string().optional(),
     STORAGE_BUCKET: z.string().optional(),
     STORAGE_ACCESS_KEY_ID: z.string().optional(),
@@ -58,17 +67,40 @@ export const env = createEnv({
     // Web purchase conversion action (WEBPAGE) used for Enhanced Conversions API (ConversionAdjustment ENHANCEMENT)
     GOOGLE_ADS_WEB_CONVERSION_ACTION_ID: z.string().optional(),
     DATALAB_API_KEY: z.string().optional(),
-    DATALAB_BASE_URL: z.string().url().optional().default("https://api.datalab.to"),
+    DATALAB_BASE_URL: z
+      .string()
+      .url()
+      .optional()
+      .default("https://api.datalab.to"),
     XAI_API_KEY: z.string().optional(),
     // Email Services
     RESEND_API_KEY: z.string().optional(),
     RESEND_WEBHOOK_SECRET: z.string().optional(),
     SENDGRID_API_KEY: z.string().optional(),
     EMAIL_PROVIDER: z.string().optional().default("resend,sendgrid"),
+    // Support automation mailbox (IMAP/SMTP)
+    SUPPORT_EMAIL_ADDRESS: z.string().email().optional(),
+    SUPPORT_EMAIL_PASSWORD: z.string().optional(),
+    SUPPORT_IMAP_HOST: z.string().optional(),
+    SUPPORT_IMAP_PORT: z
+      .string()
+      .regex(/^\d+$/)
+      .optional()
+      .transform((val) => (val ? parseInt(val, 10) : 993)),
+    SUPPORT_SMTP_HOST: z.string().optional(),
+    SUPPORT_SMTP_PORT: z
+      .string()
+      .regex(/^\d+$/)
+      .optional()
+      .transform((val) => (val ? parseInt(val, 10) : 465)),
+    SUPPORT_EMAIL_FROM: z.string().optional(),
     // Lark Bot
     LARK_APP_ID: z.string().optional(),
     LARK_APP_SECRET: z.string().optional(),
-    LARK_USE_FEISHU: z.string().optional().transform((val) => val === 'true'),
+    LARK_USE_FEISHU: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
     LARK_DEFAULT_CHAT_ID: z.string().optional(),
     LARK_ENCRYPT_KEY: z.string().optional(),
     LARK_VERIFICATION_TOKEN: z.string().optional(),
@@ -82,6 +114,20 @@ export const env = createEnv({
     TURNSTILE_SECRET_KEY: z.string().optional(),
     // Velobase Billing
     VELOBASE_API_KEY: z.string().optional(),
+    // Module modes: off | auto | on
+    POSTHOG_API_KEY: z.string().optional(),
+    POSTHOG_MODE: z.enum(["off", "auto", "on"]).optional(),
+    GOOGLE_ADS_MODE: z.enum(["off", "auto", "on"]).optional(),
+    LARK_MODE: z.enum(["off", "auto", "on"]).optional(),
+    TELEGRAM_MODE: z.enum(["off", "auto", "on"]).optional(),
+    STRIPE_MODE: z.enum(["off", "auto", "on"]).optional(),
+    NOWPAYMENTS_MODE: z.enum(["off", "auto", "on"]).optional(),
+    PAYMENT_RECONCILIATION_MODE: z.enum(["off", "auto", "on"]).optional(),
+    AFFILIATE_MODE: z.enum(["off", "auto", "on"]).optional(),
+    TOUCH_MODE: z.enum(["off", "auto", "on"]).optional(),
+    SUPPORT_AUTOMATION_MODE: z.enum(["off", "auto", "on"]).optional(),
+    CONVERSION_ALERT_MODE: z.enum(["off", "auto", "on"]).optional(),
+    AI_CHAT_MODE: z.enum(["off", "auto", "on"]).optional(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -100,6 +146,8 @@ export const env = createEnv({
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
     NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: z.string().optional(),
+    NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
+    NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
   },
 
   /**
@@ -147,8 +195,10 @@ export const env = createEnv({
     GOOGLE_ADS_REFRESH_TOKEN: process.env.GOOGLE_ADS_REFRESH_TOKEN,
     GOOGLE_ADS_MCC_ID: process.env.GOOGLE_ADS_MCC_ID,
     GOOGLE_ADS_CUSTOMER_ID: process.env.GOOGLE_ADS_CUSTOMER_ID,
-    GOOGLE_ADS_CONVERSION_ACTION_ID: process.env.GOOGLE_ADS_CONVERSION_ACTION_ID,
-    GOOGLE_ADS_WEB_CONVERSION_ACTION_ID: process.env.GOOGLE_ADS_WEB_CONVERSION_ACTION_ID,
+    GOOGLE_ADS_CONVERSION_ACTION_ID:
+      process.env.GOOGLE_ADS_CONVERSION_ACTION_ID,
+    GOOGLE_ADS_WEB_CONVERSION_ACTION_ID:
+      process.env.GOOGLE_ADS_WEB_CONVERSION_ACTION_ID,
     DATALAB_API_KEY: process.env.DATALAB_API_KEY,
     DATALAB_BASE_URL: process.env.DATALAB_BASE_URL,
     XAI_API_KEY: process.env.XAI_API_KEY,
@@ -156,6 +206,13 @@ export const env = createEnv({
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
     SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
     EMAIL_PROVIDER: process.env.EMAIL_PROVIDER,
+    SUPPORT_EMAIL_ADDRESS: process.env.SUPPORT_EMAIL_ADDRESS,
+    SUPPORT_EMAIL_PASSWORD: process.env.SUPPORT_EMAIL_PASSWORD,
+    SUPPORT_IMAP_HOST: process.env.SUPPORT_IMAP_HOST,
+    SUPPORT_IMAP_PORT: process.env.SUPPORT_IMAP_PORT,
+    SUPPORT_SMTP_HOST: process.env.SUPPORT_SMTP_HOST,
+    SUPPORT_SMTP_PORT: process.env.SUPPORT_SMTP_PORT,
+    SUPPORT_EMAIL_FROM: process.env.SUPPORT_EMAIL_FROM,
     LARK_APP_ID: process.env.LARK_APP_ID,
     LARK_APP_SECRET: process.env.LARK_APP_SECRET,
     LARK_USE_FEISHU: process.env.LARK_USE_FEISHU,
@@ -168,14 +225,31 @@ export const env = createEnv({
     TELEGRAM_WEBHOOK_SECRET: process.env.TELEGRAM_WEBHOOK_SECRET,
     TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
     VELOBASE_API_KEY: process.env.VELOBASE_API_KEY,
+    POSTHOG_API_KEY: process.env.POSTHOG_API_KEY,
+    POSTHOG_MODE: process.env.POSTHOG_MODE,
+    GOOGLE_ADS_MODE: process.env.GOOGLE_ADS_MODE,
+    LARK_MODE: process.env.LARK_MODE,
+    TELEGRAM_MODE: process.env.TELEGRAM_MODE,
+    STRIPE_MODE: process.env.STRIPE_MODE,
+    NOWPAYMENTS_MODE: process.env.NOWPAYMENTS_MODE,
+    PAYMENT_RECONCILIATION_MODE: process.env.PAYMENT_RECONCILIATION_MODE,
+    AFFILIATE_MODE: process.env.AFFILIATE_MODE,
+    TOUCH_MODE: process.env.TOUCH_MODE,
+    SUPPORT_AUTOMATION_MODE: process.env.SUPPORT_AUTOMATION_MODE,
+    CONVERSION_ALERT_MODE: process.env.CONVERSION_ALERT_MODE,
+    AI_CHAT_MODE: process.env.AI_CHAT_MODE,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_SUPPORT_EMAIL: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
     NEXT_PUBLIC_DISABLE_TEST_LOGIN: process.env.NEXT_PUBLIC_DISABLE_TEST_LOGIN,
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
-    NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME,
+    NEXT_PUBLIC_TELEGRAM_BOT_USERNAME:
+      process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME,
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -9,6 +9,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { createLogger } from "@/lib/logger";
+import { MODULES } from "@/config/modules";
 
 const logger = createLogger("lark-support-webhook");
 
@@ -26,6 +27,13 @@ interface LarkCardCallback {
 }
 
 export async function POST(req: NextRequest) {
+  if (!MODULES.features.supportAutomation.enabled) {
+    return NextResponse.json(
+      { error: "Support automation is disabled" },
+      { status: 404 },
+    );
+  }
+
   try {
     const body = (await req.json()) as LarkCardCallback;
 
@@ -40,7 +48,10 @@ export async function POST(req: NextRequest) {
     try {
       cardAction = JSON.parse(actionValue) as CardAction;
     } catch {
-      return NextResponse.json({ error: "Invalid action value" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid action value" },
+        { status: 400 },
+      );
     }
 
     const { action, ticketId } = cardAction;
@@ -52,10 +63,14 @@ export async function POST(req: NextRequest) {
     const agentId = body.user_id ?? body.open_id ?? "unknown";
 
     if (action === "approve") {
-      const { approveDraft } = await import("@/server/support/services/approve-draft");
-      const { addActionEvent } = await import("@/server/support/services/add-event");
-      const { supportSendQueue } = await import("@/workers/queues/support-send.queue");
-      const { generateReplyHtml } = await import("@/server/support/providers/smtp");
+      const { approveDraft } =
+        await import("@/server/support/services/approve-draft");
+      const { addActionEvent } =
+        await import("@/server/support/services/add-event");
+      const { supportSendQueue } =
+        await import("@/workers/queues/support-send.queue");
+      const { generateReplyHtml } =
+        await import("@/server/support/providers/smtp");
       const { executeTool } = await import("@/server/support/ai/tools");
       const { db } = await import("@/server/db");
 
@@ -66,7 +81,7 @@ export async function POST(req: NextRequest) {
       if (!result) {
         return NextResponse.json(
           { error: "No draft found or approval failed" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -80,7 +95,7 @@ export async function POST(req: NextRequest) {
             const toolResult = await executeTool(
               act.tool as ToolName,
               ticket.userId,
-              act.args
+              act.args,
             );
 
             await addActionEvent(
@@ -91,12 +106,12 @@ export async function POST(req: NextRequest) {
               act.args,
               toolResult.data,
               toolResult.success,
-              toolResult.error
+              toolResult.error,
             );
 
             logger.info(
               { ticketId, tool: act.tool, success: toolResult.success },
-              "Executed approved action"
+              "Executed approved action",
             );
           }
         }
@@ -116,7 +131,7 @@ export async function POST(req: NextRequest) {
         },
         {
           jobId: `send-${ticketId}-${Date.now()}`,
-        }
+        },
       );
 
       logger.info({ ticketId, agentId }, "Draft approved, reply queued");
@@ -128,7 +143,8 @@ export async function POST(req: NextRequest) {
         },
       });
     } else if (action === "reject") {
-      const { rejectDraft } = await import("@/server/support/services/approve-draft");
+      const { rejectDraft } =
+        await import("@/server/support/services/approve-draft");
 
       await rejectDraft(ticketId, agentId, "Rejected via Lark card");
 
@@ -147,7 +163,7 @@ export async function POST(req: NextRequest) {
     logger.error({ err }, "Lark support webhook error");
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

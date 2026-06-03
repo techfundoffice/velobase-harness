@@ -1,7 +1,12 @@
 import { randomUUID } from "crypto";
+import { MODULES } from "@/config/modules";
 import { db } from "@/server/db";
 import { logger } from "@/lib/logger";
-import { TOUCH_LOCK_DURATION_MS, TOUCH_RETRY_BASE_DELAY_MS, TOUCH_RETRY_MAX_DELAY_MS } from "../config/touch";
+import {
+  TOUCH_LOCK_DURATION_MS,
+  TOUCH_RETRY_BASE_DELAY_MS,
+  TOUCH_RETRY_MAX_DELAY_MS,
+} from "../config/touch";
 import { sendEmail } from "@/server/email";
 import { renderSubscriptionRenewalReminderEmail } from "./render-subscription-renewal-reminder-email";
 import { buildManageSubscriptionUrl, normalizeReferenceType } from "./utils";
@@ -17,16 +22,26 @@ type TouchPayload = {
 /**
  * 简单模板变量替换 {{variable}}
  */
-function renderTemplate(template: string, vars: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => vars[key] ?? "");
+function renderTemplate(
+  template: string,
+  vars: Record<string, string>,
+): string {
+  return template.replace(
+    /\{\{(\w+)\}\}/g,
+    (_, key: string) => vars[key] ?? "",
+  );
 }
 
 /**
  * 根据 TouchTemplate 渲染邮件内容
  */
 function renderEmailFromTemplate(
-  template: { subject: string | null; bodyText: string | null; bodyHtml: string | null },
-  vars: Record<string, string>
+  template: {
+    subject: string | null;
+    bodyText: string | null;
+    bodyHtml: string | null;
+  },
+  vars: Record<string, string>,
 ): { subject: string; text: string; html: string } | null {
   if (!template.subject || !template.bodyText || !template.bodyHtml) {
     return null;
@@ -44,7 +59,14 @@ function computeBackoffDelayMs(attempt: number): number {
   return Math.min(delay, TOUCH_RETRY_MAX_DELAY_MS);
 }
 
-export async function processDueTouchSchedules(params?: { batchSize?: number }) {
+export async function processDueTouchSchedules(params?: {
+  batchSize?: number;
+}) {
+  if (!MODULES.features.touch.enabled) {
+    logger.info("Touch feature disabled, skipping due schedule processing");
+    return { ok: true, processed: 0 };
+  }
+
   const batchSize = params?.batchSize ?? 50;
   const now = new Date();
   const lockId = randomUUID();
@@ -89,7 +111,7 @@ export async function processDueTouchSchedules(params?: { batchSize?: number }) 
     } catch (err) {
       logger.error(
         { scheduleId: c.id, err },
-        "Failed processing touch schedule (unexpected)"
+        "Failed processing touch schedule (unexpected)",
       );
       processed += 1;
     }
@@ -126,7 +148,11 @@ async function processSingleSchedule(scheduleId: string, lockId: string) {
     return;
   }
   if (user.emailBounced || user.emailComplained) {
-    await cancelSchedule(scheduleId, lockId, "Email disabled (bounce/complaint)");
+    await cancelSchedule(
+      scheduleId,
+      lockId,
+      "Email disabled (bounce/complaint)",
+    );
     return;
   }
 
@@ -152,8 +178,7 @@ async function processSingleSchedule(scheduleId: string, lockId: string) {
   // This ensures we don't send renewal reminders if user just canceled in Stripe Portal
   const gatewaySubId = cycle.subscription.gatewaySubscriptionId;
   const isStripeSubscription =
-    cycle.subscription.gateway === "stripe" &&
-    gatewaySubId?.startsWith("sub_");
+    cycle.subscription.gateway === "stripe" && gatewaySubId?.startsWith("sub_");
 
   if (isStripeSubscription && gatewaySubId) {
     try {
@@ -170,11 +195,11 @@ async function processSingleSchedule(scheduleId: string, lockId: string) {
         await cancelSchedule(
           scheduleId,
           lockId,
-          "Stripe subscription cancel_at_period_end=true (real-time check)"
+          "Stripe subscription cancel_at_period_end=true (real-time check)",
         );
         logger.info(
           { subscriptionId: cycle.subscription.id, gatewaySubId },
-          "Cancelled renewal reminder after Stripe real-time check"
+          "Cancelled renewal reminder after Stripe real-time check",
         );
         return;
       }
@@ -196,11 +221,15 @@ async function processSingleSchedule(scheduleId: string, lockId: string) {
         await cancelSchedule(
           scheduleId,
           lockId,
-          `Stripe subscription cancel_at=${cancelAtDate.toISOString()} (real-time check)`
+          `Stripe subscription cancel_at=${cancelAtDate.toISOString()} (real-time check)`,
         );
         logger.info(
-          { subscriptionId: cycle.subscription.id, gatewaySubId, cancelAt: cancelAtDate },
-          "Cancelled renewal reminder - subscription scheduled to cancel"
+          {
+            subscriptionId: cycle.subscription.id,
+            gatewaySubId,
+            cancelAt: cancelAtDate,
+          },
+          "Cancelled renewal reminder - subscription scheduled to cancel",
         );
         return;
       }
@@ -210,7 +239,7 @@ async function processSingleSchedule(scheduleId: string, lockId: string) {
         await cancelSchedule(
           scheduleId,
           lockId,
-          `Stripe subscription status=${stripeSub.status}`
+          `Stripe subscription status=${stripeSub.status}`,
         );
         return;
       }
@@ -218,18 +247,26 @@ async function processSingleSchedule(scheduleId: string, lockId: string) {
       // If Stripe API fails, fall back to DB check but log the error
       logger.warn(
         { err, gatewaySubId, subscriptionId: cycle.subscription.id },
-        "Failed to verify subscription with Stripe API, falling back to DB check"
+        "Failed to verify subscription with Stripe API, falling back to DB check",
       );
       // Fallback: use DB cancelAtPeriodEnd
       if (cycle.subscription.cancelAtPeriodEnd) {
-        await cancelSchedule(scheduleId, lockId, "Subscription cancel_at_period_end=true (DB fallback)");
+        await cancelSchedule(
+          scheduleId,
+          lockId,
+          "Subscription cancel_at_period_end=true (DB fallback)",
+        );
         return;
       }
     }
   } else {
     // Non-Stripe subscriptions: use DB cancelAtPeriodEnd
     if (cycle.subscription.cancelAtPeriodEnd) {
-      await cancelSchedule(scheduleId, lockId, "Subscription cancel_at_period_end=true");
+      await cancelSchedule(
+        scheduleId,
+        lockId,
+        "Subscription cancel_at_period_end=true",
+      );
       return;
     }
   }
@@ -278,7 +315,8 @@ async function processSingleSchedule(scheduleId: string, lockId: string) {
           attemptNumber,
           templateId: usedTemplateId,
           provider: result.provider,
-          providerMessageId: result.messageId === "unknown" ? null : result.messageId,
+          providerMessageId:
+            result.messageId === "unknown" ? null : result.messageId,
           toEmail: user.email!,
           subject: email.subject,
           status: "SENT",
@@ -310,9 +348,10 @@ async function processSingleSchedule(scheduleId: string, lockId: string) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    const nextAttempt = attemptNumber >= schedule.maxAttempts
-      ? null
-      : new Date(now.getTime() + computeBackoffDelayMs(attemptNumber));
+    const nextAttempt =
+      attemptNumber >= schedule.maxAttempts
+        ? null
+        : new Date(now.getTime() + computeBackoffDelayMs(attemptNumber));
 
     await db.$transaction(async (tx) => {
       await tx.touchRecord.create({
@@ -355,7 +394,11 @@ async function processSingleSchedule(scheduleId: string, lockId: string) {
   }
 }
 
-async function cancelSchedule(scheduleId: string, lockId: string, reason: string) {
+async function cancelSchedule(
+  scheduleId: string,
+  lockId: string,
+  reason: string,
+) {
   await db.touchSchedule.updateMany({
     where: { id: scheduleId, lockId, status: "PROCESSING" },
     data: {
@@ -368,7 +411,11 @@ async function cancelSchedule(scheduleId: string, lockId: string, reason: string
   });
 }
 
-async function failSchedule(scheduleId: string, lockId: string, reason: string) {
+async function failSchedule(
+  scheduleId: string,
+  lockId: string,
+  reason: string,
+) {
   await db.touchSchedule.updateMany({
     where: { id: scheduleId, lockId, status: "PROCESSING" },
     data: {
@@ -379,5 +426,3 @@ async function failSchedule(scheduleId: string, lockId: string, reason: string) 
     },
   });
 }
-
-

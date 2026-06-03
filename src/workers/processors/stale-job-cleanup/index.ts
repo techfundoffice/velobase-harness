@@ -1,3 +1,5 @@
 export { processStaleJobCleanup } from "./processor";
-export { registerStaleJobCleanupScheduler } from "./scheduler";
-
+export {
+  registerStaleJobCleanupScheduler,
+  staleJobCleanupScheduler,
+} from "./scheduler";

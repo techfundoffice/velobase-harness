@@ -1,12 +1,12 @@
 /**
  * Support Send Processor
- * 
+ *
  * 通过 SMTP 发送邮件回复。
  */
 
 import type { Job } from "bullmq";
 import { createLogger } from "@/lib/logger";
-import type { SupportSendJobData } from "../../queues";
+import type { SupportSendJobData } from "../../queues/support-send.queue";
 import { sendEmail } from "@/server/support/providers/smtp";
 import { addEvent } from "@/server/support/services/add-event";
 import { markAsWaiting } from "@/server/support/services/update-status";
@@ -15,11 +15,12 @@ import type { EmailMetadata } from "@/server/support/types";
 const logger = createLogger("support-send");
 
 export async function processSupportSendJob(
-  job: Job<SupportSendJobData>
+  job: Job<SupportSendJobData>,
 ): Promise<void> {
   if (job.data.type !== "send-reply") return;
 
-  const { ticketId, toEmail, subject, body, bodyHtml, inReplyTo, references } = job.data;
+  const { ticketId, toEmail, subject, body, bodyHtml, inReplyTo, references } =
+    job.data;
 
   logger.info({ ticketId, toEmail, subject }, "Sending reply");
 
@@ -59,11 +60,10 @@ export async function processSupportSendJob(
 
     logger.info(
       { ticketId, messageId: result.messageId },
-      "Reply sent successfully"
+      "Reply sent successfully",
     );
   } catch (err) {
     logger.error({ err, ticketId }, "Failed to send reply");
     throw err;
   }
 }
-

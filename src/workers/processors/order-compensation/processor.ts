@@ -1,6 +1,6 @@
 /**
  * Order Compensation Processor
- * 
+ *
  * 检查 PENDING 状态的支付，通过支付网关 API 确认实际状态（Stripe / NowPayments）
  * 如果网关显示已支付但本地未处理，则触发补偿履约
  */
@@ -11,16 +11,23 @@ import { getNowPaymentsPaymentStatus } from "@/server/order/providers/nowpayment
 import { sendOrderPaymentNotificationByPaymentId } from "@/server/order/services/send-order-payment-notification";
 import { appEvents } from "@/server/events/bus";
 import { getStripe } from "@/server/order/services/stripe/client";
+import { MODULES } from "@/config/modules";
 import type { OrderCompensationJobData } from "../../queues/order-compensation.queue";
 
 const logger = createLogger("order-compensation");
 
-function mapNowPaymentsTerminalStatus(status: string | null | undefined):
-  | "PENDING"
-  | "SUCCEEDED"
-  | "FAILED"
-  | "EXPIRED"
-  | "REFUNDED" {
+function getEnabledPaymentGateways(): Array<"STRIPE" | "NOWPAYMENTS"> {
+  const gateways: Array<"STRIPE" | "NOWPAYMENTS"> = [];
+  if (MODULES.integrations.payment.stripe.enabled) gateways.push("STRIPE");
+  if (MODULES.integrations.payment.nowpayments.enabled) {
+    gateways.push("NOWPAYMENTS");
+  }
+  return gateways;
+}
+
+function mapNowPaymentsTerminalStatus(
+  status: string | null | undefined,
+): "PENDING" | "SUCCEEDED" | "FAILED" | "EXPIRED" | "REFUNDED" {
   const s = (status ?? "").toLowerCase();
   if (s === "finished") return "SUCCEEDED";
   if (s === "failed") return "FAILED";
@@ -30,7 +37,7 @@ function mapNowPaymentsTerminalStatus(status: string | null | undefined):
 }
 
 export async function processOrderCompensationJob(
-  job: Job<OrderCompensationJobData>
+  job: Job<OrderCompensationJobData>,
 ): Promise<void> {
   const { type, paymentId } = job.data;
 
@@ -45,6 +52,12 @@ export async function processOrderCompensationJob(
  * 扫描并补偿所有超时的 PENDING 支付
  */
 async function scanAndCompensatePendingPayments(): Promise<void> {
+  const enabledGateways = getEnabledPaymentGateways();
+  if (enabledGateways.length === 0) {
+    logger.info("No enabled payment gateways for compensation scan");
+    return;
+  }
+
   // 查找超过 5 分钟的 PENDING 支付
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
@@ -52,7 +65,7 @@ async function scanAndCompensatePendingPayments(): Promise<void> {
     where: {
       status: "PENDING",
       createdAt: { lt: fiveMinutesAgo },
-      paymentGateway: { in: ["STRIPE", "NOWPAYMENTS"] },
+      paymentGateway: { in: enabledGateways },
       deletedAt: null,
     },
     include: {
@@ -72,7 +85,10 @@ async function scanAndCompensatePendingPayments(): Promise<void> {
     return;
   }
 
-  logger.info({ count: pendingPayments.length }, "Found pending payments to check");
+  logger.info(
+    { count: pendingPayments.length },
+    "Found pending payments to check",
+  );
 
   for (const payment of pendingPayments) {
     try {
@@ -80,7 +96,7 @@ async function scanAndCompensatePendingPayments(): Promise<void> {
     } catch (error) {
       logger.error(
         { paymentId: payment.id, error },
-        "Failed to compensate payment"
+        "Failed to compensate payment",
       );
     }
   }
@@ -109,7 +125,10 @@ async function compensatePayment(paymentId: string): Promise<void> {
   }
 
   if (payment.status !== "PENDING") {
-    logger.info({ paymentId, status: payment.status }, "Payment already processed");
+    logger.info(
+      { paymentId, status: payment.status },
+      "Payment already processed",
+    );
     return;
   }
 
@@ -128,11 +147,29 @@ async function checkAndCompensatePayment(
           product: { creditsPackage: { creditsAmount: number } | null } | null;
         } & Record<string, unknown>)
       | null;
-  }
+  },
 ): Promise<void> {
   if (!payment) return;
 
   const gateway = (payment.paymentGateway ?? "").toUpperCase();
+
+  if (gateway === "STRIPE" && !MODULES.integrations.payment.stripe.enabled) {
+    logger.info(
+      { paymentId: payment.id, gateway },
+      "Skip compensation: payment gateway disabled",
+    );
+    return;
+  }
+  if (
+    gateway === "NOWPAYMENTS" &&
+    !MODULES.integrations.payment.nowpayments.enabled
+  ) {
+    logger.info(
+      { paymentId: payment.id, gateway },
+      "Skip compensation: payment gateway disabled",
+    );
+    return;
+  }
 
   if (gateway === "STRIPE") {
     await checkAndCompensateStripePayment(payment);
@@ -143,7 +180,10 @@ async function checkAndCompensatePayment(
     return;
   }
 
-  logger.info({ paymentId: payment.id, gateway }, "Skip compensation: unsupported gateway");
+  logger.info(
+    { paymentId: payment.id, gateway },
+    "Skip compensation: unsupported gateway",
+  );
 }
 
 /**
@@ -158,7 +198,7 @@ async function checkAndCompensateStripePayment(
           product: { creditsPackage: { creditsAmount: number } | null } | null;
         } & Record<string, unknown>)
       | null;
-  }
+  },
 ): Promise<void> {
   const { gatewayTransactionId, gatewaySubscriptionId } = payment;
 
@@ -173,8 +213,13 @@ async function checkAndCompensateStripePayment(
       : undefined;
 
   logger.info(
-    { paymentId: payment.id, gatewayTransactionId, gatewaySubscriptionId, checkoutSessionId },
-    "Checking payment status from Stripe"
+    {
+      paymentId: payment.id,
+      gatewayTransactionId,
+      gatewaySubscriptionId,
+      checkoutSessionId,
+    },
+    "Checking payment status from Stripe",
   );
 
   let isPaid = false;
@@ -183,8 +228,11 @@ async function checkAndCompensateStripePayment(
   // 如果还没有 PaymentIntent ID，但有 Checkout Session ID，则先通过 Session 查询
   if (!paymentIntentId && checkoutSessionId) {
     try {
-      const session = await getStripe().checkout.sessions.retrieve(checkoutSessionId);
-      isPaid = session.payment_status === "paid" && typeof session.payment_intent === "string";
+      const session =
+        await getStripe().checkout.sessions.retrieve(checkoutSessionId);
+      isPaid =
+        session.payment_status === "paid" &&
+        typeof session.payment_intent === "string";
 
       logger.info(
         {
@@ -193,7 +241,7 @@ async function checkAndCompensateStripePayment(
           paymentStatus: session.payment_status,
           paymentIntent: session.payment_intent,
         },
-        "Checkout session status"
+        "Checkout session status",
       );
 
       // 如果 Session 已支付且拿到了 PaymentIntent ID，则补齐 gatewayTransactionId
@@ -207,7 +255,7 @@ async function checkAndCompensateStripePayment(
     } catch (error) {
       logger.warn(
         { paymentId: payment.id, checkoutSessionId, error },
-        "Failed to retrieve checkout session"
+        "Failed to retrieve checkout session",
       );
     }
   }
@@ -215,19 +263,30 @@ async function checkAndCompensateStripePayment(
   // 检查 payment intent
   if (!isPaid && paymentIntentId) {
     try {
-      const paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
+      const paymentIntent =
+        await getStripe().paymentIntents.retrieve(paymentIntentId);
       isPaid = paymentIntent.status === "succeeded";
       logger.info(
-        { paymentId: payment.id, paymentIntentId, status: paymentIntent.status },
-        "Payment intent status"
+        {
+          paymentId: payment.id,
+          paymentIntentId,
+          status: paymentIntent.status,
+        },
+        "Payment intent status",
       );
     } catch (error) {
-      logger.warn({ paymentId: payment.id, error }, "Failed to retrieve payment intent");
+      logger.warn(
+        { paymentId: payment.id, error },
+        "Failed to retrieve payment intent",
+      );
     }
   }
 
   if (isPaid) {
-    logger.info({ paymentId: payment.id }, "Payment confirmed as paid, triggering fulfillment");
+    logger.info(
+      { paymentId: payment.id },
+      "Payment confirmed as paid, triggering fulfillment",
+    );
     await triggerFulfillment(payment);
   } else {
     // 过期判定：必须使用 payment.expiresAt（避免定时任务时间差导致误取消）
@@ -236,7 +295,7 @@ async function checkAndCompensateStripePayment(
 
     logger.info(
       { paymentId: payment.id, expiresAt: payment.expiresAt },
-      "Payment expired, marking payment as FAILED"
+      "Payment expired, marking payment as FAILED",
     );
 
     // 只处理仍为 PENDING 的 payment（幂等）
@@ -266,8 +325,12 @@ async function checkAndCompensateStripePayment(
     });
     if (succeeded) {
       logger.warn(
-        { orderId: payment.orderId, paymentId: payment.id, succeededPaymentId: succeeded.id },
-        "Skip cancelling order because a SUCCEEDED payment exists"
+        {
+          orderId: payment.orderId,
+          paymentId: payment.id,
+          succeededPaymentId: succeeded.id,
+        },
+        "Skip cancelling order because a SUCCEEDED payment exists",
       );
       return;
     }
@@ -291,30 +354,48 @@ async function checkAndCompensateNowPaymentsPayment(
           product: { creditsPackage: { creditsAmount: number } | null } | null;
         } & Record<string, unknown>)
       | null;
-  }
+  },
 ): Promise<void> {
   // 从 extra.nowpayments.payment_id 或 gatewayTransactionId 取 NowPayments payment_id
-  const extra = payment.extra && typeof payment.extra === "object" ? (payment.extra as Record<string, unknown>) : {};
-  const np = extra.nowpayments && typeof extra.nowpayments === "object" ? (extra.nowpayments as Record<string, unknown>) : {};
+  const extra =
+    payment.extra && typeof payment.extra === "object"
+      ? (payment.extra as Record<string, unknown>)
+      : {};
+  const np =
+    extra.nowpayments && typeof extra.nowpayments === "object"
+      ? (extra.nowpayments as Record<string, unknown>)
+      : {};
   const npPaymentId =
     typeof np.payment_id === "string" || typeof np.payment_id === "number"
       ? String(np.payment_id)
-      : typeof payment.gatewayTransactionId === "string" && payment.gatewayTransactionId.length > 0
+      : typeof payment.gatewayTransactionId === "string" &&
+          payment.gatewayTransactionId.length > 0
         ? payment.gatewayTransactionId
         : null;
 
   if (!npPaymentId) {
-    logger.warn({ paymentId: payment.id }, "NowPayments payment_id missing; skip compensation");
+    logger.warn(
+      { paymentId: payment.id },
+      "NowPayments payment_id missing; skip compensation",
+    );
     return;
   }
 
-  logger.info({ paymentId: payment.id, npPaymentId }, "Checking payment status from NowPayments");
+  logger.info(
+    { paymentId: payment.id, npPaymentId },
+    "Checking payment status from NowPayments",
+  );
 
-  let providerStatus: Awaited<ReturnType<typeof getNowPaymentsPaymentStatus>> | null = null;
+  let providerStatus: Awaited<
+    ReturnType<typeof getNowPaymentsPaymentStatus>
+  > | null = null;
   try {
     providerStatus = await getNowPaymentsPaymentStatus(npPaymentId);
   } catch (error) {
-    logger.warn({ paymentId: payment.id, npPaymentId, error }, "Failed to fetch NowPayments status");
+    logger.warn(
+      { paymentId: payment.id, npPaymentId, error },
+      "Failed to fetch NowPayments status",
+    );
     return;
   }
 
@@ -334,10 +415,16 @@ async function checkAndCompensateNowPaymentsPayment(
   });
 
   if (mapped === "SUCCEEDED") {
-    logger.info({ paymentId: payment.id }, "NowPayments confirmed as finished, triggering fulfillment");
+    logger.info(
+      { paymentId: payment.id },
+      "NowPayments confirmed as finished, triggering fulfillment",
+    );
     await triggerFulfillment(payment);
   } else {
-    logger.info({ paymentId: payment.id, status: mapped }, "NowPayments terminal status, no fulfillment");
+    logger.info(
+      { paymentId: payment.id, status: mapped },
+      "NowPayments terminal status, no fulfillment",
+    );
   }
 }
 
@@ -345,7 +432,7 @@ async function checkAndCompensateNowPaymentsPayment(
  * 触发履约
  */
 async function triggerFulfillment(
-  payment: NonNullable<Awaited<ReturnType<typeof db.payment.findUnique>>>
+  payment: NonNullable<Awaited<ReturnType<typeof db.payment.findUnique>>>,
 ): Promise<void> {
   try {
     // 更新支付状态
@@ -355,9 +442,8 @@ async function triggerFulfillment(
     });
 
     // 调用履约逻辑
-    const { processFulfillmentByPayment } = await import(
-      "@/server/fulfillment/manager"
-    );
+    const { processFulfillmentByPayment } =
+      await import("@/server/fulfillment/manager");
     await processFulfillmentByPayment(payment);
 
     // 更新订单状态
@@ -386,16 +472,17 @@ async function triggerFulfillment(
 
     logger.info(
       { paymentId: payment.id, orderId: payment.orderId },
-      "✅ Fulfillment completed via compensation"
+      "✅ Fulfillment completed via compensation",
     );
 
     // 支付成功通知（Lark/飞书）- 异步 best-effort
     setImmediate(() => {
-      void sendOrderPaymentNotificationByPaymentId(payment.id, { source: "compensation" });
+      void sendOrderPaymentNotificationByPaymentId(payment.id, {
+        source: "compensation",
+      });
     });
   } catch (error) {
     logger.error({ paymentId: payment.id, error }, "Fulfillment failed");
     throw error;
   }
 }
-

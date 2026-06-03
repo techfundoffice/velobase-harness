@@ -1,15 +1,13 @@
+import { MODULES } from "@/config/modules";
 import { registerProvider } from "../providers/registry";
 import { stripeProvider } from "../providers/stripe";
 import { nowpaymentsProvider } from "../providers/nowpayments";
-import { env } from "@/server/shared/env";
 
 export function initOrderProviders() {
-  if (env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET) {
+  if (MODULES.integrations.payment.stripe.enabled) {
     registerProvider("STRIPE", stripeProvider);
   }
-  if (env.NOWPAYMENTS_API_KEY && env.NOWPAYMENTS_IPN_SECRET) {
+  if (MODULES.integrations.payment.nowpayments.enabled) {
     registerProvider("NOWPAYMENTS", nowpaymentsProvider);
   }
 }
-
-

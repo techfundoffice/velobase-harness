@@ -1,5 +1,5 @@
 export { processSubscriptionCompensationJob } from "./processor";
-export { registerSubscriptionCompensationScheduler } from "./scheduler";
-
-
-
+export {
+  registerSubscriptionCompensationScheduler,
+  subscriptionCompensationScheduler,
+} from "./scheduler";
