@@ -22,9 +22,9 @@ jobs:
 
       - name: Login to Velobase ACR
         run: |
-          docker login ${{ steps.config.outputs.registry }} \
+          echo "${{ steps.config.outputs.password }}" | docker login ${{ steps.config.outputs.registry }} \
             -u ${{ steps.config.outputs.username }} \
-            -p ${{ steps.config.outputs.password }}
+            --password-stdin
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -68,15 +68,15 @@ jobs:
           SHA=${{ github.sha }}
           # To enable the optional API service, also add:
           # {\"name\": \"api\", \"mode\": \"api\", \"port\": 3002, \"health\": \"/health\", \"image_tag\": \"api-$SHA\"}
-          curl -f -X POST https://api.velobase.cloud/api/v1/deploy \
+          curl --fail-with-body -X POST https://api.velobase.cloud/api/v1/deploy \
             -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d "{
               \"image_tag\": \"$SHA\",
               \"exposed_service\": \"web\",
               \"services\": [
-                {\"name\": \"web\",    \"mode\": \"web\",    \"port\": 3000, \"health\": \"/healthz\", \"image_tag\": \"web-$SHA\"},
-                {\"name\": \"worker\", \"mode\": \"worker\", \"port\": 3001, \"health\": \"/health\",  \"image_tag\": \"worker-$SHA\"}
+                {\"name\": \"web\",    \"mode\": \"web\",    \"port\": 3000, \"health\": \"/healthz\", \"image_tag\": \"web-$SHA\",    \"cpu_request\": \"485m\", \"memory_request\": \"1177Mi\", \"cpu_limit\": \"485m\", \"memory_limit\": \"1177Mi\"},
+                {\"name\": \"worker\", \"mode\": \"worker\", \"port\": 3001, \"health\": \"/health\",  \"image_tag\": \"worker-$SHA\", \"cpu_request\": \"485m\", \"memory_request\": \"1177Mi\", \"cpu_limit\": \"485m\", \"memory_limit\": \"1177Mi\"}
               ],
               \"commit_sha\": \"$SHA\",
               \"commit_message\": \"$(git log -1 --pretty=format:'%s' | head -c 200)\",
