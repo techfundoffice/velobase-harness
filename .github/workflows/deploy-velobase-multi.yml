@@ -21,8 +21,10 @@ jobs:
           echo "password=$(echo $CONFIG | jq -r .password)"     >> $GITHUB_OUTPUT
 
       - name: Login to Velobase ACR
+        env:
+          REGISTRY_PASSWORD: ${{ steps.config.outputs.password }}
         run: |
-          echo "${{ steps.config.outputs.password }}" | docker login ${{ steps.config.outputs.registry }} \
+          echo "$REGISTRY_PASSWORD" | docker login ${{ steps.config.outputs.registry }} \
             -u ${{ steps.config.outputs.username }} \
             --password-stdin
 
