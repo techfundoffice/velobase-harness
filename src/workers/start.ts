@@ -41,8 +41,8 @@ export async function startWorker(): Promise<WorkerHandle> {
   registry.registerContributions(moduleWorkerContributions);
 
   const server = await createServer(registry.getQueues());
-  await registry.startAll(disabledSchedulers);
   await server.listen({ port, host: "0.0.0.0" });
+  await registry.startAll(disabledSchedulers);
 
   log.info(
     {
@@ -57,7 +57,7 @@ export async function startWorker(): Promise<WorkerHandle> {
   );
   log.info({ port }, `Worker ready - HTTP server listening on port ${port}`);
   log.info("Bull Board UI: /_worker/queues");
-  log.info("Health check: /health");
+  log.info("Health check: /health and /healthz");
 
   const shutdown = async () => {
     await registry.shutdown();
