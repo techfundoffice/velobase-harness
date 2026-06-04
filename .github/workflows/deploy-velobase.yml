@@ -32,15 +32,17 @@ jobs:
 
           SERVICE_CPU_REQUEST="485m"
           SERVICE_MEMORY_REQUEST="1177Mi"
-          SERVICE_CPU_LIMIT="$APP_BUDGET_CPU"
-          SERVICE_MEMORY_LIMIT="$APP_BUDGET_MEMORY"
+          SERVICE_CPU_LIMIT="$SERVICE_CPU_REQUEST"
+          SERVICE_MEMORY_LIMIT="$SERVICE_MEMORY_REQUEST"
 
           if [[ "$APP_BUDGET_CPU" =~ ^([0-9]+)m$ ]]; then
             SERVICE_CPU_REQUEST="$((BASH_REMATCH[1] / 2))m"
+            SERVICE_CPU_LIMIT="$SERVICE_CPU_REQUEST"
           fi
 
           if [[ "$APP_BUDGET_MEMORY" =~ ^([0-9]+)Mi$ ]]; then
             SERVICE_MEMORY_REQUEST="$((BASH_REMATCH[1] / 2))Mi"
+            SERVICE_MEMORY_LIMIT="$SERVICE_MEMORY_REQUEST"
           fi
 
           echo "::add-mask::$PASSWORD"

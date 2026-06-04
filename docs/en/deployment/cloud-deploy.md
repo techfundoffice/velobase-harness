@@ -102,7 +102,7 @@ velobase-cloud deploy trigger --branch main --watch
 
 The canonical GitHub Actions workflow is `.github/workflows/deploy-velobase.yml`. It deploys the default Web + Worker shape, exposes `web`, and keeps only this workflow attached to `push` on `main` to avoid duplicate deployments from one commit.
 
-The Deploy API requires every service to declare `cpu_request`, `memory_request`, `cpu_limit`, and `memory_limit`. The workflow reads `appBudget` from `/api/v1/deploy/config`, splits requests evenly across `web` and `worker`, and sets each service limit to the full app budget for burst headroom. If the platform rejects a deployment because limits are also counted against quota, lower each service limit to the same value as its request.
+The Deploy API requires every service to declare `cpu_request`, `memory_request`, `cpu_limit`, and `memory_limit`. The workflow reads `appBudget` from `/api/v1/deploy/config`, splits requests evenly across `web` and `worker`, and keeps each service limit equal to its request. Kubernetes quota counts limits as well as requests, so setting both services to the full app budget can make the second pod fail quota admission.
 
 Deployment workflows should validate `/api/v1/deploy/config` before building images. `dataPlaneMode` must be `project`; if the Deploy API returns `PROJECT_DATA_PLANE_REQUIRED`, the API key is bound to a legacy shared project and the project must be migrated or re-created as a project data-plane project before using the Deploy API.
 
