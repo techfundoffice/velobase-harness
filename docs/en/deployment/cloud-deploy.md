@@ -106,7 +106,7 @@ The Deploy API requires every service to declare `cpu_request`, `memory_request`
 
 Deployment workflows should validate `/api/v1/deploy/config` before building images. `dataPlaneMode` must be `project`; if the Deploy API returns `PROJECT_DATA_PLANE_REQUIRED`, the API key is bound to a legacy shared project and the project must be migrated or re-created as a project data-plane project before using the Deploy API.
 
-In split Web + Worker deploys, Web listens on `3000` and runs `prisma migrate deploy` before starting `server.js`; Worker listens on `3001` and does not run migrations. Set `SKIP_MIGRATION=true` only when another release step has already applied migrations.
+In split Web + Worker deploys, Web listens on `3000`, uses the platform HTTP probe on `/healthz`, and runs `prisma migrate deploy` before starting `server.js`; Worker listens on `3001`, uses an `exec` probe, and does not run migrations. Set `SKIP_MIGRATION=true` only when another release step has already applied migrations.
 
 Add the API service only when standalone Hono routes are active; then include an API service entry with `mode: "api"` and `port: 3002`, and redistribute the app budget across Web, API, and Worker. Keep `exposed_service` as `web` unless the primary domain (`{subdomain}.velobase.app`) should route directly to API.
 
@@ -124,7 +124,7 @@ velobase-cloud billing
 velobase-cloud deploy rollback <deployment-id>
 ```
 
-- Check Web and Worker health endpoints. Check API health only when the optional API service is enabled.
+- Check Web `/healthz` and Worker process logs. Worker is deployed with an `exec` probe; its `3001` HTTP health server is for local diagnostics and optional direct inspection, not the primary Cloud readiness contract. Check API health only when the optional API service is enabled.
 - If commands return `PROJECT_OVERDUE`, restore the project subscription before deploying or applying environment changes.
 - Confirm required modules initialize from logs.
 - For production issues, collect Cloud runtime logs first, then follow `docs/en/debugging/online-local-debug.md`.

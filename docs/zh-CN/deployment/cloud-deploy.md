@@ -106,7 +106,7 @@ Deploy API 要求每个服务显式声明 `cpu_request`、`memory_request`、`cp
 
 部署 workflow 应在构建镜像前先校验 `/api/v1/deploy/config`。`dataPlaneMode` 必须是 `project`；如果 Deploy API 返回 `PROJECT_DATA_PLANE_REQUIRED`，说明当前 API key 绑定的是 legacy shared project，需要先迁移或重新创建为 project data-plane project，才能继续使用 Deploy API。
 
-拆分 Web + Worker 部署时，Web 监听 `3000`，并在启动 `server.js` 前执行 `prisma migrate deploy`；Worker 监听 `3001`，不执行 migrations。只有当其他发布步骤已经完成迁移时，才设置 `SKIP_MIGRATION=true`。
+拆分 Web + Worker 部署时，Web 监听 `3000`，使用平台 HTTP probe 检查 `/healthz`，并在启动 `server.js` 前执行 `prisma migrate deploy`；Worker 监听 `3001`，使用 `exec` probe，不执行 migrations。只有当其他发布步骤已经完成迁移时，才设置 `SKIP_MIGRATION=true`。
 
 只有在独立 Hono routes 已启用时才增加 API 服务；此时在 services 中加入 `mode: "api"`、`port: 3002` 的 API 条目，并重新把 App 预算分配给 Web、API 和 Worker。除非主域名（`{subdomain}.velobase.app`）确实要直接路由到 API，否则 `exposed_service` 仍保持 `web`。
 
@@ -124,7 +124,7 @@ velobase-cloud billing
 velobase-cloud deploy rollback <deployment-id>
 ```
 
-- 检查 Web 和 Worker health endpoints。只有启用可选 API 服务时才检查 API health。
+- 检查 Web `/healthz` 和 Worker 进程日志。Worker 在 Cloud 中使用 `exec` probe；其 `3001` HTTP health server 用于本地诊断和可选直连检查，不作为 Cloud readiness 的主契约。只有启用可选 API 服务时才检查 API health。
 - 如果命令返回 `PROJECT_OVERDUE`，先恢复项目订阅，再部署或应用环境变量变更。
 - 从日志确认必需模块已初始化。
 - 生产问题先收集 Cloud runtime logs，再按 `docs/zh-CN/debugging/online-local-debug.md` 排查。
