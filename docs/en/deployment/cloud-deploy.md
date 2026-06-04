@@ -100,17 +100,13 @@ You can also trigger a deployment from the CLI:
 velobase-cloud deploy trigger --branch main --watch
 ```
 
-Confirm the active GitHub Actions workflow when switching deployment modes:
+The canonical GitHub Actions workflow is `.github/workflows/deploy-velobase.yml`. It deploys the default Web + Worker shape, exposes `web`, and keeps only this workflow attached to `push` on `main` to avoid duplicate deployments from one commit.
 
-- Single-service deployment uses `.github/workflows/deploy-velobase.yml`. It builds one unified image and assigns the default app budget to the `app` service.
-- Multi-service deployment uses `.github/workflows/deploy-velobase-multi.yml`. It builds and deploys `web` and `worker` services by default and splits the app budget evenly across them.
-- Keep only one deployment workflow listening to `push` on `main`. Disable the inactive workflow, remove its `push` trigger, or leave it as `workflow_dispatch` only to avoid duplicate deployments from one commit.
-
-The Deploy API requires every service to declare `cpu_request`, `memory_request`, `cpu_limit`, and `memory_limit`. The default app budget is `970m` CPU and `2355Mi` memory. The two-service template defaults each service to `485m` and `1177Mi` with `request == limit`. If you change resources, edit the workflow service entries and keep the sum of requests within the project app budget.
+The Deploy API requires every service to declare `cpu_request`, `memory_request`, `cpu_limit`, and `memory_limit`. The workflow reads `appBudget` from `/api/v1/deploy/config`, splits requests evenly across `web` and `worker`, and sets each service limit to the full app budget for burst headroom. If the platform rejects a deployment because limits are also counted against quota, lower each service limit to the same value as its request.
 
 Deployment workflows should validate `/api/v1/deploy/config` before building images. `dataPlaneMode` must be `project`; if the Deploy API returns `PROJECT_DATA_PLANE_REQUIRED`, the API key is bound to a legacy shared project and the project must be migrated or re-created as a project data-plane project before using the Deploy API.
 
-The default multi-service deployment is Web + Worker with `exposed_service` set to `web`. Add the API service only when standalone Hono routes are active; then include an API service entry with `mode: "api"` and `port: 3002`, and redistribute the app budget across Web, API, and Worker. Keep `exposed_service` as `web` unless the primary domain (`{subdomain}.velobase.app`) should route directly to API.
+Add the API service only when standalone Hono routes are active; then include an API service entry with `mode: "api"` and `port: 3002`, and redistribute the app budget across Web, API, and Worker. Keep `exposed_service` as `web` unless the primary domain (`{subdomain}.velobase.app`) should route directly to API.
 
 ## 8. Operate
 
