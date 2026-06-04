@@ -4,8 +4,7 @@ WORKDIR /app
 # Install OpenSSL for Prisma
 RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
-ENV NODE_ENV=production \
-    WORKER_PORT=3000
+ENV NODE_ENV=production
 
 # Install dependencies
 COPY package.json pnpm-lock.yaml ./
@@ -33,7 +32,7 @@ COPY --chown=worker:nodejs public/data/disposable-domains.txt ./public/data/disp
 
 USER worker
 
-EXPOSE 3000
+EXPOSE 3001
 
 # Start worker
 CMD ["node", "--import", "tsx", "src/workers/index.ts"]

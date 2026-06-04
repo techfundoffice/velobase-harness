@@ -12,7 +12,14 @@ COPY public ./public
 COPY .next/standalone ./
 COPY .next/static ./.next/static
 COPY next.config.js ./
-COPY package.json ./
+COPY package.json pnpm-lock.yaml ./
+COPY prisma ./prisma
+COPY docker-entrypoint.web.sh ./
+
+RUN npm install -g prisma@6.19.0 && \
+    chmod +x docker-entrypoint.web.sh && \
+    npm cache clean --force && \
+    rm -rf /root/.cache
 
 # Copy .env file (created by CI from .env.{environment})
 COPY .env ./
@@ -21,5 +28,4 @@ COPY .env ./
 EXPOSE 3000
 
 # Start application
-CMD ["node", "server.js"]
-
+CMD ["./docker-entrypoint.web.sh"]
