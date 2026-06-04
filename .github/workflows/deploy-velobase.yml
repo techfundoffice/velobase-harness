@@ -25,7 +25,6 @@ jobs:
           CONFIG=$(curl --fail-with-body -sS https://api.velobase.cloud/api/v1/deploy/config \
             -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}")
 
-          PASSWORD=$(jq -r .password <<< "$CONFIG")
           DATA_PLANE_MODE=$(jq -r '.dataPlaneMode // "unknown"' <<< "$CONFIG")
           APP_BUDGET_CPU=$(jq -r '.appBudget.cpu // "970m"' <<< "$CONFIG")
           APP_BUDGET_MEMORY=$(jq -r '.appBudget.memory // "2355Mi"' <<< "$CONFIG")
@@ -45,13 +44,10 @@ jobs:
             SERVICE_MEMORY_LIMIT="$SERVICE_MEMORY_REQUEST"
           fi
 
-          echo "::add-mask::$PASSWORD"
-
           {
             echo "registry=$(jq -r .registry <<< "$CONFIG")"
             echo "repository=$(jq -r .repository <<< "$CONFIG")"
             echo "username=$(jq -r .username <<< "$CONFIG")"
-            echo "password=$PASSWORD"
             echo "data_plane_mode=$DATA_PLANE_MODE"
             echo "app_budget_cpu=$APP_BUDGET_CPU"
             echo "app_budget_memory=$APP_BUDGET_MEMORY"
@@ -77,14 +73,6 @@ jobs:
             exit 1
           fi
 
-      - name: Login to Velobase ACR
-        env:
-          REGISTRY_PASSWORD: ${{ steps.config.outputs.password }}
-        run: |
-          echo "$REGISTRY_PASSWORD" | docker login ${{ steps.config.outputs.registry }} \
-            -u ${{ steps.config.outputs.username }} \
-            --password-stdin
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -107,13 +95,32 @@ jobs:
       - name: Create empty .env for Docker builds
         run: touch .env
 
-      - name: Build & Push per-service images
+      - name: Build per-service images
         run: |
           REPO=${{ steps.config.outputs.repository }}
           SHA=${{ github.sha }}
 
           docker build -f Dockerfile.web    -t $REPO:web-$SHA .
           docker build -f Dockerfile.worker -t $REPO:worker-$SHA .
+
+      - name: Login to Velobase ACR
+        run: |
+          CONFIG=$(curl --fail-with-body -sS https://api.velobase.cloud/api/v1/deploy/config \
+            -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}")
+
+          PASSWORD=$(jq -r .password <<< "$CONFIG")
+          REGISTRY=$(jq -r .registry <<< "$CONFIG")
+          USERNAME=$(jq -r .username <<< "$CONFIG")
+
+          echo "::add-mask::$PASSWORD"
+          echo "$PASSWORD" | docker login "$REGISTRY" \
+            -u "$USERNAME" \
+            --password-stdin
+
+      - name: Push per-service images
+        run: |
+          REPO=${{ steps.config.outputs.repository }}
+          SHA=${{ github.sha }}
 
           docker push $REPO:web-$SHA
           docker push $REPO:worker-$SHA
