@@ -159,8 +159,8 @@ jobs:
                 {
                   name: "worker",
                   mode: "worker",
-                  port: 3001,
-                  health: "/health",
+                  port: 3000,
+                  health: "/healthz",
                   image_tag: $workerImage,
                   cpu_request: $cpuRequest,
                   memory_request: $memoryRequest,

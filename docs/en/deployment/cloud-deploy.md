@@ -106,6 +106,8 @@ The Deploy API requires every service to declare `cpu_request`, `memory_request`
 
 Deployment workflows should validate `/api/v1/deploy/config` before building images. `dataPlaneMode` must be `project`; if the Deploy API returns `PROJECT_DATA_PLANE_REQUIRED`, the API key is bound to a legacy shared project and the project must be migrated or re-created as a project data-plane project before using the Deploy API.
 
+The worker source still defaults to port `3001` for local combined `SERVICE_MODE=web,worker`, but the Cloud worker image sets `WORKER_PORT=3000` and exposes `/healthz` so Velobase readiness probes can use the same default port and health path as Web pods.
+
 Add the API service only when standalone Hono routes are active; then include an API service entry with `mode: "api"` and `port: 3002`, and redistribute the app budget across Web, API, and Worker. Keep `exposed_service` as `web` unless the primary domain (`{subdomain}.velobase.app`) should route directly to API.
 
 ## 8. Operate

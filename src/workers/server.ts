@@ -29,9 +29,12 @@ export async function createServer(
   });
 
   // Health & Readiness Checks
-  server.get("/health", async () => {
+  const health = async () => {
     return { status: "ok", timestamp: new Date().toISOString() };
-  });
+  };
+
+  server.get("/health", health);
+  server.get("/healthz", health);
 
   server.get("/ready", async () => {
     return { status: "ready", timestamp: new Date().toISOString() };
