@@ -108,6 +108,8 @@ velobase-cloud deploy trigger --branch main --watch
 
 Deploy API 要求每个服务显式声明 `cpu_request`、`memory_request`、`cpu_limit` 和 `memory_limit`。默认 App 预算是 `970m` CPU 和 `2355Mi` 内存；双服务模板默认每个服务 `485m` 和 `1177Mi`，并使用 `request == limit`。如需调整资源，修改 workflow 中对应服务的资源字段，但所有服务 request 之和必须不超过项目 App 预算。
 
+部署 workflow 应在构建镜像前先校验 `/api/v1/deploy/config`。`dataPlaneMode` 必须是 `project`；如果 Deploy API 返回 `PROJECT_DATA_PLANE_REQUIRED`，说明当前 API key 绑定的是 legacy shared project，需要先迁移或重新创建为 project data-plane project，才能继续使用 Deploy API。
+
 默认多服务部署是 Web + Worker，`exposed_service` 设置为 `web`。只有在独立 Hono routes 已启用时才增加 API 服务；此时在 services 中加入 `mode: "api"`、`port: 3002` 的 API 条目，并重新把 App 预算分配给 Web、API 和 Worker。除非主域名（`{subdomain}.velobase.app`）确实要直接路由到 API，否则 `exposed_service` 仍保持 `web`。
 
 ## 8. 运维

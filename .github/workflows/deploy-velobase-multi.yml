@@ -13,12 +13,50 @@ jobs:
       - name: Get Velobase deploy config
         id: config
         run: |
-          CONFIG=$(curl -sf https://api.velobase.cloud/api/v1/deploy/config \
+          CONFIG=$(curl --fail-with-body -sS https://api.velobase.cloud/api/v1/deploy/config \
             -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}")
+
+          PASSWORD=$(echo "$CONFIG" | jq -r .password)
+          DATA_PLANE_MODE=$(echo "$CONFIG" | jq -r '.dataPlaneMode // "unknown"')
+          APP_BUDGET_CPU=$(echo "$CONFIG" | jq -r '.appBudget.cpu // "970m"')
+          APP_BUDGET_MEMORY=$(echo "$CONFIG" | jq -r '.appBudget.memory // "2355Mi"')
+          SERVICE_CPU="485m"
+          SERVICE_MEMORY="1177Mi"
+
+          if [[ "$APP_BUDGET_CPU" =~ ^([0-9]+)m$ ]]; then
+            SERVICE_CPU="$((BASH_REMATCH[1] / 2))m"
+          fi
+
+          if [[ "$APP_BUDGET_MEMORY" =~ ^([0-9]+)Mi$ ]]; then
+            SERVICE_MEMORY="$((BASH_REMATCH[1] / 2))Mi"
+          fi
+
+          echo "::add-mask::$PASSWORD"
+
           echo "registry=$(echo $CONFIG | jq -r .registry)"     >> $GITHUB_OUTPUT
           echo "repository=$(echo $CONFIG | jq -r .repository)" >> $GITHUB_OUTPUT
           echo "username=$(echo $CONFIG | jq -r .username)"     >> $GITHUB_OUTPUT
-          echo "password=$(echo $CONFIG | jq -r .password)"     >> $GITHUB_OUTPUT
+          echo "password=$PASSWORD"                             >> $GITHUB_OUTPUT
+          echo "data_plane_mode=$DATA_PLANE_MODE"                >> $GITHUB_OUTPUT
+          echo "app_budget_cpu=$APP_BUDGET_CPU"                  >> $GITHUB_OUTPUT
+          echo "app_budget_memory=$APP_BUDGET_MEMORY"            >> $GITHUB_OUTPUT
+          echo "service_cpu=$SERVICE_CPU"                        >> $GITHUB_OUTPUT
+          echo "service_memory=$SERVICE_MEMORY"                  >> $GITHUB_OUTPUT
+
+      - name: Validate Velobase project data plane
+        run: |
+          MODE="${{ steps.config.outputs.data_plane_mode }}"
+          CPU="${{ steps.config.outputs.app_budget_cpu }}"
+          MEMORY="${{ steps.config.outputs.app_budget_memory }}"
+
+          echo "Velobase dataPlaneMode=$MODE"
+          echo "Velobase appBudget=${CPU} CPU / ${MEMORY} memory"
+          echo "Per-service resources: ${{ steps.config.outputs.service_cpu }} CPU / ${{ steps.config.outputs.service_memory }} memory"
+
+          if [ "$MODE" != "project" ]; then
+            echo "::error title=Unsupported Velobase Cloud project::This workflow uses the Deploy API, which requires a project data-plane project. Current dataPlaneMode is '$MODE'. Reinitialize or migrate the project in Velobase Cloud, update VELOBASE_API_KEY, then rerun this workflow."
+            exit 1
+          fi
 
       - name: Login to Velobase ACR
         env:
@@ -36,8 +74,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          node-version: "20"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -77,8 +115,8 @@ jobs:
               \"image_tag\": \"$SHA\",
               \"exposed_service\": \"web\",
               \"services\": [
-                {\"name\": \"web\",    \"mode\": \"web\",    \"port\": 3000, \"health\": \"/healthz\", \"image_tag\": \"web-$SHA\",    \"cpu_request\": \"485m\", \"memory_request\": \"1177Mi\", \"cpu_limit\": \"485m\", \"memory_limit\": \"1177Mi\"},
-                {\"name\": \"worker\", \"mode\": \"worker\", \"port\": 3001, \"health\": \"/health\",  \"image_tag\": \"worker-$SHA\", \"cpu_request\": \"485m\", \"memory_request\": \"1177Mi\", \"cpu_limit\": \"485m\", \"memory_limit\": \"1177Mi\"}
+                {\"name\": \"web\",    \"mode\": \"web\",    \"port\": 3000, \"health\": \"/healthz\", \"image_tag\": \"web-$SHA\",    \"cpu_request\": \"${{ steps.config.outputs.service_cpu }}\", \"memory_request\": \"${{ steps.config.outputs.service_memory }}\", \"cpu_limit\": \"${{ steps.config.outputs.service_cpu }}\", \"memory_limit\": \"${{ steps.config.outputs.service_memory }}\"},
+                {\"name\": \"worker\", \"mode\": \"worker\", \"port\": 3001, \"health\": \"/health\",  \"image_tag\": \"worker-$SHA\", \"cpu_request\": \"${{ steps.config.outputs.service_cpu }}\", \"memory_request\": \"${{ steps.config.outputs.service_memory }}\", \"cpu_limit\": \"${{ steps.config.outputs.service_cpu }}\", \"memory_limit\": \"${{ steps.config.outputs.service_memory }}\"}
               ],
               \"commit_sha\": \"$SHA\",
               \"commit_message\": \"$(git log -1 --pretty=format:'%s' | head -c 200)\",

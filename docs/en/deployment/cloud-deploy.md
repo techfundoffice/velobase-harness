@@ -108,6 +108,8 @@ Confirm the active GitHub Actions workflow when switching deployment modes:
 
 The Deploy API requires every service to declare `cpu_request`, `memory_request`, `cpu_limit`, and `memory_limit`. The default app budget is `970m` CPU and `2355Mi` memory. The two-service template defaults each service to `485m` and `1177Mi` with `request == limit`. If you change resources, edit the workflow service entries and keep the sum of requests within the project app budget.
 
+Deployment workflows should validate `/api/v1/deploy/config` before building images. `dataPlaneMode` must be `project`; if the Deploy API returns `PROJECT_DATA_PLANE_REQUIRED`, the API key is bound to a legacy shared project and the project must be migrated or re-created as a project data-plane project before using the Deploy API.
+
 The default multi-service deployment is Web + Worker with `exposed_service` set to `web`. Add the API service only when standalone Hono routes are active; then include an API service entry with `mode: "api"` and `port: 3002`, and redistribute the app budget across Web, API, and Worker. Keep `exposed_service` as `web` unless the primary domain (`{subdomain}.velobase.app`) should route directly to API.
 
 ## 8. Operate

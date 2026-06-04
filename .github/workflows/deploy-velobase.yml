@@ -15,18 +15,45 @@ jobs:
       - name: Get Velobase deploy config
         id: config
         run: |
-          CONFIG=$(curl -sf https://api.velobase.cloud/api/v1/deploy/config \
+          CONFIG=$(curl --fail-with-body -sS https://api.velobase.cloud/api/v1/deploy/config \
             -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}")
+
+          PASSWORD=$(echo "$CONFIG" | jq -r .password)
+          DATA_PLANE_MODE=$(echo "$CONFIG" | jq -r '.dataPlaneMode // "unknown"')
+          APP_BUDGET_CPU=$(echo "$CONFIG" | jq -r '.appBudget.cpu // "970m"')
+          APP_BUDGET_MEMORY=$(echo "$CONFIG" | jq -r '.appBudget.memory // "2355Mi"')
+
+          echo "::add-mask::$PASSWORD"
+
           echo "registry=$(echo $CONFIG | jq -r .registry)"     >> $GITHUB_OUTPUT
           echo "repository=$(echo $CONFIG | jq -r .repository)" >> $GITHUB_OUTPUT
           echo "username=$(echo $CONFIG | jq -r .username)"     >> $GITHUB_OUTPUT
-          echo "password=$(echo $CONFIG | jq -r .password)"     >> $GITHUB_OUTPUT
+          echo "password=$PASSWORD"                             >> $GITHUB_OUTPUT
+          echo "data_plane_mode=$DATA_PLANE_MODE"                >> $GITHUB_OUTPUT
+          echo "app_budget_cpu=$APP_BUDGET_CPU"                  >> $GITHUB_OUTPUT
+          echo "app_budget_memory=$APP_BUDGET_MEMORY"            >> $GITHUB_OUTPUT
+
+      - name: Validate Velobase project data plane
+        run: |
+          MODE="${{ steps.config.outputs.data_plane_mode }}"
+          CPU="${{ steps.config.outputs.app_budget_cpu }}"
+          MEMORY="${{ steps.config.outputs.app_budget_memory }}"
+
+          echo "Velobase dataPlaneMode=$MODE"
+          echo "Velobase appBudget=${CPU} CPU / ${MEMORY} memory"
+
+          if [ "$MODE" != "project" ]; then
+            echo "::error title=Unsupported Velobase Cloud project::This workflow uses the Deploy API, which requires a project data-plane project. Current dataPlaneMode is '$MODE'. Reinitialize or migrate the project in Velobase Cloud, update VELOBASE_API_KEY, then rerun this workflow."
+            exit 1
+          fi
 
       - name: Login to Velobase ACR
+        env:
+          REGISTRY_PASSWORD: ${{ steps.config.outputs.password }}
         run: |
-          docker login ${{ steps.config.outputs.registry }} \
+          echo "$REGISTRY_PASSWORD" | docker login ${{ steps.config.outputs.registry }} \
             -u ${{ steps.config.outputs.username }} \
-            -p ${{ steps.config.outputs.password }}
+            --password-stdin
 
       - name: Build & Push image
         run: |
@@ -36,7 +63,24 @@ jobs:
 
       - name: Trigger deployment
         run: |
-          curl -f -X POST https://api.velobase.cloud/api/v1/deploy \
+          curl --fail-with-body -X POST https://api.velobase.cloud/api/v1/deploy \
             -H "X-API-Key: ${{ secrets.VELOBASE_API_KEY }}" \
             -H "Content-Type: application/json" \
-            -d "{\"image_tag\": \"${{ github.sha }}\"}"
+            -d "{
+              \"image_tag\": \"${{ github.sha }}\",
+              \"services\": [
+                {
+                  \"name\": \"app\",
+                  \"mode\": \"all\",
+                  \"port\": 3000,
+                  \"health\": \"/healthz\",
+                  \"cpu_request\": \"${{ steps.config.outputs.app_budget_cpu }}\",
+                  \"memory_request\": \"${{ steps.config.outputs.app_budget_memory }}\",
+                  \"cpu_limit\": \"${{ steps.config.outputs.app_budget_cpu }}\",
+                  \"memory_limit\": \"${{ steps.config.outputs.app_budget_memory }}\"
+                }
+              ],
+              \"commit_sha\": \"${{ github.sha }}\",
+              \"commit_message\": \"$(git log -1 --pretty=format:'%s' | head -c 200)\",
+              \"trigger_ref\": \"$(git rev-parse --abbrev-ref HEAD)\"
+            }"
