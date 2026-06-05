@@ -10,11 +10,14 @@
 
 ## 功能列表
 
-| 功能 | 用途 | 文档 |
-| --- | --- | --- |
-| Daily Bonus | 给登录用户发放每日积分 | [daily-bonus](./daily-bonus/README.md) |
-| Anti-Abuse Guard | 检测注册滥用并回收积分 | [anti-abuse](./anti-abuse/README.md) |
-| CDN Adapters | 统一 CDN/proxy 环境下的 request context | [cdn-adapters](./cdn-adapters/README.md) |
+| 功能             | 用途                                    | 文档                                                 |
+| ---------------- | --------------------------------------- | ---------------------------------------------------- |
+| Daily Bonus      | 给登录用户发放每日积分                  | [daily-bonus](./daily-bonus/README.md)               |
+| Anti-Abuse Guard | 检测注册滥用并回收积分                  | [anti-abuse](./anti-abuse/README.md)                 |
+| CDN Adapters     | 统一 CDN/proxy 环境下的 request context | [cdn-adapters](./cdn-adapters/README.md)             |
+| 转化告警         | 生成转化报表并通过 Lark 投递            | [conversion-alert](./conversion-alert/README.md)     |
+| 客服自动化       | 使用 AI 和审核流程处理客服邮件          | [support-automation](./support-automation/README.md) |
+| 用户触达生命周期 | 定时投递用户生命周期触达消息            | [touch](./touch/README.md)                           |
 
 ## 规则
 

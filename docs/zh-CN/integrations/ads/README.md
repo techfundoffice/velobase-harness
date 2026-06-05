@@ -18,6 +18,23 @@ Ads integration 覆盖 Google Ads、Twitter/X Ads 等 provider 的归因和 conv
 
 新增 provider 配置时更新 `.env.example`、`src/env.js` 和 module enablement。
 
+模块模式：
+
+- `GOOGLE_ADS_MODE=auto|off|on` 控制 Google Ads 事件处理和 worker 注册。
+- `auto` 要求配置 Google Ads customer ID 和 developer token。
+
+## Workers
+
+Google Ads upload 归属于 Google Ads 集成，从 `src/workers/integrations/google-ads.ts` 注册。
+
+| Worker              | 用途                                                                                        | 启用条件               |
+| ------------------- | ------------------------------------------------------------------------------------------- | ---------------------- |
+| `google-ads-upload` | 将 Redis pending buffer 批量 flush 到 Google Ads offline conversion 和 web enhancement APIs | Google Ads module 启用 |
+
+业务事件路径不会直接投递 BullMQ job。`payment:succeeded` 通过 `src/server/ads/google-ads/queue.ts` 把 payment ID 写入 Redis ZSET buffer；worker 每 5 分钟批量上传。
+
+上传 worker 通过模块 `WorkerContribution` 暴露，`src/workers/start.ts` 从模块 catalog 收集。
+
 ## 规则
 
 - Payment/order flows 发出 domain events。

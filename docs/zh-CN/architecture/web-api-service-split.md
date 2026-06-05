@@ -4,12 +4,12 @@ Velobase Harness 按三个 runtime 边界设计，但默认部署路径是 **Web
 
 ## 服务类型
 
-| 服务 | 职责 | 入口 | 常见端口 | 默认 |
-| --- | --- | --- | --- | --- |
-| Web | Next.js App Router、页面、tRPC、Next Route Handlers、认证、当前生产 webhook | Next production server 或 `src/web/start.ts` | `3000` | 启用 |
-| Worker | BullMQ processors、schedulers、可重试副作用、对账任务 | `src/workers/index.ts` | `3001` | 启用 |
-| API | 可选独立 Hono HTTP 服务，用于未来外部 REST API 或隔离 webhook 入口 | `src/api/index.ts` | `3002` | 禁用 |
-| Combined | 根据 `SERVICE_MODE` 在一个 Node 进程中启动选定 runtime | `src/server/standalone.ts` | 多端口 | Web + Worker |
+| 服务     | 职责                                                                        | 入口                                         | 常见端口 | 默认         |
+| -------- | --------------------------------------------------------------------------- | -------------------------------------------- | -------- | ------------ |
+| Web      | Next.js App Router、页面、tRPC、Next Route Handlers、认证、当前生产 webhook | Next production server 或 `src/web/start.ts` | `3000`   | 启用         |
+| Worker   | BullMQ processors、schedulers、可重试副作用、对账任务                       | `src/workers/index.ts`                       | `3001`   | 启用         |
+| API      | 可选独立 Hono HTTP 服务，用于未来外部 REST API 或隔离 webhook 入口          | `src/api/index.ts`                           | `3002`   | 禁用         |
+| Combined | 根据 `SERVICE_MODE` 在一个 Node 进程中启动选定 runtime                      | `src/server/standalone.ts`                   | 多端口   | Web + Worker |
 
 当前 Hono API route 有意保持极少：
 
@@ -68,7 +68,7 @@ Web 承接用户流量、tRPC、认证、AI Chat HTTP 和当前生产 webhook。
 1. 在 `src/api/routes/*` 下新增真实 Hono route，并从 `src/api/app.ts` 挂载。
 2. 独立 API 部署设置 `SERVICE_MODE=api`，组合模式可使用 `SERVICE_MODE=all`、`web,api` 或 `web,api,worker`。
 3. 在 Docker/Kubernetes 暴露 `3002`，使用 `/health` 做 liveness、`/ready` 做 readiness。
-4. Velobase Cloud workflow 部署时，同步修改当前启用的 workflow：拆分服务使用 `.github/workflows/deploy-velobase-multi.yml`，增加 `mode: "api"`、`port: 3002`、`health: "/health"` 的 API service，并确保未使用的部署 workflow 不再同时响应 `push`。
+4. Velobase Cloud workflow 部署时，同步修改 `.github/workflows/deploy-velobase.yml`：增加 `mode: "api"`、`port: 3002`、`health: "/health"` 的 API service，并只保留这个 workflow 监听 `main` 分支的 `push`。
 5. 除非主域名确实要路由到 API，否则 `exposed_service` 仍保持为 `web`。
 
 ## 代码边界规则

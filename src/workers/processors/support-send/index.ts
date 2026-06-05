@@ -1,3 +1,5 @@
 export { processSupportSendJob } from "./processor";
-export { registerSupportSendScheduler } from "./scheduler";
-
+export {
+  registerSupportSendScheduler,
+  supportSendScheduler,
+} from "./scheduler";

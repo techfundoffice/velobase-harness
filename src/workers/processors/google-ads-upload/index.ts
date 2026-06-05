@@ -1,3 +1,5 @@
 export { processGoogleAdsUploadJob } from "./processor";
-export { registerGoogleAdsUploadScheduler } from "./scheduler";
-
+export {
+  googleAdsUploadScheduler,
+  registerGoogleAdsUploadScheduler,
+} from "./scheduler";

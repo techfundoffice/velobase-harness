@@ -4,12 +4,12 @@ Velobase Harness is designed around three runtime boundaries, but the default de
 
 ## Service Types
 
-| Service | Responsibility | Entry | Typical Port | Default |
-| --- | --- | --- | --- | --- |
-| Web | Next.js App Router, pages, tRPC, Next Route Handlers, auth, current production webhooks | Next production server or `src/web/start.ts` | `3000` | On |
-| Worker | BullMQ processors, schedulers, retryable side effects, reconciliation jobs | `src/workers/index.ts` | `3001` | On |
-| API | Optional standalone Hono HTTP service for future external REST APIs or isolated webhook ingress | `src/api/index.ts` | `3002` | Off |
-| Combined | One Node process that starts the selected runtimes from `SERVICE_MODE` | `src/server/standalone.ts` | multiple | Web + Worker |
+| Service  | Responsibility                                                                                  | Entry                                        | Typical Port | Default      |
+| -------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------- | ------------ | ------------ |
+| Web      | Next.js App Router, pages, tRPC, Next Route Handlers, auth, current production webhooks         | Next production server or `src/web/start.ts` | `3000`       | On           |
+| Worker   | BullMQ processors, schedulers, retryable side effects, reconciliation jobs                      | `src/workers/index.ts`                       | `3001`       | On           |
+| API      | Optional standalone Hono HTTP service for future external REST APIs or isolated webhook ingress | `src/api/index.ts`                           | `3002`       | Off          |
+| Combined | One Node process that starts the selected runtimes from `SERVICE_MODE`                          | `src/server/standalone.ts`                   | multiple     | Web + Worker |
 
 Current Hono API routes are intentionally minimal:
 
@@ -68,7 +68,7 @@ To re-enable API service:
 1. Add real Hono routes under `src/api/routes/*` and mount them from `src/api/app.ts`.
 2. Set `SERVICE_MODE=api` for a dedicated API deployment, or use `SERVICE_MODE=all`, `web,api`, or `web,api,worker` for combined modes.
 3. Expose port `3002` in Docker/Kubernetes and use `/health` for liveness and `/ready` for readiness.
-4. For Velobase Cloud workflow deploys, update the active workflow: use `.github/workflows/deploy-velobase-multi.yml` for split services, add an API service entry with `mode: "api"`, `port: 3002`, and `health: "/health"`, and ensure the inactive deployment workflow does not also run on `push`.
+4. For Velobase Cloud workflow deploys, update `.github/workflows/deploy-velobase.yml`: add an API service entry with `mode: "api"`, `port: 3002`, and `health: "/health"`, and keep only this workflow attached to `push` on `main`.
 5. Keep `exposed_service` as `web` unless the primary domain should route to the API service.
 
 ## Code Boundary Rules

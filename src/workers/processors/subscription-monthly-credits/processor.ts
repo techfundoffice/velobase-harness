@@ -7,12 +7,12 @@ import type { Job } from "bullmq";
 import { createLogger } from "@/lib/logger";
 import { db } from "@/server/db";
 import { grant } from "@/server/billing/services/grant";
-import type { SubscriptionMonthlyCreditsJobData } from "../../queues";
+import type { SubscriptionMonthlyCreditsJobData } from "../../queues/subscription-monthly-credits.queue";
 
 const logger = createLogger("subscription-monthly-credits");
 
 export async function processSubscriptionMonthlyCreditsJob(
-  job: Job<SubscriptionMonthlyCreditsJobData>
+  job: Job<SubscriptionMonthlyCreditsJobData>,
 ): Promise<void> {
   if (job.data.type === "scheduled-scan") {
     await processMonthlyCredits();
@@ -47,7 +47,7 @@ async function processMonthlyCredits(): Promise<void> {
 
   logger.info(
     { count: cycles.length },
-    "Found eligible subscription cycles for monthly credits"
+    "Found eligible subscription cycles for monthly credits",
   );
 
   for (const cycle of cycles) {
@@ -56,7 +56,7 @@ async function processMonthlyCredits(): Promise<void> {
     } catch (error) {
       logger.error(
         { cycleId: cycle.id, error },
-        "Failed to process monthly credits for cycle"
+        "Failed to process monthly credits for cycle",
       );
     }
   }
@@ -120,7 +120,7 @@ async function processSingleCycle(cycleId: string): Promise<void> {
   if (nextAnchor > cycle.expiresAt) {
     logger.info(
       { cycleId: cycle.id, nextAnchor, expiresAt: cycle.expiresAt },
-      "Next credit grant anchor is beyond cycle expiration, skipping"
+      "Next credit grant anchor is beyond cycle expiration, skipping",
     );
     return;
   }
@@ -143,7 +143,7 @@ async function processSingleCycle(cycleId: string): Promise<void> {
       nextAnchor,
       outerBizId,
     },
-    "Granting monthly subscription credits"
+    "Granting monthly subscription credits",
   );
 
   // grant 自身具备基于 outerBizId 的幂等性；这里不再额外查询 BillingAccount
@@ -164,5 +164,3 @@ async function processSingleCycle(cycleId: string): Promise<void> {
     data: { lastCreditGrantAnchor: nextAnchor },
   });
 }
-
-

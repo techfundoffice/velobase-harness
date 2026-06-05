@@ -10,11 +10,14 @@ They are different from:
 
 ## Feature List
 
-| Feature | Purpose | Docs |
-| --- | --- | --- |
-| Daily Bonus | Grant daily credits to logged-in users | [daily-bonus](./daily-bonus/README.md) |
-| Anti-Abuse Guard | Detect signup abuse and reclaim credits | [anti-abuse](./anti-abuse/README.md) |
-| CDN Adapters | Normalize request context across CDN/proxy environments | [cdn-adapters](./cdn-adapters/README.md) |
+| Feature            | Purpose                                                   | Docs                                                 |
+| ------------------ | --------------------------------------------------------- | ---------------------------------------------------- |
+| Daily Bonus        | Grant daily credits to logged-in users                    | [daily-bonus](./daily-bonus/README.md)               |
+| Anti-Abuse Guard   | Detect signup abuse and reclaim credits                   | [anti-abuse](./anti-abuse/README.md)                 |
+| CDN Adapters       | Normalize request context across CDN/proxy environments   | [cdn-adapters](./cdn-adapters/README.md)             |
+| Conversion Alert   | Generate conversion reports and deliver them through Lark | [conversion-alert](./conversion-alert/README.md)     |
+| Support Automation | Process support email with AI and approval workflows      | [support-automation](./support-automation/README.md) |
+| Touch Lifecycle    | Schedule and deliver lifecycle touch messages             | [touch](./touch/README.md)                           |
 
 ## Rules
 

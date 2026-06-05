@@ -9,7 +9,7 @@ import { createLogger } from "@/lib/logger";
 import { redis } from "@/server/redis";
 import { db } from "@/server/db";
 import { env } from "@/env";
-import type { GoogleAdsUploadJobData } from "../../queues";
+import type { GoogleAdsUploadJobData } from "../../queues/google-ads-upload.queue";
 import { getGoogleAdsCustomer } from "@/server/ads/google-ads/client";
 import {
   GOOGLE_ADS_OFFLINE_PENDING_KEY,
@@ -66,7 +66,10 @@ async function zpopminBatch(key: string, count: number): Promise<string[]> {
 /**
  * 把失败的 paymentIds 放回 ZSET（用当前时间作为 score，排到队尾）
  */
-async function pushBackToQueue(key: string, paymentIds: string[]): Promise<void> {
+async function pushBackToQueue(
+  key: string,
+  paymentIds: string[],
+): Promise<void> {
   if (paymentIds.length === 0) return;
   const now = Date.now();
   const args: (string | number)[] = [];
@@ -80,7 +83,11 @@ async function pushBackToQueue(key: string, paymentIds: string[]): Promise<void>
 // Offline Purchase Batch Upload
 // ============================================================
 
-async function flushOfflinePurchases(): Promise<{ processed: number; uploaded: number; failed: number }> {
+async function flushOfflinePurchases(): Promise<{
+  processed: number;
+  uploaded: number;
+  failed: number;
+}> {
   if (!env.GOOGLE_ADS_CUSTOMER_ID || !env.GOOGLE_ADS_CONVERSION_ACTION_ID) {
     return { processed: 0, uploaded: 0, failed: 0 };
   }
@@ -91,7 +98,10 @@ async function flushOfflinePurchases(): Promise<{ processed: number; uploaded: n
   }
 
   // 1. 从 Redis 取最多 BATCH_SIZE 个 paymentId
-  const paymentIds = await zpopminBatch(GOOGLE_ADS_OFFLINE_PENDING_KEY, BATCH_SIZE);
+  const paymentIds = await zpopminBatch(
+    GOOGLE_ADS_OFFLINE_PENDING_KEY,
+    BATCH_SIZE,
+  );
   if (paymentIds.length === 0) {
     return { processed: 0, uploaded: 0, failed: 0 };
   }
@@ -143,7 +153,9 @@ async function flushOfflinePurchases(): Promise<{ processed: number; uploaded: n
     // 幂等检查：已上传
     const extra = payment.extra as Record<string, unknown> | null;
     const googleAds = extra?.googleAds as Record<string, unknown> | undefined;
-    const offlinePurchase = googleAds?.offlinePurchase as Record<string, unknown> | undefined;
+    const offlinePurchase = googleAds?.offlinePurchase as
+      | Record<string, unknown>
+      | undefined;
     if (offlinePurchase?.uploadedAt) {
       skippedIds.push(payment.id);
       continue;
@@ -182,12 +194,17 @@ async function flushOfflinePurchases(): Promise<{ processed: number; uploaded: n
   const notFoundIds = paymentIds.filter((id) => !foundIds.has(id));
 
   if (validItems.length === 0) {
-    logger.info({ skipped: skippedIds.length, notFound: notFoundIds.length }, "No valid conversions to upload");
+    logger.info(
+      { skipped: skippedIds.length, notFound: notFoundIds.length },
+      "No valid conversions to upload",
+    );
     return { processed: paymentIds.length, uploaded: 0, failed: 0 };
   }
 
   // 4. 批量上传（一次请求），遇到 client closed 自动重试一次
-  const doUpload = async (retryCustomer: NonNullable<ReturnType<typeof getGoogleAdsCustomer>>) => {
+  const doUpload = async (
+    retryCustomer: NonNullable<ReturnType<typeof getGoogleAdsCustomer>>,
+  ) => {
     const request = services.UploadClickConversionsRequest.create({
       customer_id: env.GOOGLE_ADS_CUSTOMER_ID,
       conversions: validItems.map((item) => item.conversion),
@@ -204,7 +221,9 @@ async function flushOfflinePurchases(): Promise<{ processed: number; uploaded: n
     } catch (firstErr) {
       if (!isClientClosedError(firstErr)) throw firstErr;
       // gRPC client 被 TTLCache dispose 关闭了，重新获取 customer 重试一次
-      logger.warn("Offline purchase upload hit closed client, retrying with fresh customer");
+      logger.warn(
+        "Offline purchase upload hit closed client, retrying with fresh customer",
+      );
       const freshCustomer = getGoogleAdsCustomer();
       if (!freshCustomer) throw firstErr;
       result = await doUpload(freshCustomer);
@@ -217,10 +236,13 @@ async function flushOfflinePurchases(): Promise<{ processed: number; uploaded: n
 
     if (result.partial_failure_error) {
       const msg =
-        (result.partial_failure_error as unknown as { message?: string }).message ??
-        JSON.stringify(result.partial_failure_error);
+        (result.partial_failure_error as unknown as { message?: string })
+          .message ?? JSON.stringify(result.partial_failure_error);
 
-      logger.warn({ error: msg, count: validItems.length }, "Offline purchase batch upload partial failure");
+      logger.warn(
+        { error: msg, count: validItems.length },
+        "Offline purchase batch upload partial failure",
+      );
 
       if (isRateLimitError(msg)) {
         for (const item of validItems) {
@@ -242,7 +264,9 @@ async function flushOfflinePurchases(): Promise<{ processed: number; uploaded: n
 
     // 批量更新成功的（使用已查到的数据，串行更新避免连接池耗尽）
     if (successIds.length > 0) {
-      const successPayments = validItems.filter((item) => successIds.includes(item.payment.id));
+      const successPayments = validItems.filter((item) =>
+        successIds.includes(item.payment.id),
+      );
       for (const { payment } of successPayments) {
         const extra = (payment.extra as Record<string, unknown>) ?? {};
         const googleAds = (extra.googleAds as Record<string, unknown>) ?? {};
@@ -265,14 +289,26 @@ async function flushOfflinePurchases(): Promise<{ processed: number; uploaded: n
     await pushBackToQueue(GOOGLE_ADS_OFFLINE_PENDING_KEY, failedIds);
 
     logger.info(
-      { total: paymentIds.length, valid: validItems.length, uploaded: successIds.length, failed: failedIds.length },
-      "Offline purchase batch flush completed"
+      {
+        total: paymentIds.length,
+        valid: validItems.length,
+        uploaded: successIds.length,
+        failed: failedIds.length,
+      },
+      "Offline purchase batch flush completed",
     );
 
-    return { processed: paymentIds.length, uploaded: successIds.length, failed: failedIds.length };
+    return {
+      processed: paymentIds.length,
+      uploaded: successIds.length,
+      failed: failedIds.length,
+    };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    logger.error({ error: msg, count: validItems.length }, "Offline purchase batch upload failed");
+    logger.error(
+      { error: msg, count: validItems.length },
+      "Offline purchase batch upload failed",
+    );
 
     // 全部放回队列重试
     const allIds = validItems.map((item) => item.payment.id);
@@ -283,7 +319,11 @@ async function flushOfflinePurchases(): Promise<{ processed: number; uploaded: n
       throw err;
     }
 
-    return { processed: paymentIds.length, uploaded: 0, failed: validItems.length };
+    return {
+      processed: paymentIds.length,
+      uploaded: 0,
+      failed: validItems.length,
+    };
   }
 }
 
@@ -291,7 +331,11 @@ async function flushOfflinePurchases(): Promise<{ processed: number; uploaded: n
 // Web Enhancement Batch Upload
 // ============================================================
 
-async function flushWebEnhancements(): Promise<{ processed: number; uploaded: number; failed: number }> {
+async function flushWebEnhancements(): Promise<{
+  processed: number;
+  uploaded: number;
+  failed: number;
+}> {
   if (!env.GOOGLE_ADS_CUSTOMER_ID || !env.GOOGLE_ADS_WEB_CONVERSION_ACTION_ID) {
     return { processed: 0, uploaded: 0, failed: 0 };
   }
@@ -336,10 +380,15 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
 
   const { createHash } = await import("crypto");
   function sha256(value: string): string {
-    return createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
+    return createHash("sha256")
+      .update(value.trim().toLowerCase())
+      .digest("hex");
   }
 
-  function splitName(fullName: string | null): { firstName: string; lastName: string } {
+  function splitName(fullName: string | null): {
+    firstName: string;
+    lastName: string;
+  } {
     if (!fullName) return { firstName: "", lastName: "" };
     const parts = fullName.trim().split(/\s+/);
     if (parts.length === 1) return { firstName: parts[0] ?? "", lastName: "" };
@@ -352,7 +401,10 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
   };
 
   const { enums } = await import("google-ads-api");
-  type IUserIdentifier = { hashed_email?: string; address_info?: { hashed_first_name?: string; hashed_last_name?: string } };
+  type IUserIdentifier = {
+    hashed_email?: string;
+    address_info?: { hashed_first_name?: string; hashed_last_name?: string };
+  };
 
   const validItems: PaymentWithAdjustment[] = [];
   const skippedIds: string[] = [];
@@ -371,7 +423,9 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
     // 幂等检查
     const extra = payment.extra as Record<string, unknown> | null;
     const googleAds = extra?.googleAds as Record<string, unknown> | undefined;
-    const webEnhancement = googleAds?.webEnhancement as Record<string, unknown> | undefined;
+    const webEnhancement = googleAds?.webEnhancement as
+      | Record<string, unknown>
+      | undefined;
     if (webEnhancement?.uploadedAt) {
       skippedIds.push(payment.id);
       continue;
@@ -379,7 +433,8 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
 
     // web enhancement 只对 gclid 生效
     const provider = (payment.user?.adClickProvider ?? "").toLowerCase();
-    const gclid = provider === "gclid" ? payment.user?.adClickId ?? null : null;
+    const gclid =
+      provider === "gclid" ? (payment.user?.adClickId ?? null) : null;
     if (!gclid) {
       skippedIds.push(payment.id);
       continue;
@@ -392,7 +447,9 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
     }
 
     const { firstName, lastName } = splitName(payment.user?.name ?? null);
-    const userIdentifiers: IUserIdentifier[] = [{ hashed_email: sha256(email) }];
+    const userIdentifiers: IUserIdentifier[] = [
+      { hashed_email: sha256(email) },
+    ];
     if (firstName || lastName) {
       userIdentifiers.push({
         address_info: {
@@ -422,19 +479,26 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
   const notFoundIds = paymentIds.filter((id) => !foundIds.has(id));
 
   if (validItems.length === 0) {
-    logger.info({ skipped: skippedIds.length, notFound: notFoundIds.length }, "No valid web enhancements to upload");
+    logger.info(
+      { skipped: skippedIds.length, notFound: notFoundIds.length },
+      "No valid web enhancements to upload",
+    );
     return { processed: paymentIds.length, uploaded: 0, failed: 0 };
   }
 
   // 4. 批量上传，遇到 client closed 自动重试一次
-  const doUpload = async (retryCustomer: NonNullable<ReturnType<typeof getGoogleAdsCustomer>>) => {
+  const doUpload = async (
+    retryCustomer: NonNullable<ReturnType<typeof getGoogleAdsCustomer>>,
+  ) => {
     const request = services.UploadConversionAdjustmentsRequest.create({
       customer_id: env.GOOGLE_ADS_CUSTOMER_ID,
       conversion_adjustments: validItems.map((item) => item.adjustment),
       partial_failure: true,
       validate_only: false,
     });
-    return retryCustomer.conversionAdjustmentUploads.uploadConversionAdjustments(request);
+    return retryCustomer.conversionAdjustmentUploads.uploadConversionAdjustments(
+      request,
+    );
   };
 
   try {
@@ -443,7 +507,9 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
       result = await doUpload(customer);
     } catch (firstErr) {
       if (!isClientClosedError(firstErr)) throw firstErr;
-      logger.warn("Web enhancement upload hit closed client, retrying with fresh customer");
+      logger.warn(
+        "Web enhancement upload hit closed client, retrying with fresh customer",
+      );
       const freshCustomer = getGoogleAdsCustomer();
       if (!freshCustomer) throw firstErr;
       result = await doUpload(freshCustomer);
@@ -455,10 +521,13 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
 
     if (result.partial_failure_error) {
       const msg =
-        (result.partial_failure_error as unknown as { message?: string }).message ??
-        JSON.stringify(result.partial_failure_error);
+        (result.partial_failure_error as unknown as { message?: string })
+          .message ?? JSON.stringify(result.partial_failure_error);
 
-      logger.warn({ error: msg, count: validItems.length }, "Web enhancement batch upload partial failure");
+      logger.warn(
+        { error: msg, count: validItems.length },
+        "Web enhancement batch upload partial failure",
+      );
 
       if (isRateLimitError(msg)) {
         for (const item of validItems) {
@@ -476,7 +545,9 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
     }
 
     if (successIds.length > 0) {
-      const successPayments = validItems.filter((item) => successIds.includes(item.payment.id));
+      const successPayments = validItems.filter((item) =>
+        successIds.includes(item.payment.id),
+      );
       for (const { payment } of successPayments) {
         const extra = (payment.extra as Record<string, unknown>) ?? {};
         const googleAds = (extra.googleAds as Record<string, unknown>) ?? {};
@@ -498,14 +569,26 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
     await pushBackToQueue(GOOGLE_ADS_WEB_PENDING_KEY, failedIds);
 
     logger.info(
-      { total: paymentIds.length, valid: validItems.length, uploaded: successIds.length, failed: failedIds.length },
-      "Web enhancement batch flush completed"
+      {
+        total: paymentIds.length,
+        valid: validItems.length,
+        uploaded: successIds.length,
+        failed: failedIds.length,
+      },
+      "Web enhancement batch flush completed",
     );
 
-    return { processed: paymentIds.length, uploaded: successIds.length, failed: failedIds.length };
+    return {
+      processed: paymentIds.length,
+      uploaded: successIds.length,
+      failed: failedIds.length,
+    };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    logger.error({ error: msg, count: validItems.length }, "Web enhancement batch upload failed");
+    logger.error(
+      { error: msg, count: validItems.length },
+      "Web enhancement batch upload failed",
+    );
 
     const allIds = validItems.map((item) => item.payment.id);
     await pushBackToQueue(GOOGLE_ADS_WEB_PENDING_KEY, allIds);
@@ -514,7 +597,11 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
       throw err;
     }
 
-    return { processed: paymentIds.length, uploaded: 0, failed: validItems.length };
+    return {
+      processed: paymentIds.length,
+      uploaded: 0,
+      failed: validItems.length,
+    };
   }
 }
 
@@ -522,7 +609,9 @@ async function flushWebEnhancements(): Promise<{ processed: number; uploaded: nu
 // Main Processor
 // ============================================================
 
-export async function processGoogleAdsUploadJob(job: Job<GoogleAdsUploadJobData>): Promise<void> {
+export async function processGoogleAdsUploadJob(
+  job: Job<GoogleAdsUploadJobData>,
+): Promise<void> {
   if (job.data.type !== "flush") {
     logger.warn({ type: job.data.type }, "Unknown job type, skipping");
     return;
@@ -536,6 +625,6 @@ export async function processGoogleAdsUploadJob(job: Job<GoogleAdsUploadJobData>
       offline: offlineResult,
       web: webResult,
     },
-    "Google Ads batch flush completed"
+    "Google Ads batch flush completed",
   );
 }

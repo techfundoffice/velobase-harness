@@ -1,16 +1,19 @@
 /**
  * Support Sync Processor
- * 
+ *
  * 从 IMAP 拉取新邮件，创建/更新工单，入 process 队列。
  */
 
 import type { Job } from "bullmq";
 import { createLogger } from "@/lib/logger";
 import { db } from "@/server/db";
-import type { SupportSyncJobData } from "../../queues";
-import { supportProcessQueue } from "../../queues";
+import type { SupportSyncJobData } from "../../queues/support-sync.queue";
+import { supportProcessQueue } from "../../queues/support-process.queue";
 import { fetchNewEmails, getMaxUid } from "@/server/support/providers/imap";
-import { findOrCreateTicket, isEmailProcessed } from "@/server/support/services";
+import {
+  findOrCreateTicket,
+  isEmailProcessed,
+} from "@/server/support/services";
 
 const logger = createLogger("support-sync");
 
@@ -47,7 +50,7 @@ async function updateCursor(lastUid: number): Promise<void> {
 }
 
 export async function processSupportSyncJob(
-  job: Job<SupportSyncJobData>
+  job: Job<SupportSyncJobData>,
 ): Promise<void> {
   if (job.data.type !== "scheduled-scan") return;
 
@@ -75,7 +78,10 @@ export async function processSupportSyncJob(
       try {
         // 检查是否已处理过
         if (await isEmailProcessed(email.messageId)) {
-          logger.debug({ messageId: email.messageId }, "Email already processed, skipping");
+          logger.debug(
+            { messageId: email.messageId },
+            "Email already processed, skipping",
+          );
           maxUid = Math.max(maxUid, email.uid);
           continue;
         }
@@ -92,18 +98,25 @@ export async function processSupportSyncJob(
           },
           {
             jobId: `process-${ticket.id}-${Date.now()}`,
-          }
+          },
         );
 
         processed++;
         maxUid = Math.max(maxUid, email.uid);
 
         logger.info(
-          { ticketId: ticket.id, from: email.from.address, subject: email.subject },
-          "Email processed, ticket queued"
+          {
+            ticketId: ticket.id,
+            from: email.from.address,
+            subject: email.subject,
+          },
+          "Email processed, ticket queued",
         );
       } catch (err) {
-        logger.error({ err, messageId: email.messageId }, "Failed to process email");
+        logger.error(
+          { err, messageId: email.messageId },
+          "Failed to process email",
+        );
         // 继续处理下一封
       }
     }
@@ -113,10 +126,12 @@ export async function processSupportSyncJob(
       await updateCursor(maxUid);
     }
 
-    logger.info({ processed, total: emails.length, newLastUid: maxUid }, "Email sync complete");
+    logger.info(
+      { processed, total: emails.length, newLastUid: maxUid },
+      "Email sync complete",
+    );
   } catch (err) {
     logger.error({ err }, "Email sync failed");
     throw err;
   }
 }
-

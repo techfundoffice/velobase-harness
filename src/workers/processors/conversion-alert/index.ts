@@ -1,3 +1,5 @@
 export { processConversionAlert } from "./processor";
-export { registerConversionAlertScheduler } from "./scheduler";
-
+export {
+  conversionAlertScheduler,
+  registerConversionAlertScheduler,
+} from "./scheduler";

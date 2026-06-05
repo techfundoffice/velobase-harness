@@ -7,24 +7,25 @@
  */
 import { subscriptionCompensationQueue } from "../../queues/subscription-compensation.queue";
 import { createLogger } from "@/lib/logger";
+import { defineRepeatableScheduler } from "@/workers/scheduler";
 
 const logger = createLogger("subscription-compensation-scheduler");
 
+export const subscriptionCompensationScheduler = defineRepeatableScheduler({
+  id: "payment.subscription-compensation",
+  queue: subscriptionCompensationQueue,
+  jobName: "scheduled-scan",
+  data: { type: "scheduled-scan" as const },
+  options: {
+    repeat: {
+      pattern: "0 * * * *", // Cron: 每小时 00 分
+    },
+    jobId: "subscription-compensation-scan", // 固定 ID 防止重复
+  },
+  logger,
+  readyMessage: "✅ Subscription compensation scheduler registered: 0 * * * *",
+});
+
 export async function registerSubscriptionCompensationScheduler(): Promise<void> {
-  // 每小时运行一次，兜底 webhook 失败场景
-  await subscriptionCompensationQueue.add(
-    "scheduled-scan",
-    { type: "scheduled-scan" },
-    {
-      repeat: {
-        pattern: "0 * * * *", // Cron: 每小时 00 分
-      },
-      jobId: "subscription-compensation-scan", // 固定 ID 防止重复
-    }
-  );
-
-  logger.info("✅ Subscription compensation scheduler registered: 0 * * * *");
+  await subscriptionCompensationScheduler.register();
 }
-
-
-

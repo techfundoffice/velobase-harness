@@ -21,6 +21,15 @@ Common environment variables:
 - `SENDGRID_API_KEY`
 - provider-specific webhook or domain settings when enabled.
 
+Support Automation uses a dedicated mailbox instead of the generic outbound
+provider chain:
+
+- `SUPPORT_EMAIL_ADDRESS`
+- `SUPPORT_EMAIL_PASSWORD`
+- `SUPPORT_IMAP_HOST`
+- `SUPPORT_SMTP_HOST`
+- optional `SUPPORT_IMAP_PORT`, `SUPPORT_SMTP_PORT`, `SUPPORT_EMAIL_FROM`
+
 Update `.env.example` and `src/env.js` for new email settings.
 
 ## Rules

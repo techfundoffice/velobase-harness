@@ -25,12 +25,14 @@ COPY --chown=worker:nodejs src/workers ./src/workers
 COPY --chown=worker:nodejs src/lib ./src/lib
 COPY --chown=worker:nodejs src/server ./src/server
 COPY --chown=worker:nodejs src/analytics ./src/analytics
+COPY --chown=worker:nodejs src/config ./src/config
 COPY --chown=worker:nodejs src/env.js ./src/env.js
 COPY --chown=worker:nodejs tsconfig.json ./
-COPY --chown=worker:nodejs .env ./
 COPY --chown=worker:nodejs public/data/disposable-domains.txt ./public/data/disposable-domains.txt
 
 USER worker
+
+EXPOSE 3001
 
 # Start worker
 CMD ["node", "--import", "tsx", "src/workers/index.ts"]

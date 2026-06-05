@@ -10,14 +10,22 @@
  * route 文件只负责 HTTP 解析 + 分发，零业务逻辑、零顶层副作用。
  */
 
-import { type NextRequest, NextResponse } from 'next/server';
-import { createLogger } from '@/lib/logger';
+import { MODULES } from "@/config/modules";
+import { createLogger } from "@/lib/logger";
+import { type NextRequest, NextResponse } from "next/server";
 
-const logger = createLogger('lark-webhook');
+const logger = createLogger("lark-webhook");
 
 export async function POST(req: NextRequest) {
+  if (!MODULES.integrations.messaging.lark.enabled) {
+    return NextResponse.json(
+      { error: "Lark integration is disabled" },
+      { status: 404 },
+    );
+  }
+
   try {
-    const { handleEventRequest } = await import('@/lib/lark/event-handler');
+    const { handleEventRequest } = await import("@/lib/lark/event-handler");
     const body: unknown = await req.json();
     const headers: Record<string, string> = {};
     req.headers.forEach((value, key) => {
@@ -26,7 +34,7 @@ export async function POST(req: NextRequest) {
     const result = await handleEventRequest(body, headers);
     return NextResponse.json(result);
   } catch (error) {
-    logger.error({ error }, 'Failed to handle Lark webhook');
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+    logger.error({ error }, "Failed to handle Lark webhook");
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }

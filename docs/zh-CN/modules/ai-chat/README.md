@@ -32,7 +32,7 @@ ChatPanel
   -> 流式返回模型响应并持久化交互记录
 ```
 
-模块由 `MODULES.features.aiChat` 控制启用。默认需要至少配置一个支持的模型 provider key，例如 `ANTHROPIC_API_KEY`、`OPENROUTER_API_KEY` 或 `OPENAI_API_KEY`；也可以通过 `DISABLE_AI_CHAT` 显式关闭。
+模块由 `MODULES.features.aiChat` 控制启用。`AI_CHAT_MODE=auto` 要求至少配置一个支持的模型 provider key，例如 `ANTHROPIC_API_KEY`、`OPENROUTER_API_KEY` 或 `OPENAI_API_KEY`。使用 `AI_CHAT_MODE=off` 可关闭该模块，使用 `AI_CHAT_MODE=on` 可在未配置 provider key 时快速失败。
 
 ## 数据模型
 

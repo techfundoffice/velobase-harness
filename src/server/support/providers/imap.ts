@@ -9,6 +9,7 @@ import Imap from "imap";
 import { simpleParser } from "mailparser";
 import type { ParsedMail } from "mailparser";
 import { Readable } from "stream";
+import { env } from "@/env";
 import { logger } from "@/lib/logger";
 import type { ParsedEmail } from "../types";
 import { SUPPORT_EMAIL } from "@/config/brand";
@@ -32,10 +33,10 @@ interface ImapBox {
 
 // 飞书 IMAP 配置
 const IMAP_CONFIG = {
-  user: process.env.SUPPORT_EMAIL_ADDRESS ?? SUPPORT_EMAIL,
-  password: process.env.SUPPORT_EMAIL_PASSWORD ?? "",
-  host: process.env.SUPPORT_IMAP_HOST ?? "imap.larksuite.com",
-  port: parseInt(process.env.SUPPORT_IMAP_PORT ?? "993", 10),
+  user: env.SUPPORT_EMAIL_ADDRESS ?? SUPPORT_EMAIL,
+  password: env.SUPPORT_EMAIL_PASSWORD ?? "",
+  host: env.SUPPORT_IMAP_HOST ?? "imap.larksuite.com",
+  port: env.SUPPORT_IMAP_PORT,
   tls: true,
   tlsOptions: { rejectUnauthorized: false },
 };

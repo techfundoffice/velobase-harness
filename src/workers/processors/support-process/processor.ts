@@ -1,14 +1,14 @@
 /**
  * Support Process Processor
- * 
+ *
  * AI Agent 处理工单：使用 Tool Calling 自主查询和决策。
  */
 
 import type { Job } from "bullmq";
 import { createLogger } from "@/lib/logger";
 import { db } from "@/server/db";
-import type { SupportProcessJobData } from "../../queues";
-import { supportSendQueue } from "../../queues";
+import type { SupportProcessJobData } from "../../queues/support-process.queue";
+import { supportSendQueue } from "../../queues/support-send.queue";
 import { runSupportAgent } from "@/server/support/ai";
 import {
   getOrCreateConversation,
@@ -29,7 +29,7 @@ import {
 const logger = createLogger("support-process");
 
 export async function processSupportProcessJob(
-  job: Job<SupportProcessJobData>
+  job: Job<SupportProcessJobData>,
 ): Promise<void> {
   if (job.data.type !== "process-ticket") return;
 
@@ -56,7 +56,10 @@ export async function processSupportProcessJob(
     }
 
     if (ticket.status !== "OPEN") {
-      logger.info({ ticketId, status: ticket.status }, "Ticket not in OPEN status, skipping");
+      logger.info(
+        { ticketId, status: ticket.status },
+        "Ticket not in OPEN status, skipping",
+      );
       return;
     }
 
@@ -75,7 +78,7 @@ export async function processSupportProcessJob(
         ticketId,
         ticket.contact,
         subject,
-        messageContent
+        messageContent,
         // category 是可选的，Agent 会自行分类
       );
     }
@@ -91,14 +94,14 @@ export async function processSupportProcessJob(
       await saveUserMessage(
         conversationId,
         `Subject: ${subject}\n\n${messageContent}`,
-        { ticketId, email: ticket.contact }
+        { ticketId, email: ticket.contact },
       );
     }
 
     // 6. 获取用户上下文（简化版，Agent 会自己通过工具查询更多）
     const userContext = ticket.userId
-      ? { 
-          userId: ticket.userId, 
+      ? {
+          userId: ticket.userId,
           email: ticket.contact,
           createdAt: new Date(), // placeholder, Agent 会查询实际数据
         }
@@ -109,7 +112,7 @@ export async function processSupportProcessJob(
       subject,
       messageContent,
       userContext,
-      previousMessages.length > 0 ? previousMessages : undefined
+      previousMessages.length > 0 ? previousMessages : undefined,
     );
 
     // 8. 保存 Agent 步骤到 Conversation
@@ -117,7 +120,7 @@ export async function processSupportProcessJob(
       await saveAgentSteps(
         conversationId,
         agentResult.steps as Parameters<typeof saveAgentSteps>[1],
-        agentResult.reply
+        agentResult.reply,
       );
     }
 
@@ -128,7 +131,7 @@ export async function processSupportProcessJob(
         pendingApprovals: agentResult.pendingApprovals.length,
         replyLength: agentResult.reply.length,
       },
-      "Agent completed"
+      "Agent completed",
     );
 
     // 9. 检查是否需要审核
@@ -145,7 +148,7 @@ export async function processSupportProcessJob(
         agentResult.reply,
         0.5, // Agent 有待审批操作，置信度降低
         proposedActions,
-        `Agent proposes ${agentResult.pendingApprovals.length} action(s) requiring approval`
+        `Agent proposes ${agentResult.pendingApprovals.length} action(s) requiring approval`,
       );
 
       // 更新状态
@@ -178,7 +181,7 @@ export async function processSupportProcessJob(
 
       logger.info(
         { ticketId, pendingApprovals: agentResult.pendingApprovals.length },
-        "Ticket needs approval for actions"
+        "Ticket needs approval for actions",
       );
       return;
     }
@@ -195,7 +198,7 @@ export async function processSupportProcessJob(
       await sendStatusUpdate(
         ticketId,
         "error",
-        "⚠️ Agent 无法生成有效回复，请人工处理"
+        "⚠️ Agent 无法生成有效回复，请人工处理",
       );
 
       logger.warn({ ticketId }, "Agent generated empty/invalid reply");
@@ -203,7 +206,10 @@ export async function processSupportProcessJob(
     }
 
     // 11. 自动发送回复
-    const emailMeta = latestMessage.metadata as { messageId?: string; references?: string } | null;
+    const emailMeta = latestMessage.metadata as {
+      messageId?: string;
+      references?: string;
+    } | null;
 
     // 入发送队列
     await supportSendQueue.add(
@@ -220,7 +226,7 @@ export async function processSupportProcessJob(
       },
       {
         jobId: `send-${ticketId}-${Date.now()}`,
-      }
+      },
     );
 
     // 发送 Agent 处理过程卡片（展示完整的思考和工具调用）
@@ -234,7 +240,7 @@ export async function processSupportProcessJob(
 
     logger.info(
       { ticketId, executedTools: agentResult.executedTools.length },
-      "Ticket auto-processed by Agent"
+      "Ticket auto-processed by Agent",
     );
   } catch (err) {
     logger.error({ err, ticketId }, "Failed to process ticket");
@@ -244,7 +250,7 @@ export async function processSupportProcessJob(
       await sendStatusUpdate(
         ticketId,
         "error",
-        `❌ 处理失败: ${err instanceof Error ? err.message : String(err)}`
+        `❌ 处理失败: ${err instanceof Error ? err.message : String(err)}`,
       );
     } catch {
       // 忽略通知失败

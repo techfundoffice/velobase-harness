@@ -29,6 +29,26 @@ Common environment variables:
 
 Update `src/env.js`, `.env.example`, and provider registration when adding payment configuration.
 
+Module modes:
+
+- `STRIPE_MODE=auto|off|on` controls Stripe provider registration, webhook handling, and Stripe-owned workers.
+- `NOWPAYMENTS_MODE=auto|off|on` controls NowPayments provider registration, webhook handling, and NowPayments-owned workers.
+- `PAYMENT_RECONCILIATION_MODE=auto|off|on` controls payment reconciliation reports. `auto` requires at least one payment provider and Lark.
+
+## Workers
+
+Payment-owned workers are registered from `src/workers/integrations/payment.ts`.
+
+| Worker                      | Owner                                                  | Enablement                                                                          |
+| --------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `order-compensation`        | Stripe / NowPayments payment compensation              | At least one payment provider is enabled                                            |
+| `subscription-compensation` | Stripe subscription compensation                       | Stripe is enabled                                                                   |
+| `payment-reconciliation`    | Payment reconciliation with Lark notification delivery | Payment provider enabled and Lark enabled, unless `PAYMENT_RECONCILIATION_MODE=off` |
+
+`payment-reconciliation` is not a standalone Lark integration. Lark is only the delivery channel for the payment reconciliation feature.
+
+Payment workers are exposed as module `WorkerContribution` entries; `src/workers/start.ts` collects them from the module catalog.
+
 ## Webhooks And Idempotency
 
 - Verify webhook signatures before processing.

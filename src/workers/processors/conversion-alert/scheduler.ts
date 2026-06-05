@@ -5,21 +5,25 @@
  */
 import { conversionAlertQueue } from "../../queues/conversion-alert.queue";
 import { createLogger } from "@/lib/logger";
+import { defineRepeatableScheduler } from "@/workers/scheduler";
 
 const logger = createLogger("conversion-alert-scheduler");
 
+export const conversionAlertScheduler = defineRepeatableScheduler({
+  id: "conversion-alert.hourly",
+  queue: conversionAlertQueue,
+  jobName: "hourly-check",
+  data: { type: "hourly-check" as const },
+  options: {
+    repeat: {
+      pattern: "0 * * * *", // 每小时整点
+    },
+    jobId: "conversion-alert-hourly-check",
+  },
+  logger,
+  readyMessage: "✅ Conversion alert scheduler registered: every hour",
+});
+
 export async function registerConversionAlertScheduler(): Promise<void> {
-  await conversionAlertQueue.add(
-    "hourly-check",
-    { type: "hourly-check" },
-    {
-      repeat: {
-        pattern: "0 * * * *", // 每小时整点
-      },
-      jobId: "conversion-alert-hourly-check",
-    }
-  );
-
-  logger.info("✅ Conversion alert scheduler registered: every hour");
+  await conversionAlertScheduler.register();
 }
-

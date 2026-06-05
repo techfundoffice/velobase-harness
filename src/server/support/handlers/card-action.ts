@@ -3,6 +3,7 @@
  */
 
 import { createLogger } from "@/lib/logger";
+import { MODULES } from "@/config/modules";
 import type { CardActionEventData } from "@/lib/lark/event-handler";
 import type { LarkCard } from "@/lib/lark";
 import { approveDraft, rejectDraft } from "../services/approve-draft";
@@ -21,21 +22,36 @@ interface SupportCardActionValue {
  * 返回一个更新后的卡片来替换原卡片
  */
 export async function handleSupportCardAction(
-  data: CardActionEventData
+  data: CardActionEventData,
 ): Promise<LarkCard | undefined> {
+  if (!MODULES.features.supportAutomation.enabled) {
+    logger.warn(
+      "Ignoring support card action because support automation is disabled",
+    );
+    return undefined;
+  }
+
   const actionValue = data.action.value as unknown as SupportCardActionValue;
   const { action, ticketId } = actionValue;
   const operatorId = data.open_id;
 
-  logger.info({ ticketId, action, operatorId }, "Processing support card action");
+  logger.info(
+    { ticketId, action, operatorId },
+    "Processing support card action",
+  );
 
   try {
     if (action === "approve") {
       // 批准草稿
       const result = await approveDraft(ticketId, operatorId);
-      
+
       if (!result) {
-        return buildResultCard("error", ticketId, operatorId, "未找到待审核的草稿");
+        return buildResultCard(
+          "error",
+          ticketId,
+          operatorId,
+          "未找到待审核的草稿",
+        );
       }
 
       // 加入发送队列
@@ -50,7 +66,7 @@ export async function handleSupportCardAction(
           inReplyTo: result.inReplyTo,
           references: result.references,
         },
-        { attempts: 3, backoff: { type: "exponential", delay: 5000 } }
+        { attempts: 3, backoff: { type: "exponential", delay: 5000 } },
       );
 
       // 更新状态为 WAITING
@@ -60,20 +76,33 @@ export async function handleSupportCardAction(
     } else if (action === "reject") {
       // 拒绝草稿
       const success = await rejectDraft(ticketId, operatorId, "人工拒绝");
-      
+
       if (success) {
         // 更新状态为 OPEN，等待人工处理
         await updateTicketStatus({ ticketId, status: "OPEN" });
         return buildResultCard("rejected", ticketId, operatorId);
       } else {
-        return buildResultCard("error", ticketId, operatorId, "未找到待审核的草稿");
+        return buildResultCard(
+          "error",
+          ticketId,
+          operatorId,
+          "未找到待审核的草稿",
+        );
       }
     }
 
     return undefined;
   } catch (err) {
-    logger.error({ err, ticketId, action }, "Failed to process support card action");
-    return buildResultCard("error", ticketId, operatorId, "处理失败，请稍后重试");
+    logger.error(
+      { err, ticketId, action },
+      "Failed to process support card action",
+    );
+    return buildResultCard(
+      "error",
+      ticketId,
+      operatorId,
+      "处理失败，请稍后重试",
+    );
   }
 }
 
@@ -84,7 +113,7 @@ function buildResultCard(
   status: "approved" | "rejected" | "error",
   ticketId: string,
   operatorId: string,
-  errorMessage?: string
+  errorMessage?: string,
 ): LarkCard {
   const statusConfig = {
     approved: {
@@ -105,7 +134,8 @@ function buildResultCard(
   };
 
   const config = statusConfig[status];
-  const CALLBACK_BASE_URL = process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "https://example.com";
+  const CALLBACK_BASE_URL =
+    process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? "https://example.com";
 
   return {
     config: {

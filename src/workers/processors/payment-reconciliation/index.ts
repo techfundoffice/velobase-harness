@@ -1,4 +1,5 @@
 export { processPaymentReconciliation } from "./processor";
-export { registerPaymentReconciliationScheduler } from "./scheduler";
-
-
+export {
+  paymentReconciliationScheduler,
+  registerPaymentReconciliationScheduler,
+} from "./scheduler";

@@ -18,6 +18,23 @@ Common settings:
 
 Update `.env.example`, `src/env.js`, and module enablement when adding provider configuration.
 
+Module modes:
+
+- `GOOGLE_ADS_MODE=auto|off|on` controls Google Ads event handling and worker registration.
+- `auto` requires the Google Ads customer ID and developer token.
+
+## Workers
+
+Google Ads upload is owned by the Google Ads integration and is registered from `src/workers/integrations/google-ads.ts`.
+
+| Worker              | Purpose                                                                                 | Enablement                |
+| ------------------- | --------------------------------------------------------------------------------------- | ------------------------- |
+| `google-ads-upload` | Flush Redis pending buffers into Google Ads offline conversion and web enhancement APIs | Google Ads module enabled |
+
+The business event path does not enqueue BullMQ jobs directly. `payment:succeeded` writes payment IDs into Redis ZSET buffers through `src/server/ads/google-ads/queue.ts`; the worker runs every 5 minutes and uploads batches.
+
+The upload worker is exposed as a module `WorkerContribution`; `src/workers/start.ts` collects it from the module catalog.
+
 ## Rules
 
 - Payment/order flows emit domain events.

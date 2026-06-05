@@ -1,3 +1,4 @@
+import { MODULES } from "@/config/modules";
 import { initOrderProviders } from "@/server/order/services/init-providers";
 import {
   handlePaymentWebhook,
@@ -10,27 +11,38 @@ import { getStripeClient } from "@/server/order/providers/stripe";
 import { getStripeWebhookSecret } from "@/server/shared/env";
 
 export async function POST(req: Request) {
+  if (!MODULES.integrations.payment.stripe.enabled) {
+    return new Response(null, { status: 404 });
+  }
+
   // Ensure providers are registered before handling webhooks
   initOrderProviders();
 
   // Parse and verify Stripe event for logging (and to ensure we only 2xx real Stripe events)
   const rawBody = await req.clone().text();
   const signature = req.headers.get("stripe-signature");
-  
+
   let event: Stripe.Event | null = null;
   let logId: string | null = null;
 
   if (!signature) {
     // Not a valid Stripe webhook request
-    return new Response(JSON.stringify({ ok: false, error: "Missing stripe-signature" }), {
-      status: 400,
-      headers: { "content-type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ ok: false, error: "Missing stripe-signature" }),
+      {
+        status: 400,
+        headers: { "content-type": "application/json" },
+      },
+    );
   }
 
   try {
     const stripe = getStripeClient();
-    event = stripe.webhooks.constructEvent(rawBody, signature, getStripeWebhookSecret());
+    event = stripe.webhooks.constructEvent(
+      rawBody,
+      signature,
+      getStripeWebhookSecret(),
+    );
 
     // Create webhook log entry
     const log = await db.paymentWebhookLog.upsert({
@@ -50,7 +62,8 @@ export async function POST(req: Request) {
     logId = log.id;
   } catch (err) {
     // Signature verification failed (or malformed payload). Reject.
-    const message = err instanceof Error ? err.message : "Invalid Stripe webhook";
+    const message =
+      err instanceof Error ? err.message : "Invalid Stripe webhook";
     return new Response(JSON.stringify({ ok: false, error: message }), {
       status: 400,
       headers: { "content-type": "application/json" },
@@ -63,8 +76,8 @@ export async function POST(req: Request) {
     try {
       const warning = event.data.object;
       // 动态导入以避免循环依赖或加载过多无用模块
-      await import("@/server/risk/services/handle-early-fraud-warning").then((m) =>
-        m.handleEarlyFraudWarning(warning)
+      await import("@/server/risk/services/handle-early-fraud-warning").then(
+        (m) => m.handleEarlyFraudWarning(warning),
       );
 
       if (logId) {
@@ -75,7 +88,8 @@ export async function POST(req: Request) {
       }
       return Response.json({ ok: true, message: "EFW processed successfully" });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "EFW processing failed";
+      const message =
+        err instanceof Error ? err.message : "EFW processing failed";
       // EFW 属于“争议预防”关键链路：建议返回 500 触发 Stripe 重试（已在下游用 idempotency key 做了幂等）
       if (logId) {
         await db.paymentWebhookLog.update({
@@ -103,7 +117,11 @@ export async function POST(req: Request) {
       });
     }
 
-    return Response.json({ ok: true, payment: paymentResult, subscription: subscriptionResult });
+    return Response.json({
+      ok: true,
+      payment: paymentResult,
+      subscription: subscriptionResult,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
 
@@ -127,5 +145,3 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: message });
   }
 }
-
-
