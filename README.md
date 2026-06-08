@@ -3,7 +3,12 @@
 </p>
 
 <p align="center">
-  <strong>An open-source framework that takes your AI app from code to cash.</strong>
+  <strong>All AI developers deserve to get paid.</strong>
+</p>
+
+<p align="center">
+  Turn your AI prototype into a paid SaaS with open-source infrastructure for
+  usage billing, payments, attribution, affiliates, anti-abuse, and deployment.
 </p>
 
 <p align="center">
@@ -15,58 +20,108 @@
 </p>
 
 <p align="center">
+  <a href="https://velobase.cloud/launchpad"><strong>Try Launchpad</strong></a>
+  ·
+  <a href="#quick-start"><strong>Run Locally</strong></a>
+  ·
+  <a href="./docs/en/README.md"><strong>Read the Docs</strong></a>
+</p>
+
+<p align="center">
   <a href="https://x.com/VelobaseX"><img src="https://img.shields.io/badge/Follow_on_X-000000?style=for-the-badge&logo=x&logoColor=white" alt="Follow on X" /></a>&nbsp;&nbsp;
   <a href="https://discord.gg/UnzEZJRnUf"><img src="https://img.shields.io/badge/Join_Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord" /></a>
 </p>
 
 <p align="center">
-  Help us reach more developers — <a href="https://github.com/velobase/velobase-harness"><strong>Star this repo!</strong></a>
+  If Harness helps you ship, <a href="https://github.com/velobase/velobase-harness"><strong>star the repo</strong></a>
+  and <a href="https://discord.gg/UnzEZJRnUf"><strong>join the community</strong></a>.
 </p>
 
 <p align="center">
-  <a href="./README.zh-CN.md">中文</a> · <a href="#quick-start">Quick Start</a> · <a href="#documentation">Docs</a> · <a href="#architecture">Architecture</a>
+  <a href="./README.zh-CN.md">中文</a> · <a href="#what-you-can-ship">What You Can Ship</a> · <a href="#open-source-or-managed-cloud">Open Source vs Cloud</a> · <a href="#architecture">Architecture</a>
 </p>
 
 ---
 
-### Ship fast. Get paid faster.
+## Build the product. Keep the revenue infrastructure.
 
-In the AI app-building era, everyone can build. But almost none of them make a dollar from it.
+AI coding tools make prototypes fast. Turning one into a reliable business still
+means rebuilding payments, usage metering, fraud controls, attribution,
+affiliates, lifecycle email, and deployment.
 
-We went from the same problem to 8-figure ARR. The secret was not a better product — it was the growth and monetization infrastructure behind it. We just open-sourced all of it. That is Velobase Harness.
+Velobase Harness packages that work into an MIT-licensed framework for AI SaaS
+builders. Start with a working product foundation, then spend your time on the
+part only you can build.
 
-<!-- TODO: Replace with product screenshot or demo GIF -->
+> Harness helps you build and monetize the application. Velobase Cloud removes
+> the infrastructure and deployment work.
+
+<!-- TODO: Replace with a 30-45 second product walkthrough:
+idea -> generated repo -> working app -> usage billing -> git push deployment. -->
 <!-- <p align="center">
   <img src="public/demo.gif" alt="Harness Demo" width="720" />
 </p> -->
 
-## Why Velobase Harness
+## What You Can Ship
 
-An open-source AI SaaS framework, extracted from a product doing 8-figure ARR. Unlike every other boilerplate, it does not stop at shipping — it covers the full path from build to revenue.
+### Launch a paid AI product
 
-**📡 Ad Attribution** — Server-side tracking that tells you which ads actually convert. Google Ads offline conversion upload, X pixel, PropellerAds.
+Accept subscriptions and usage-based payments, manage credits, meter AI usage,
+and give customers a billing dashboard from day one.
 
-**🤝 Affiliate Engine** — Financial-grade double-entry ledger, refund clawback, USDT cashout. Your users become your salesforce.
+### Understand which growth channels work
 
-**💳 Usage-Based Billing** — Full credits lifecycle, subscriptions, multi-currency, metering dashboard, and `@velobaseai/billing` integration. Charges from day one.
+Connect purchases to acquisition channels with server-side attribution, Google
+Ads offline conversions, X pixel events, and PostHog analytics.
 
-**🛡️ Anti-Abuse Guardrails** — Redis rate limits, Turnstile, disposable email and Gmail trick checks, signup IP/device signals, guest chat quotas, and credit clawback to reduce free-credit and model-cost abuse.
+### Turn customers into a distribution channel
 
-**📧 Email Outreach** — A/B testing, scheduled campaigns, dual-provider failover. Brings people back automatically.
+Run an affiliate program with a double-entry ledger, refund clawbacks, referral
+tracking, promo codes, and USDT cashout.
 
-**Plus:** Auth & anti-abuse · Multi-LLM AI chat · 11 BullMQ background workers · Stripe & crypto payments · PostHog analytics · Affiliate/Referral · Promo codes · Admin dashboard · Pluggable modules (toggle via env vars) · Docker, Kubernetes & GitOps docs
+### Protect expensive AI usage
 
-> We checked every boilerplate on the market. They help you build. **We help you build AND make money.**
+Reduce free-credit abuse with rate limits, Turnstile, disposable-email checks,
+signup signals, guest quotas, and credit clawbacks.
+
+### Operate without assembling the backend yourself
+
+Use built-in auth, multi-LLM chat, background workers, lifecycle email, admin
+tools, Docker, Kubernetes, and GitOps guidance.
+
+## Built For
+
+| You are... | Harness helps you... |
+| --- | --- |
+| An indie developer with an AI prototype | Add monetization and production infrastructure without starting over |
+| A team already serving AI users | Add usage billing, attribution, affiliates, and anti-abuse controls |
+| An AI-native builder using Codex, Claude Code, or Cursor | Give coding agents a documented production foundation to build on |
+
+## Open Source or Managed Cloud
+
+Harness is MIT licensed and can be self-hosted. Velobase Cloud is the managed
+path for builders who want to skip provisioning and deployment work.
+
+| | Self-hosted Harness | Velobase Cloud |
+| --- | --- | --- |
+| Harness source code | Free and MIT licensed | Included |
+| PostgreSQL, Redis, and storage | Configure and operate them yourself | Provisioned for you |
+| Deployment | Configure Docker/Kubernetes and CI/CD | Git push to deploy |
+| Infrastructure operations | Managed by your team | Managed by Velobase |
+| Best for | Teams that want full infrastructure control | Builders that want the shortest path to production |
+
+**[Describe your product and try Launchpad](https://velobase.cloud/launchpad)**
 
 ## Quick Start
 
-### Option A: Velobase Launchpad
+### Option A: Start with Velobase Launchpad
 
-The fastest path — describe your product, Launchpad creates the repo, provisions all Cloud resources, and generates an AI IDE prompt so you can start building immediately.
+Describe your product idea. Launchpad creates a repository, provisions cloud
+resources, and generates a prompt for your AI coding agent.
 
-👉 **[Launch on Velobase Cloud](https://velobase.cloud/launchpad)**
+**[Create an AI SaaS with Launchpad](https://velobase.cloud/launchpad)**
 
-### Option B: Local Development
+### Option B: Run Harness Locally
 
 Prerequisites: Node.js, pnpm, Docker Desktop, and Docker Compose.
 
@@ -79,12 +134,22 @@ pnpm db:seed
 pnpm dev:all
 ```
 
+Open [http://localhost:3000](http://localhost:3000) after the development server
+starts.
+
+> New here? Start with the local defaults. Payment providers, AI providers,
+> attribution, outreach, and other integrations can be configured when you need
+> them.
+
 `pnpm docker:db:up` starts the local infrastructure from `docker-compose.yml`:
 
 | Service | Image | Local URL / Port | Used by |
 | --- | --- | --- | --- |
 | PostgreSQL | `postgres:16` | `localhost:5432` | Prisma, auth, billing, product data |
 | Redis | `redis:7` | `localhost:6379` | BullMQ workers, queues, rate limits |
+
+Stripe CLI is available as an optional Docker Compose profile for local webhook
+testing. Run `pnpm docker:up` when you need it.
 
 The default `.env.example` already points to these local services:
 
@@ -95,8 +160,6 @@ REDIS_PORT=6379
 ```
 
 `pnpm dev:all` starts the default combined local runtime: Web on `:3000` and Worker on `:3001`. The optional Hono API service is disabled by default; run `SERVICE_MODE=all pnpm dev:all` or `pnpm api:dev` when you need it.
-
-Open the app at [http://localhost:3000](http://localhost:3000).
 
 You can also split processes across terminals:
 
@@ -126,7 +189,7 @@ flowchart TB
   events --> modules[Pluggable Modules]
   worker[BullMQ Worker] --> redis
   worker --> services
-  modules --> growth[Growth Operations]
+  modules --> integrations[Product Integrations]
   hono[Optional Hono API] -. enable when needed .-> services
 ```
 
@@ -188,7 +251,8 @@ src/
 ├── server/           # Auth, billing, order, events, modules, features
 ├── workers/          # BullMQ queues and processors
 ├── components/       # Shared UI components
-└── analytics/        # PostHog and ads event tracking
+├── analytics/        # PostHog and ads event tracking
+└── ...               # Hooks, i18n, shared libraries, stores, styles, and types
 ```
 
 ## Quality Commands
