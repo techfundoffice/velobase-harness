@@ -8,22 +8,32 @@ import { env } from "@/env";
 import { db } from "@/server/db";
 import { grant } from "@/server/billing/services/grant";
 import { logger } from "@/lib/logger";
-import { sendEmail, MagicLinkEmailTemplate, renderMagicLinkHtml } from "@/server/email";
+import {
+  sendEmail,
+  MagicLinkEmailTemplate,
+  renderMagicLinkHtml,
+} from "@/server/email";
 import { checkAuthRateLimit } from "@/server/ratelimit";
 import { getServerPostHog } from "@/analytics/server";
 import { AUTH_EVENTS } from "@/analytics/events/auth";
 import { isFamousEmailDomain } from "./disposable-domains";
-import { normalizeEmail } from "./normalize-email";
+import { isGmailAddress, normalizeEmail } from "./normalize-email";
 import { CustomPrismaAdapter } from "./prisma-adapter";
-import { checkSignupAbuse, enforceSignupAbuse } from "@/server/features/anti-abuse";
+import {
+  checkSignupAbuse,
+  enforceSignupAbuse,
+} from "@/server/features/anti-abuse";
 import { getClientIpFromHeaders } from "@/server/features/cdn-adapters";
 import { verifyPassword } from "./password";
 import { isPasswordLoginAllowed } from "./password-login-allowlist";
 import { SIGNUP_DISABLED } from "@/config/decommission";
 import { APP_NAME } from "@/config/brand";
+import { consumeEmailLoginCode } from "./email-code";
+import { ensureSignupEnabledOrExistingUser } from "./signup-policy";
 
 const INVALID_CREDENTIALS_ERROR = "Invalid email or password";
-const DUMMY_PASSWORD_HASH = "$2b$12$mzq4zQ1MzF0bDU7ytBisteBt7YDnfG3/BaXI7hVQj.4XAZvaGPrbW";
+const DUMMY_PASSWORD_HASH =
+  "$2b$12$mzq4zQ1MzF0bDU7ytBisteBt7YDnfG3/BaXI7hVQj.4XAZvaGPrbW";
 
 function classifyFirstTouch(params: {
   refHost?: string | null;
@@ -36,7 +46,9 @@ function classifyFirstTouch(params: {
   const utmSource = (params.utmSource ?? "").toLowerCase();
   const hasAd = !!params.adClickId;
 
-  const isPaid = hasAd || ["cpc", "ppc", "paid", "paidsearch", "display"].includes(utmMedium);
+  const isPaid =
+    hasAd ||
+    ["cpc", "ppc", "paid", "paidsearch", "display"].includes(utmMedium);
   if (isPaid) return { refType: "unknown", channel: "paid_search" };
 
   const isSearchRef =
@@ -54,21 +66,6 @@ function classifyFirstTouch(params: {
   // No referrer: direct or stripped
   if (utmSource || utmMedium) return { refType: "unknown", channel: "unknown" };
   return { refType: "direct", channel: "direct" };
-}
-
-async function ensureSignupEnabledOrExistingUser(email: string): Promise<void> {
-  if (!SIGNUP_DISABLED) return;
-  const e = email.toLowerCase().trim();
-  const normalized = normalizeEmail(e);
-  const existing = await db.user.findFirst({
-    where: {
-      OR: [{ email: e }, { canonicalEmail: normalized }],
-    },
-    select: { id: true },
-  });
-  if (!existing) {
-    throw new Error("SIGNUP_DISABLED:Sign up is temporarily disabled.");
-  }
 }
 
 /**
@@ -144,10 +141,19 @@ export const authConfig = {
         });
 
         const allowlisted = isPasswordLoginAllowed(email);
-        const passwordHash = allowlisted && user?.passwordHash ? user.passwordHash : DUMMY_PASSWORD_HASH;
+        const passwordHash =
+          allowlisted && user?.passwordHash
+            ? user.passwordHash
+            : DUMMY_PASSWORD_HASH;
         const valid = await verifyPassword(password, passwordHash);
 
-        if (!allowlisted || !user || user.isBlocked || !user.passwordHash || !valid) {
+        if (
+          !allowlisted ||
+          !user ||
+          user.isBlocked ||
+          !user.passwordHash ||
+          !valid
+        ) {
           logger.warn(
             {
               reason: !allowlisted
@@ -181,6 +187,120 @@ export const authConfig = {
     }),
 
     /**
+     * Email Code Provider
+     * - User requests a 6-digit code by email
+     * - User enters the code on the same login page/browser
+     * - The browser that submits the code receives the session cookie
+     */
+    CredentialsProvider({
+      id: "email-code",
+      name: "Email Code",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        code: { label: "Code", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.code) {
+          throw new Error("Invalid verification code");
+        }
+
+        const email = (credentials.email as string).toLowerCase().trim();
+        const code = credentials.code as string;
+
+        const consumeResult = await consumeEmailLoginCode({ email, code });
+        if (!consumeResult.ok) {
+          logger.warn(
+            { reason: consumeResult.reason },
+            "Email code login failed",
+          );
+          throw new Error("Invalid or expired verification code");
+        }
+
+        const canonicalEmail = normalizeEmail(email);
+        let createdByEmailCode = false;
+
+        let user = await db.user.findFirst({
+          where: {
+            OR: [{ email }, { canonicalEmail: canonicalEmail }],
+          },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            image: true,
+            isBlocked: true,
+            isAdmin: true,
+            isPrimaryDeviceAccount: true,
+            createdAt: true,
+            emailVerified: true,
+          },
+        });
+
+        if (!user) {
+          if (SIGNUP_DISABLED) {
+            throw new Error("SIGNUP_DISABLED");
+          }
+
+          user = await db.user.create({
+            data: {
+              email,
+              emailVerified: new Date(),
+              canonicalEmail: isGmailAddress(email)
+                ? canonicalEmail
+                : undefined,
+            },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              image: true,
+              isBlocked: true,
+              isAdmin: true,
+              isPrimaryDeviceAccount: true,
+              createdAt: true,
+              emailVerified: true,
+            },
+          });
+          createdByEmailCode = true;
+        } else if (!user.emailVerified) {
+          user = await db.user.update({
+            where: { id: user.id },
+            data: { emailVerified: new Date() },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              image: true,
+              isBlocked: true,
+              isAdmin: true,
+              isPrimaryDeviceAccount: true,
+              createdAt: true,
+              emailVerified: true,
+            },
+          });
+        }
+
+        if (user.isBlocked) {
+          throw new Error("Invalid or expired verification code");
+        }
+
+        logger.info({ email, userId: user.id }, "Email code login successful");
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          isAdmin: user.isAdmin,
+          isBlocked: user.isBlocked,
+          isPrimaryDeviceAccount: user.isPrimaryDeviceAccount,
+          createdAt: user.createdAt,
+          createdByEmailCode,
+        };
+      },
+    }),
+
+    /**
      * Email Provider (Magic Link)
      * - Sends a secure one-time link to the user's email
      * - Link expires in 15 minutes
@@ -192,9 +312,9 @@ export const authConfig = {
         host: "smtp.resend.com",
         port: 465,
         secure: true,
-        auth: { 
-          user: "resend", 
-          pass: process.env.RESEND_API_KEY ?? "" 
+        auth: {
+          user: "resend",
+          pass: process.env.RESEND_API_KEY ?? "",
         },
       },
       from: process.env.EMAIL_FROM ?? `${APP_NAME} <onboarding@resend.dev>`,
@@ -211,10 +331,10 @@ export const authConfig = {
         if (!rateLimitResult.allowed) {
           logger.warn(
             { email, ip, reason: rateLimitResult.reason },
-            "Auth rate limit exceeded"
+            "Auth rate limit exceeded",
           );
           throw new Error(
-            `Too many requests. Please try again in ${rateLimitResult.retryAfter} seconds.`
+            `Too many requests. Please try again in ${rateLimitResult.retryAfter} seconds.`,
           );
         }
 
@@ -247,7 +367,10 @@ export const authConfig = {
           }
         } catch (error) {
           const errMsg = error instanceof Error ? error.message : String(error);
-          logger.error({ email, errorMessage: errMsg }, `Failed to send magic link email: ${errMsg}`);
+          logger.error(
+            { email, errorMessage: errMsg },
+            `Failed to send magic link email: ${errMsg}`,
+          );
 
           // Track failed email send (non-blocking)
           const posthog = getServerPostHog();
@@ -260,13 +383,15 @@ export const authConfig = {
             void posthog.shutdown();
           }
 
-          throw new Error("Failed to send verification email. Please try again.");
+          throw new Error(
+            "Failed to send verification email. Please try again.",
+          );
         }
       },
     }),
   ],
   pages: {
-    signIn: '/auth/signin',
+    signIn: "/auth/signin",
   },
   adapter: CustomPrismaAdapter(db),
   secret: env.NEXTAUTH_SECRET,
@@ -276,31 +401,59 @@ export const authConfig = {
   // - 生产 Full SSL / 直连 HTTPS: secure=true
   // 通过 COOKIE_SECURE env var 覆盖，或自动推断（非生产 = false）
   cookies: (() => {
-    const secure = process.env.COOKIE_SECURE === 'true'
-      ? true
-      : process.env.COOKIE_SECURE === 'false'
-        ? false
-        : process.env.NODE_ENV === 'production';
+    const secure =
+      process.env.COOKIE_SECURE === "true"
+        ? true
+        : process.env.COOKIE_SECURE === "false"
+          ? false
+          : process.env.NODE_ENV === "production";
     return {
       sessionToken: {
         name: `next-auth.session-token`,
-        options: { httpOnly: true, sameSite: 'lax' as const, path: '/', secure },
+        options: {
+          httpOnly: true,
+          sameSite: "lax" as const,
+          path: "/",
+          secure,
+        },
       },
       callbackUrl: {
         name: `next-auth.callback-url`,
-        options: { httpOnly: true, sameSite: 'lax' as const, path: '/', secure },
+        options: {
+          httpOnly: true,
+          sameSite: "lax" as const,
+          path: "/",
+          secure,
+        },
       },
       csrfToken: {
         name: `next-auth.csrf-token`,
-        options: { httpOnly: true, sameSite: 'lax' as const, path: '/', secure },
+        options: {
+          httpOnly: true,
+          sameSite: "lax" as const,
+          path: "/",
+          secure,
+        },
       },
       pkceCodeVerifier: {
         name: `next-auth.pkce.code_verifier`,
-        options: { httpOnly: true, sameSite: 'lax' as const, path: '/', secure, maxAge: 900 },
+        options: {
+          httpOnly: true,
+          sameSite: "lax" as const,
+          path: "/",
+          secure,
+          maxAge: 900,
+        },
       },
       state: {
         name: `next-auth.state`,
-        options: { httpOnly: true, sameSite: 'lax' as const, path: '/', secure, maxAge: 900 },
+        options: {
+          httpOnly: true,
+          sameSite: "lax" as const,
+          path: "/",
+          secure,
+          maxAge: 900,
+        },
       },
     };
   })(),
@@ -308,11 +461,14 @@ export const authConfig = {
     signIn: async ({ user, account, isNewUser }) => {
       if (!user.id || !account) return;
 
+      const createdByEmailCode =
+        (user as { createdByEmailCode?: boolean }).createdByEmailCode === true;
+
       // 新用户 + 非著名邮箱：发放登录奖励 299 积分
-      if (isNewUser && user.email) {
+      if ((isNewUser || createdByEmailCode) && user.email) {
         const isFamousEmail = isFamousEmailDomain(user.email);
         const isEmailLogin = !isOAuthProvider(account.provider);
-        
+
         // 读取 utm_source 判断是否是自然流量
         const cookieStore = await cookies();
         const utmSource = cookieStore.get("utm_source")?.value;
@@ -339,7 +495,10 @@ export const authConfig = {
             }
           }
         } catch (error) {
-          logger.warn({ error, userId: user.id }, "Failed to bind referral for new user (ignored)");
+          logger.warn(
+            { error, userId: user.id },
+            "Failed to bind referral for new user (ignored)",
+          );
         }
 
         // 设备检测必须在积分计算之前完成：确保 isPrimaryDeviceAccount 值正确（共享设备的第二个新账号应为 false）
@@ -363,19 +522,24 @@ export const authConfig = {
             });
           }
         } catch (error) {
-          logger.warn({ error, userId: user.id }, "Failed to run device detection before initial grant");
+          logger.warn(
+            { error, userId: user.id },
+            "Failed to run device detection before initial grant",
+          );
         }
 
         // 同 IP 触发"待审核锁定额度"（优化：时间窗 + 设备信号，避免 NAT/公司网历史账号误伤）
         let shouldLockPendingCredits = false;
-        let emailAbuseDecision:
-          | { isAbuse: boolean; reason?: string; existingEmails?: string[] }
-          | null = null;
+        let emailAbuseDecision: {
+          isAbuse: boolean;
+          reason?: string;
+          existingEmails?: string[];
+        } | null = null;
         let remoteIp: string | null = null;
         try {
           const headersList = await headers();
           const resolvedIp = getClientIpFromHeaders(headersList);
-          remoteIp = resolvedIp === 'unknown' ? null : resolvedIp;
+          remoteIp = resolvedIp === "unknown" ? null : resolvedIp;
 
           if (remoteIp) {
             await db.user.update({
@@ -391,7 +555,10 @@ export const authConfig = {
             shouldLockPendingCredits = emailAbuseDecision.isAbuse;
           }
         } catch (error) {
-          logger.warn({ error, userId: user.id }, "Failed to run same-IP fast gate in signIn");
+          logger.warn(
+            { error, userId: user.id },
+            "Failed to run same-IP fast gate in signIn",
+          );
         }
 
         try {
@@ -400,7 +567,7 @@ export const authConfig = {
           let description = "";
 
           // flip_hkd 开头的邮箱：只给 299
-          if (user.email.toLowerCase().startsWith('flip_hkd')) {
+          if (user.email.toLowerCase().startsWith("flip_hkd")) {
             amount = 299;
             description = "Login Bonus: 299 Credits";
           } else if (isFamousEmail) {
@@ -450,18 +617,34 @@ export const authConfig = {
             });
 
             logger.info(
-              { userId: user.id, grantKey, amount, isFamousEmail, isEmailLogin, utmSource, isPrimaryDeviceAccount },
+              {
+                userId: user.id,
+                grantKey,
+                amount,
+                isFamousEmail,
+                isEmailLogin,
+                utmSource,
+                isPrimaryDeviceAccount,
+              },
               "Granted initial credits to new user",
             );
 
             // 命中风控：异步检测滥用，如确认滥用则通过 Velobase deduct 回收
             if (shouldLockPendingCredits && remoteIp) {
-              void enforceSignupAbuse(user.id, user.email, remoteIp, emailAbuseDecision ?? undefined);
+              void enforceSignupAbuse(
+                user.id,
+                user.email,
+                remoteIp,
+                emailAbuseDecision ?? undefined,
+              );
             }
           }
         } catch (error) {
           // If grant fails due to duplicate outerBizId, it means this normalized email already got credits
-          logger.error({ error, userId: user.id }, "Failed to grant initial credits (may be duplicate)");
+          logger.error(
+            { error, userId: user.id },
+            "Failed to grant initial credits (may be duplicate)",
+          );
         }
       }
 
@@ -469,10 +652,12 @@ export const authConfig = {
       const posthog = getServerPostHog();
       if (!posthog) return;
 
-      const method = isOAuthProvider(account.provider) ? account.provider : "email";
+      const method = isOAuthProvider(account.provider)
+        ? account.provider
+        : "email";
 
       // For email magic link flow, mark that the user clicked the link
-      if (method === "email") {
+      if (account.provider === "nodemailer") {
         posthog.capture({
           distinctId: user.id,
           event: AUTH_EVENTS.EMAIL_LINK_CLICK,
@@ -484,7 +669,7 @@ export const authConfig = {
         event: AUTH_EVENTS.LOGIN_SUCCESS,
         properties: {
           method,
-          is_new_user: isNewUser ?? false,
+          is_new_user: (isNewUser ?? false) || createdByEmailCode,
         },
       });
 
@@ -499,7 +684,7 @@ export const authConfig = {
         const gclid = cookieStore.get("gclid")?.value;
         const wbraid = cookieStore.get("wbraid")?.value;
         const gbraid = cookieStore.get("gbraid")?.value;
-        
+
         let adClickId: string | undefined;
         let adClickProvider: string | null = null;
 
@@ -513,10 +698,10 @@ export const authConfig = {
           adClickId = gbraid;
           adClickProvider = "gbraid";
         }
-        
+
         if (adClickId) {
-           // Only update if we have a new click ID
-           await db.user.update({
+          // Only update if we have a new click ID
+          await db.user.update({
             where: { id: user.id },
             data: {
               adClickId,
@@ -530,7 +715,10 @@ export const authConfig = {
           );
         }
       } catch (error) {
-        logger.warn({ error, userId: user.id }, "Failed to update Ad attribution");
+        logger.warn(
+          { error, userId: user.id },
+          "Failed to update Ad attribution",
+        );
       }
 
       void posthog.shutdown();
@@ -543,14 +731,17 @@ export const authConfig = {
       try {
         const headersList = await headers();
         const resolvedSignupIp = getClientIpFromHeaders(headersList);
-        signupIp = resolvedSignupIp === 'unknown' ? null : resolvedSignupIp;
+        signupIp = resolvedSignupIp === "unknown" ? null : resolvedSignupIp;
 
         if (signupIp) {
           await db.user.update({
             where: { id: user.id },
             data: { signupIp },
           });
-          logger.info({ userId: user.id, signupIp }, "Recorded signup IP for new user");
+          logger.info(
+            { userId: user.id, signupIp },
+            "Recorded signup IP for new user",
+          );
 
           // email-abuse 复核已移至 signIn：只有在同IP命中且产生 PENDING 锁定额度时才触发
         }
@@ -588,7 +779,8 @@ export const authConfig = {
             where: { id: user.id },
             select: { isPrimaryDeviceAccount: true },
           });
-          const finalIsPrimary = (current?.isPrimaryDeviceAccount ?? true) && isPrimaryDeviceAccount;
+          const finalIsPrimary =
+            (current?.isPrimaryDeviceAccount ?? true) && isPrimaryDeviceAccount;
 
           // 把 device key 和「是否首账号」写回 User 表，供后续 signIn 事件和日滴逻辑使用
           await db.user.update({
@@ -600,12 +792,19 @@ export const authConfig = {
           });
 
           logger.info(
-            { userId: user.id, deviceKey, isPrimaryDeviceAccount: finalIsPrimary },
+            {
+              userId: user.id,
+              deviceKey,
+              isPrimaryDeviceAccount: finalIsPrimary,
+            },
             "Device detection completed for new user",
           );
         }
       } catch (error) {
-        logger.warn({ error, userId: user.id }, "Failed to run device detection for new user");
+        logger.warn(
+          { error, userId: user.id },
+          "Failed to run device detection for new user",
+        );
       }
       // 注：积分发放统一在 signIn 事件中处理，避免重复发放
 
@@ -627,7 +826,7 @@ export const authConfig = {
         const landingPath = cookieStore.get("app_landing_path")?.value;
         const refHost = cookieStore.get("app_ref_host")?.value;
         const firstTouchAtRaw = cookieStore.get("app_first_touch_at")?.value;
-        
+
         let adClickId: string | undefined;
         let adClickProvider: string | null = null;
 
@@ -665,39 +864,44 @@ export const authConfig = {
 
         // Save first-touch attribution (wrapped in try/catch so it won't break before DB migration).
         const firstTouchAt =
-            firstTouchAtRaw && !Number.isNaN(Date.parse(firstTouchAtRaw)) ? new Date(firstTouchAtRaw) : new Date();
-          const { refType, channel } = classifyFirstTouch({
-            refHost,
-            utmMedium,
-            utmSource,
-            adClickId: adClickId ?? null,
-          });
+          firstTouchAtRaw && !Number.isNaN(Date.parse(firstTouchAtRaw))
+            ? new Date(firstTouchAtRaw)
+            : new Date();
+        const { refType, channel } = classifyFirstTouch({
+          refHost,
+          utmMedium,
+          utmSource,
+          adClickId: adClickId ?? null,
+        });
 
-            await db.userAttribution.upsert({
-              where: { userId: user.id },
-              create: {
-                userId: user.id,
-                firstTouchAt,
-                landingPath: landingPath ?? null,
-                refHost: refHost ?? null,
-                refType,
-                channel,
-                utmSource: utmSource ?? null,
-                utmMedium: utmMedium ?? null,
-                utmCampaign: utmCampaign ?? null,
-                utmTerm: utmTerm ?? null,
-                utmContent: utmContent ?? null,
-                adClickId: adClickId ?? null,
-                adClickProv: adClickProvider ?? null,
-              },
-              update: {},
-            });
-            logger.info(
-              { userId: user.id, channel, refHost, landingPath },
-              "Saved first-touch user attribution",
-            );
+        await db.userAttribution.upsert({
+          where: { userId: user.id },
+          create: {
+            userId: user.id,
+            firstTouchAt,
+            landingPath: landingPath ?? null,
+            refHost: refHost ?? null,
+            refType,
+            channel,
+            utmSource: utmSource ?? null,
+            utmMedium: utmMedium ?? null,
+            utmCampaign: utmCampaign ?? null,
+            utmTerm: utmTerm ?? null,
+            utmContent: utmContent ?? null,
+            adClickId: adClickId ?? null,
+            adClickProv: adClickProvider ?? null,
+          },
+          update: {},
+        });
+        logger.info(
+          { userId: user.id, channel, refHost, landingPath },
+          "Saved first-touch user attribution",
+        );
       } catch (error) {
-        logger.error({ error, userId: user.id }, "Failed to save UTM attribution");
+        logger.error(
+          { error, userId: user.id },
+          "Failed to save UTM attribution",
+        );
       }
     },
   },
@@ -713,14 +917,23 @@ export const authConfig = {
         token.id = user.id;
         token.isAdmin = (user as { isAdmin?: boolean }).isAdmin ?? false;
         token.isBlocked = (user as { isBlocked?: boolean }).isBlocked ?? false;
-        token.isPrimaryDeviceAccount = (user as { isPrimaryDeviceAccount?: boolean }).isPrimaryDeviceAccount;
-        token.createdAt = (user as { createdAt?: Date }).createdAt ?? new Date(0);
+        token.isPrimaryDeviceAccount = (
+          user as { isPrimaryDeviceAccount?: boolean }
+        ).isPrimaryDeviceAccount;
+        token.createdAt =
+          (user as { createdAt?: Date }).createdAt ?? new Date(0);
       }
       // credentials provider 不会自动填充 user，需要从 DB 读
       if (account?.provider === "credentials" && token.sub) {
         const dbUser = await db.user.findUnique({
           where: { id: token.sub },
-          select: { id: true, isAdmin: true, isBlocked: true, isPrimaryDeviceAccount: true, createdAt: true },
+          select: {
+            id: true,
+            isAdmin: true,
+            isBlocked: true,
+            isPrimaryDeviceAccount: true,
+            createdAt: true,
+          },
         });
         if (dbUser) {
           token.id = dbUser.id;
@@ -738,11 +951,13 @@ export const authConfig = {
       ...session,
       user: {
         ...session.user,
-        id: token.id as string ?? token.sub,
-        isAdmin: token.isAdmin as boolean ?? false,
-        isBlocked: token.isBlocked as boolean ?? false,
-        isPrimaryDeviceAccount: token.isPrimaryDeviceAccount as boolean | undefined,
-        createdAt: token.createdAt as Date ?? new Date(0),
+        id: (token.id as string) ?? token.sub,
+        isAdmin: (token.isAdmin as boolean) ?? false,
+        isBlocked: (token.isBlocked as boolean) ?? false,
+        isPrimaryDeviceAccount: token.isPrimaryDeviceAccount as
+          | boolean
+          | undefined,
+        createdAt: (token.createdAt as Date) ?? new Date(0),
       },
     }),
 

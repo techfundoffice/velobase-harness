@@ -4,6 +4,7 @@ import type { SendEmailParams, SendEmailResult } from "./types";
 
 export type { SendEmailParams, SendEmailResult, EmailProvider } from "./types";
 export { MagicLinkEmailTemplate, renderMagicLinkHtml } from "./templates/magic-link";
+export { EmailCodeTemplate, renderEmailCodeHtml } from "./templates/email-code";
 
 const providerChain = resolveProviderChain(process.env.EMAIL_PROVIDER);
 

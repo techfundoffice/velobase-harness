@@ -39,6 +39,14 @@ jobs:
         with:
           ref: ${{ steps.resolve.outputs.sha }}
 
+      # ══════════════════════════════════════════════════════════════════
+      # A. Build & push template Docker image
+      # ══════════════════════════════════════════════════════════════════
+      - name: Build template image
+        run: |
+          LOCAL_IMAGE="${{ env.IMAGE_NAME }}:${{ steps.resolve.outputs.sha }}"
+          docker build -t "$LOCAL_IMAGE" .
+
       # ── GCP Auth (OIDC / Workload Identity Federation) ─────────────────
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -49,16 +57,14 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      # ══════════════════════════════════════════════════════════════════
-      # A. Build & push template Docker image
-      # ══════════════════════════════════════════════════════════════════
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
 
-      - name: Build & push template image
+      - name: Tag and push template image
         run: |
+          LOCAL_IMAGE="${{ env.IMAGE_NAME }}:${{ steps.resolve.outputs.sha }}"
           IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ steps.resolve.outputs.sha }}"
-          docker build -t "$IMAGE" .
+          docker tag "$LOCAL_IMAGE" "$IMAGE"
           docker push "$IMAGE"
           echo "✅ Pushed image"
 

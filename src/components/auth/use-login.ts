@@ -10,7 +10,7 @@ import { ensureDeviceKey } from "@/lib/device-key";
 import { env } from "@/env";
 
 // ============ Types ============
-export type LoginView = "main" | "email" | "email-sent";
+export type LoginView = "main" | "email" | "email-code";
 
 // ============ Constants ============
 const PASSWORD_LOGIN_PREFIX = "testadmin";
@@ -32,7 +32,7 @@ export const COMMON_EMAIL_DOMAINS = [
   "me.com",
   "msn.com",
   "aol.com",
-  "protonmail.com"
+  "protonmail.com",
 ];
 
 export const EMAIL_PROVIDERS: Record<string, { name: string; url: string }> = {
@@ -50,7 +50,8 @@ export const EMAIL_PROVIDERS: Record<string, { name: string; url: string }> = {
 };
 
 export const TURNSTILE_SITE_KEY: string | undefined =
-  (env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as unknown as string | undefined) ?? undefined;
+  (env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as unknown as string | undefined) ??
+  undefined;
 
 // ============ Helpers ============
 export function normalizeEmailInput(raw: string): string {
@@ -66,7 +67,10 @@ export function normalizeEmailInput(raw: string): string {
 export function shouldUsePasswordLogin(emailInput: string): boolean {
   const input = emailInput.toLowerCase().trim();
   const localPart = input.split("@")[0] ?? "";
-  return localPart === PASSWORD_LOGIN_PREFIX || input.startsWith(PASSWORD_LOGIN_PREFIX + "@");
+  return (
+    localPart === PASSWORD_LOGIN_PREFIX ||
+    input.startsWith(PASSWORD_LOGIN_PREFIX + "@")
+  );
 }
 
 export function getEmailProvider(email: string) {
@@ -83,23 +87,25 @@ export function getEmailSuggestions(email: string): string[] {
   const domainPart = email.slice(atIndex + 1).toLowerCase();
 
   if (!domainPart) {
-    return COMMON_EMAIL_DOMAINS.map(domain => `${localPart}@${domain}`);
+    return COMMON_EMAIL_DOMAINS.map((domain) => `${localPart}@${domain}`);
   }
 
-  return COMMON_EMAIL_DOMAINS
-    .filter(domain => domain.startsWith(domainPart))
-    .map(domain => `${localPart}@${domain}`);
+  return COMMON_EMAIL_DOMAINS.filter((domain) =>
+    domain.startsWith(domainPart),
+  ).map((domain) => `${localPart}@${domain}`);
 }
 
 // ============ Main Hook ============
 export function useLogin() {
-  const { loginModalOpen, callbackUrl, loginModalSource, setLoginModalOpen } = useAuthStore();
+  const { loginModalOpen, callbackUrl, loginModalSource, setLoginModalOpen } =
+    useAuthStore();
   const pathname = usePathname();
   const prevOpenRef = useRef(false);
 
   // ---- State ----
   const [view, setView] = useState<LoginView>("main");
   const [email, setEmail] = useState("");
+  const [emailCode, setEmailCode] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -128,7 +134,8 @@ export function useLogin() {
           const pathname = window?.location?.pathname ?? "/";
           const searchStr = window?.location?.search ?? "";
           const currentPathWithQuery = `${pathname}${searchStr}`;
-          computedCallbackUrl = currentPathWithQuery.length > 0 ? currentPathWithQuery : "/";
+          computedCallbackUrl =
+            currentPathWithQuery.length > 0 ? currentPathWithQuery : "/";
         }
       } catch {
         computedCallbackUrl = "/";
@@ -143,6 +150,7 @@ export function useLogin() {
     if (!loginModalOpen) {
       setView("main");
       setEmail("");
+      setEmailCode("");
       setShowAutocomplete(false);
       setPassword("");
       setShowPassword(false);
@@ -163,7 +171,10 @@ export function useLogin() {
   // Close autocomplete when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (autocompleteRef.current && !autocompleteRef.current.contains(event.target as Node)) {
+      if (
+        autocompleteRef.current &&
+        !autocompleteRef.current.contains(event.target as Node)
+      ) {
         setShowAutocomplete(false);
       }
     };
@@ -174,7 +185,12 @@ export function useLogin() {
   // ---- Handlers ----
   const handleModalClose = (open: boolean) => {
     if (!open && loginModalOpen) {
-      const atStep = view === "main" ? "main" : view === "email" ? "email_input" : "email_sent";
+      const atStep =
+        view === "main"
+          ? "main"
+          : view === "email"
+            ? "email_input"
+            : "email_sent";
       track(AUTH_EVENTS.LOGIN_MODAL_CLOSE, { at_step: atStep });
     }
     setLoginModalOpen(open);
@@ -190,19 +206,27 @@ export function useLogin() {
     track(AUTH_EVENTS.LOGIN_METHOD_SELECT, { method: "email" });
     setView("email");
     setTurnstileToken(null);
+    setEmailCode("");
   };
 
   const handleBack = () => {
     setView("main");
     setError(null);
     setPassword("");
+    setEmailCode("");
     setShowAutocomplete(false);
+  };
+
+  const handleBackToEmail = () => {
+    setView("email");
+    setError(null);
+    setEmailCode("");
   };
 
   const handleEmailChange = (newVal: string) => {
     setEmail(newVal);
     setError(null);
-    
+
     if (newVal.includes("@")) {
       setShowAutocomplete(true);
       setAutocompleteIndex(0);
@@ -213,6 +237,11 @@ export function useLogin() {
     if (!shouldUsePasswordLogin(newVal.toLowerCase().trim())) {
       setPassword("");
     }
+  };
+
+  const handleEmailCodeChange = (newVal: string) => {
+    setEmailCode(newVal.replace(/\D/g, "").slice(0, 6));
+    setError(null);
   };
 
   const handleEmailBlur = (value: string) => {
@@ -227,10 +256,12 @@ export function useLogin() {
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setAutocompleteIndex(prev => (prev + 1) % suggestions.length);
+      setAutocompleteIndex((prev) => (prev + 1) % suggestions.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setAutocompleteIndex(prev => (prev - 1 + suggestions.length) % suggestions.length);
+      setAutocompleteIndex(
+        (prev) => (prev - 1 + suggestions.length) % suggestions.length,
+      );
     } else if (e.key === "Tab") {
       e.preventDefault();
       const selected = suggestions[autocompleteIndex];
@@ -246,9 +277,10 @@ export function useLogin() {
     setShowAutocomplete(false);
   };
 
-  const submitMagicLink = async () => {
+  const submitEmailCodeRequest = async () => {
     setError(null);
     setShowAutocomplete(false);
+    setEmailCode("");
 
     const normalizedEmail = normalizeEmailInput(email).toLowerCase();
     if (normalizedEmail !== email) {
@@ -264,8 +296,13 @@ export function useLogin() {
     const emailDomain = normalizedEmail.split("@")[1] ?? "unknown";
 
     if (emailDomain === "gmail.com" || emailDomain === "googlemail.com") {
-      setError("For Gmail accounts, please use 'Continue with Google' for a faster login experience.");
-      track(AUTH_EVENTS.LOGIN_FAILED, { method: "email", reason: "gmail_use_google" });
+      setError(
+        "For Gmail accounts, please use 'Continue with Google' for a faster login experience.",
+      );
+      track(AUTH_EVENTS.LOGIN_FAILED, {
+        method: "email",
+        reason: "gmail_use_google",
+      });
       return;
     }
 
@@ -280,23 +317,105 @@ export function useLogin() {
     try {
       ensureDeviceKey();
 
-      const result = await signIn("nodemailer", {
-        email: normalizedEmail,
+      const response = await fetch("/api/auth/email-code/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+      const result = (await response.json().catch(() => null)) as {
+        ok?: boolean;
+        errorCode?: string;
+      } | null;
+
+      if (!response.ok || !result?.ok) {
+        if (result?.errorCode === "disposable_email") {
+          track(AUTH_EVENTS.LOGIN_FAILED, {
+            method: "email",
+            reason: "disposable_email",
+          });
+          setError(
+            "This email domain is not supported. Please use a permanent email (Gmail, Outlook, etc.).",
+          );
+        } else if (result?.errorCode === "invalid_email") {
+          track(AUTH_EVENTS.LOGIN_FAILED, {
+            method: "email",
+            reason: "unknown",
+          });
+          setError("Please enter a valid email address.");
+        } else if (result?.errorCode === "rate_limited") {
+          track(AUTH_EVENTS.LOGIN_FAILED, {
+            method: "email",
+            reason: "rate_limited",
+          });
+          setError("Too many login attempts. Please try again later.");
+        } else if (result?.errorCode === "turnstile_required") {
+          track(AUTH_EVENTS.LOGIN_FAILED, {
+            method: "email",
+            reason: "unknown",
+          });
+          setError("Please complete the verification challenge.");
+        } else if (result?.errorCode === "signup_disabled") {
+          track(AUTH_EVENTS.LOGIN_FAILED, {
+            method: "email",
+            reason: "unknown",
+          });
+          setError(
+            "New signups are temporarily disabled. Existing users can sign in with their original email.",
+          );
+        } else if (result?.errorCode === "blocked") {
+          track(AUTH_EVENTS.LOGIN_FAILED, {
+            method: "email",
+            reason: "unknown",
+          });
+          setError(
+            "This account cannot sign in. Please contact support if you think this is a mistake.",
+          );
+        } else {
+          track(AUTH_EVENTS.LOGIN_FAILED, {
+            method: "email",
+            reason: "send_failed",
+          });
+          setError("Unable to send verification code. Please try again later.");
+        }
+      } else {
+        setView("email-code");
+      }
+    } catch {
+      track(AUTH_EVENTS.LOGIN_FAILED, { method: "email", reason: "unknown" });
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const submitEmailCode = async () => {
+    setError(null);
+
+    if (!/^\d{6}$/.test(emailCode)) {
+      setError("Please enter the 6-digit verification code");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      ensureDeviceKey();
+
+      const result = await signIn("email-code", {
+        email: email.toLowerCase().trim(),
+        code: emailCode,
         redirect: false,
         callbackUrl: getCallbackUrl(),
       });
 
       if (result?.error) {
-        if (result.error.includes("DISPOSABLE_EMAIL")) {
-          track(AUTH_EVENTS.LOGIN_FAILED, { method: "email", reason: "disposable_email" });
-          setError("This email domain is not supported. Please use a permanent email (Gmail, Outlook, etc.).");
-        } else {
-          track(AUTH_EVENTS.LOGIN_FAILED, { method: "email", reason: "send_failed" });
-          setError("Unable to send login email. Please try again later.");
-        }
-      } else {
-        setView("email-sent");
+        track(AUTH_EVENTS.LOGIN_FAILED, { method: "email", reason: "unknown" });
+        setError("Invalid or expired verification code");
+        return;
       }
+
+      const targetUrl = result?.url ?? getCallbackUrl();
+      window.location.assign(targetUrl);
     } catch {
       track(AUTH_EVENTS.LOGIN_FAILED, { method: "email", reason: "unknown" });
       setError("Something went wrong. Please try again.");
@@ -329,7 +448,10 @@ export function useLogin() {
         return;
       }
       console.error(err);
-      track(AUTH_EVENTS.LOGIN_FAILED, { method: "credentials", reason: "unknown" });
+      track(AUTH_EVENTS.LOGIN_FAILED, {
+        method: "credentials",
+        reason: "unknown",
+      });
       setError("Invalid email or password");
     } finally {
       setIsLoading(false);
@@ -357,7 +479,10 @@ export function useLogin() {
         return;
       }
       console.error(err);
-      track(AUTH_EVENTS.LOGIN_FAILED, { method: "test_credentials", reason: "unknown" });
+      track(AUTH_EVENTS.LOGIN_FAILED, {
+        method: "test_credentials",
+        reason: "unknown",
+      });
       setError("Unable to sign in with the test account.");
     } finally {
       setIsLoading(false);
@@ -366,37 +491,48 @@ export function useLogin() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (showAutocomplete && suggestions.length > 0) {
       const selected = suggestions[autocompleteIndex];
       if (selected) setEmail(selected);
       setShowAutocomplete(false);
       return;
     }
-    
+
     if (isPasswordMode) {
       await submitPassword();
     } else {
-      await submitMagicLink();
+      await submitEmailCodeRequest();
     }
+  };
+
+  const handleCodeFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitEmailCode();
+  };
+
+  const handleResendCode = async () => {
+    await submitEmailCodeRequest();
   };
 
   const handleUseDifferentEmail = () => {
     setView("email");
     setEmail("");
+    setEmailCode("");
   };
 
   return {
     // Global state
     loginModalOpen,
     isSigninPage,
-    
+
     // View state
     view,
     setView,
-    
+
     // Form state
     email,
+    emailCode,
     password,
     showPassword,
     isLoading,
@@ -404,33 +540,38 @@ export function useLogin() {
     turnstileToken,
     isPasswordMode,
     isTestAccountLoginEnabled: TEST_ACCOUNT_LOGIN_ENABLED,
-    
+
     // Autocomplete
     showAutocomplete,
     autocompleteIndex,
     autocompleteRef,
     suggestions,
-    
+
     // Setters
     setEmail,
+    setEmailCode,
     setPassword,
     setShowPassword,
     setTurnstileToken,
     setError,
-    
+
     // Handlers
     handleModalClose,
     handleOAuthLogin,
     handleEmailMethodSelect,
     handleBack,
+    handleBackToEmail,
     handleEmailChange,
     handleEmailBlur,
+    handleEmailCodeChange,
     handleAutocompleteKeyDown,
     handleAutocompleteSuggestionClick,
     handleFormSubmit,
+    handleCodeFormSubmit,
+    handleResendCode,
     handleUseDifferentEmail,
     handleTestAccountLogin,
-    
+
     // Helpers
     getEmailProvider,
   };
