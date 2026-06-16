@@ -1,5 +1,5 @@
 import { streamText, convertToModelMessages, stepCountIs } from "ai";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { createOpenAI } from "@ai-sdk/openai";
 import { createId } from "@paralleldrive/cuid2";
 import { env } from "@/env";
 import { db } from "@/server/db";
@@ -57,10 +57,16 @@ export async function streamLLMResponse(options: StreamOptions): Promise<Respons
     ignoreIncompleteToolCalls: true,
   });
 
-  // Create OpenRouter model
-  const openrouter = createOpenRouter({
-    apiKey: env.OPENROUTER_API_KEY,
+  // Create LiteLLM client (OpenAI-compatible proxy)
+  const litellm = createOpenAI({
+    baseURL: `${env.LITELLM_URL}/v1`,
+    apiKey: env.LITELLM_MASTER_KEY,
   });
+
+  // LiteLLM registers OpenRouter-backed models under an "openrouter/" prefix
+  const litellmModel = agentConfig.model.startsWith("openrouter/")
+    ? agentConfig.model
+    : `openrouter/${agentConfig.model}`;
 
   // Pre-generate interaction IDs (ensures frontend always has real IDs)
   const preGeneratedIds = {
@@ -72,7 +78,7 @@ export async function streamLLMResponse(options: StreamOptions): Promise<Respons
 
   // Stream response with tools
   const result = streamText({
-    model: openrouter(agentConfig.model),
+    model: litellm(litellmModel),
     messages: modelMessages,
     tools: tools as Parameters<typeof streamText>[0]['tools'],
     system: agentConfig.instructions,
