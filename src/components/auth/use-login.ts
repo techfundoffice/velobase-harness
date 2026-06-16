@@ -398,6 +398,23 @@ export function useLogin() {
 
     setIsLoading(true);
 
+    const redirectToTarget = (url?: string | null) => {
+      window.location.assign(url ?? getCallbackUrl());
+    };
+
+    const hasActiveSession = async () => {
+      try {
+        const res = await fetch("/api/auth/session", { cache: "no-store" });
+        if (!res.ok) return false;
+        const session = (await res.json().catch(() => null)) as {
+          user?: unknown;
+        } | null;
+        return Boolean(session && session.user);
+      } catch {
+        return false;
+      }
+    };
+
     try {
       ensureDeviceKey();
 
@@ -409,14 +426,25 @@ export function useLogin() {
       });
 
       if (result?.error) {
+        // signIn reported an error, but the session may still have been
+        // established. Confirm before surfacing a failure to the user.
+        if (await hasActiveSession()) {
+          redirectToTarget(result?.url);
+          return;
+        }
         track(AUTH_EVENTS.LOGIN_FAILED, { method: "email", reason: "unknown" });
         setError("Invalid or expired verification code");
         return;
       }
 
-      const targetUrl = result?.url ?? getCallbackUrl();
-      window.location.assign(targetUrl);
+      redirectToTarget(result?.url);
     } catch {
+      // The auth network call can succeed (session created) while the
+      // signIn promise still throws. Confirm before showing an error.
+      if (await hasActiveSession()) {
+        redirectToTarget();
+        return;
+      }
       track(AUTH_EVENTS.LOGIN_FAILED, { method: "email", reason: "unknown" });
       setError("Something went wrong. Please try again.");
     } finally {
