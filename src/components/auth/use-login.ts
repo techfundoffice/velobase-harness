@@ -409,7 +409,7 @@ export function useLogin() {
         const session = (await res.json().catch(() => null)) as {
           user?: unknown;
         } | null;
-        return Boolean(session && session.user);
+        return Boolean(session?.user);
       } catch {
         return false;
       }
