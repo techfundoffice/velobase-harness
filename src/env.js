@@ -37,6 +37,8 @@ export const env = createEnv({
     OPENROUTER_API_KEY: z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
     OPENAI_BASE_URL: z.string().url().optional(),
+    LITELLM_URL: z.string().optional(),
+    LITELLM_MASTER_KEY: z.string().optional(),
     CDN_BASE_URL: z.string().url().optional(),
     STORAGE_PROVIDER: z
       .enum(["aws", "aliyun", "gcs", "minio", "r2"])
@@ -175,6 +177,8 @@ export const env = createEnv({
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
+    LITELLM_URL: process.env.LITELLM_URL,
+    LITELLM_MASTER_KEY: process.env.LITELLM_MASTER_KEY,
     CDN_BASE_URL: process.env.CDN_BASE_URL,
     STORAGE_PROVIDER: process.env.STORAGE_PROVIDER,
     STORAGE_REGION: process.env.STORAGE_REGION,
