@@ -68,3 +68,14 @@ export class NotFoundError extends ChatError {
     Object.setPrototypeOf(this, NotFoundError.prototype);
   }
 }
+
+/**
+ * Insufficient credits error
+ */
+export class InsufficientCreditsError extends ChatError {
+  constructor(message = "You're out of credits. Upgrade your plan or buy credits to continue.") {
+    super('INSUFFICIENT_CREDITS', message);
+    this.name = 'InsufficientCreditsError';
+    Object.setPrototypeOf(this, InsufficientCreditsError.prototype);
+  }
+}
