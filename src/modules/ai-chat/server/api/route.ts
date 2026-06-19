@@ -9,7 +9,7 @@ import { processLastMessageFiles, buildEnhancedAIProjection } from "../services/
 import { streamLLMResponse } from "../services/stream.service";
 import { loadConversationInteractions } from "../services/interaction.service";
 import { db } from "@/server/db";
-import { ChatError } from "../../types/errors";
+import { ChatError, InsufficientCreditsError } from "../../types/errors";
 import type { ChatUIMessage } from "../../types/message";
 import { createLogger } from "@/lib/logger";
 
@@ -70,6 +70,28 @@ export async function POST(req: Request) {
       await checkGuestRateLimits(req, request.id, request.guestId);
     }
 
+    // 3.5. Credit gate (non-guests only): block inference when balance is depleted.
+    // Fail-open: a billing-lookup failure must never block a paying user.
+    if (!authContext.isGuest && authContext.userId) {
+      try {
+        const { getBalance } = await import("@/server/billing/services/get-balance");
+        const balance = await getBalance({ userId: authContext.userId });
+        if (balance.totalSummary.available <= 0) {
+          logger.info(
+            { userId: authContext.userId, conversationId: request.id },
+            "Blocked chat: insufficient credits"
+          );
+          throw new InsufficientCreditsError();
+        }
+      } catch (err) {
+        if (err instanceof InsufficientCreditsError) throw err;
+        logger.warn(
+          { err, userId: authContext.userId },
+          "Credit check failed, allowing chat (fail-open)"
+        );
+      }
+    }
+
     // 4. Load agent configuration
     const agentConfig = authContext.isGuest
       ? await loadGuestAgentConfig(authContext.agentId!)
@@ -83,7 +105,7 @@ export async function POST(req: Request) {
       conversationId: request.id,
     };
     const tools = prepareTools(agentConfig.tools, toolContext);
-    
+
     logger.info({ toolCount: Object.keys(tools).length, toolNames: Object.keys(tools) }, "Prepared tools");
 
     // 6. Build message history based on trigger
@@ -147,10 +169,11 @@ export async function POST(req: Request) {
           ...(error.retryAfter && { retryAfter: error.retryAfter }),
         }),
         {
-          status: error.code === "RATE_LIMIT_EXCEEDED" ? 429 : 
-                 error.code === "UNAUTHORIZED" ? 401 :
-                 error.code === "NOT_FOUND" ? 404 :
-                 error.code === "BAD_REQUEST" ? 400 : 500,
+          status: error.code === "RATE_LIMIT_EXCEEDED" ? 429 :
+            error.code === "INSUFFICIENT_CREDITS" ? 402 :
+            error.code === "UNAUTHORIZED" ? 401 :
+            error.code === "NOT_FOUND" ? 404 :
+            error.code === "BAD_REQUEST" ? 400 : 500,
           headers: {
             "Content-Type": "application/json",
             ...(error.retryAfter && { "Retry-After": String(error.retryAfter) }),
