@@ -120,7 +120,9 @@
     "retry": "Regenerate",
     "newChat": "New chat",
     "hideDetails": "Hide details",
-    "showDetails": "Show details"
+    "showDetails": "Show details",
+    "errorInsufficientCredits": "您的额度已用完。请购买额度或升级套餐以继续聊天。",
+    "buyCredits": "购买额度"
   },
   "errors": {
     "notFound": "Page not found",
