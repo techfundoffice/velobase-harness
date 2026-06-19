@@ -120,7 +120,9 @@
     "retry": "Regenerate",
     "newChat": "New chat",
     "hideDetails": "Hide details",
-    "showDetails": "Show details"
+    "showDetails": "Show details",
+    "errorInsufficientCredits": "You're out of credits. Buy more or upgrade your plan to keep chatting.",
+    "buyCredits": "Buy credits"
   },
   "errors": {
     "notFound": "Page not found",
