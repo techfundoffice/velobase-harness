@@ -6,6 +6,7 @@ import { Background } from "@/components/layout/background";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { Features } from "@/components/landing/features";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 export default function HomePage() {
   const t = useTranslations("landing");
