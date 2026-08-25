@@ -4,7 +4,7 @@ import { getBalance } from "@/server/billing/services/get-balance";
 import { postConsume } from "@/server/billing/services/post-consume";
 import { calculateChatCost } from "@/server/billing/config/token-pricing";
 import { resolveOfficeDesktopKey } from "@/server/office/keys";
-import { toLiteLlmModel } from "@/server/office/litellm-model";
+import { resolveLiteLlmModel } from "@/server/office/litellm-model";
 import { createId } from "@paralleldrive/cuid2";
 
 const BILLING =
