@@ -12,6 +12,7 @@ import {
   formatUnitPrice,
   extractPlanFeatures,
 } from '../utils/format-price'
+import { officeCreditsCopy, officeSubscriptionCopy } from '../office-copy'
 
 export interface ListForPricingParams {
   type?: ProductType
@@ -289,6 +290,7 @@ export async function listForPricing({
         creditsPerMonth: creditsPerPeriod,
         planEntitlements: plan.planEntitlements,
       })
+      item.description = officeSubscriptionCopy(item.planType, creditsPerPeriod)
 
       // Calculate display price (formatted number only, no period suffix)
       // For yearly plans, we typically show the monthly equivalent price
@@ -320,6 +322,7 @@ export async function listForPricing({
         { currency: item.currency }
       )
       item.displayPrice = formatPrice(item.price, { currency: item.currency })
+      item.description = officeCreditsCopy(item.creditsAmount)
     } else {
       // Fallback for other types
       item.displayPrice = formatPrice(item.price, { currency: item.currency })

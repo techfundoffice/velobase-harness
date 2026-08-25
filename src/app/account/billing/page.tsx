@@ -17,6 +17,7 @@ import { SubscriptionModal } from '@/components/account/subscription-modal';
 import { TrialUnlockButton } from '@/components/billing/trial-unlock-button';
 import { BillingCreditsSection } from '@/components/billing/billing-credits-section';
 import { BillingActivitySection } from '@/components/billing/billing-activity-section';
+import { OfficeDesktopKeyCard } from '@/components/account/office-desktop-key';
 
 export default async function BillingPage() {
   const session = await auth();
@@ -100,6 +101,7 @@ export default async function BillingPage() {
             {' '}<Link href="/pricing" className="underline underline-offset-2">Pricing</Link>
             {' '}when credits run out. Subscribe or buy a pack here — Stripe credits this wallet.
           </div>
+          <OfficeDesktopKeyCard />
 
 
           {/* Section 1: Status Dashboard (Minimalist) */}

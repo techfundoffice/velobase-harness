@@ -60,7 +60,6 @@ export function CreditPacksDrawer({
           <div className="space-y-1">
               {creditsPackages.map((pack) => {
                 const isPopular = pack.name.toLowerCase().includes('creator');
-                const estimatedVideos = pack.creditsAmount ? Math.floor(pack.creditsAmount / 250) : 0;
 
                 return (
                   <div 
@@ -96,7 +95,7 @@ export function CreditPacksDrawer({
                           </span>
                         )}
                         <span>•</span>
-                        <span>~{estimatedVideos} videos</span>
+                        <span>AI Office credits</span>
                       </div>
                     </div>
 

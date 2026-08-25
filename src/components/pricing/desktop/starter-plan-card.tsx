@@ -25,7 +25,6 @@ export function StarterPlanCard({
   const displayPrice = product.displayPrice ?? '';
 
   const effectiveCredits = product.creditsPerMonth ?? 2300;
-  const estimatedVideos = Math.round(effectiveCredits / 250);
 
   return (
     <div className={cn(
@@ -54,14 +53,11 @@ export function StarterPlanCard({
             {effectiveCredits.toLocaleString()} credits
           </span>{' '}
           / week
-          <span className="block text-xs font-normal text-muted-foreground mt-0.5">
-            ~{estimatedVideos} videos
-          </span>
         </FeatureItem>
         
-        <FeatureItem active={true}>Up to 2 concurrent generations</FeatureItem>
-        <FeatureItem active={true}>Priority processing</FeatureItem>
-        <FeatureItem active={true}>Commercial License</FeatureItem>
+        <FeatureItem active={true}>Docs, sheets, slides, and PDF AI</FeatureItem>
+        <FeatureItem active={true}>Desktop AI Office</FeatureItem>
+        <FeatureItem active={true}>Commercial use</FeatureItem>
       </ul>
 
       <Button 

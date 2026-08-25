@@ -58,7 +58,6 @@ export function PaidPlanCard({
   const yearlyDisplayPrice = product.yearlyDisplayPrice;
 
   const effectiveCredits = product.creditsPerMonth ?? (isPremium ? 100000 : 30000);
-  const estimatedVideos = Math.round(effectiveCredits / 250);
 
   return (
     <div className={cn(
@@ -101,23 +100,20 @@ export function PaidPlanCard({
             {effectiveCredits.toLocaleString()} credits
           </span>{' '}
           / month
-          <span className="block text-xs font-normal text-muted-foreground mt-0.5">
-            ~{estimatedVideos} videos (High Quality)
-          </span>
         </FeatureItem>
         
         {isPremium ? (
           <>
-            <FeatureItem active={true}>No waiting — top priority processing</FeatureItem>
-            <FeatureItem active={true}>Up to 10 concurrent generations</FeatureItem>
-            <FeatureItem active={true}>High quality export</FeatureItem>
-            <FeatureItem active={true}>Commercial license</FeatureItem>
+            <FeatureItem active={true}>Docs, sheets, slides, and PDF AI</FeatureItem>
+            <FeatureItem active={true}>Priority models in AI Office</FeatureItem>
+            <FeatureItem active={true}>Desktop app + this workspace</FeatureItem>
+            <FeatureItem active={true}>Commercial use</FeatureItem>
           </>
         ) : (
           <>
-            <FeatureItem active={true}>No waiting — priority processing</FeatureItem>
-            <FeatureItem active={true}>Up to 5 concurrent generations</FeatureItem>
-            <FeatureItem active={true}>Commercial license</FeatureItem>
+            <FeatureItem active={true}>Docs, sheets, slides, and PDF AI</FeatureItem>
+            <FeatureItem active={true}>Desktop AI Office included</FeatureItem>
+            <FeatureItem active={true}>Commercial use</FeatureItem>
           </>
         )}
       </ul>

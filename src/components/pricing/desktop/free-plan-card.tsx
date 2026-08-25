@@ -19,13 +19,13 @@ export function FreePlanCard({ userTier, isLoggedIn }: FreePlanCardProps) {
       <div className="mb-8">
         <h3 className="text-xl font-semibold text-foreground mb-2">Free</h3>
         <div className="text-3xl font-bold text-foreground mb-1">$0</div>
-        <p className="text-muted-foreground text-sm">For trying out AI SaaS</p>
+        <p className="text-muted-foreground text-sm">Try AI Office, then subscribe</p>
       </div>
       
       <ul className="space-y-4 mb-8 flex-1">
         <FeatureItem active={true}>Welcome credits on signup</FeatureItem>
-        <FeatureItem active={false} text="Standard queue time" />
-        <FeatureItem active={false} text="Standard license" />
+        <FeatureItem active={true}>Docs, sheets, slides, PDF</FeatureItem>
+        <FeatureItem active={false} text="Monthly refill (subscribe)" />
       </ul>
 
       <Button 
