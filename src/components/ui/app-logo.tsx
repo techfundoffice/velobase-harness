@@ -25,8 +25,10 @@ export function AppLogo({ className, size = "md", variant = "default" }: AppLogo
       <Logo size={logoSizeMap[size]} className="text-primary" />
       {variant === "default" && (
         <div className={cn("font-bold tracking-tight leading-none flex items-center", textClasses[size])}>
-          <span className="text-foreground">AI</span>
-          <span className="text-foreground/40 font-medium ml-1">SaaS</span>
+          <span className="text-foreground">AI Office</span>
+          <span className="text-foreground/40 font-medium ml-1 hidden sm:inline">
+            by Cloud Computer AI
+          </span>
         </div>
       )}
     </div>

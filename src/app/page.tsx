@@ -36,6 +36,20 @@ export default function HomePage() {
               {t("hero.subtitleAccent")}
             </span>
           </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+            <a
+              href="/pricing"
+              className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
+            >
+              Subscribe or buy credits
+            </a>
+            <a
+              href="/chat"
+              className="inline-flex h-11 items-center justify-center rounded-md border border-border bg-background px-6 text-sm font-medium hover:bg-accent"
+            >
+              Open AI chat
+            </a>
+          </div>
         </div>
       </main>
 

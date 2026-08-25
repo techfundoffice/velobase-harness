@@ -167,13 +167,28 @@ export function Header({ variant = "default", className }: HeaderProps) {
                 </DropdownMenu>
               </>
             ) : (
-              <Button
-                variant="ghost"
-                onClick={() => setLoginModalOpen(true, undefined, "header")}
-                className="text-foreground hover:bg-accent hover:text-accent-foreground"
-              >
-                {t("logIn")}
-              </Button>
+              <>
+                <Link href="/pricing">
+                  <Button
+                    variant="ghost"
+                    className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {t("pricing")}
+                  </Button>
+                </Link>
+                <Link href="/pricing">
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    Subscribe
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  onClick={() => setLoginModalOpen(true, undefined, "header")}
+                  className="text-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  {t("logIn")}
+                </Button>
+              </>
             )}
           </div>
         </div>

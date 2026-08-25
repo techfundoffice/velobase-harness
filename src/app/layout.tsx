@@ -29,8 +29,9 @@ import { ServiceNoticeBanner } from "@/components/layout/service-notice-banner";
 const CONSENT_COOKIE = "app_cookie_consent";
 
 export const metadata: Metadata = {
-  title: "AI SaaS Framework",
-  description: "Production-ready AI SaaS framework with auth, billing, payments, and AI chat built in.",
+  title: "AI Office by Cloud Computer AI",
+  description:
+    "Subscribe to AI Office, buy credits, and run AI chat, docs, sheets, slides, and PDF on Cloud Computer AI.",
   icons: [
     { rel: "icon", url: "/favicon.ico", sizes: "any" },
     { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" },

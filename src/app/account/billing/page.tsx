@@ -95,6 +95,12 @@ export default async function BillingPage() {
 
       <main className="relative z-10 flex flex-col items-center w-full px-4 pt-28 pb-20">
         <div className="w-full max-w-3xl space-y-10">
+          <div className="rounded-xl border border-border/60 bg-card/40 px-4 py-3 text-sm text-muted-foreground">
+            Desktop <span className="text-foreground">AI Office by Cloud Computer AI</span> opens
+            {' '}<Link href="/pricing" className="underline underline-offset-2">Pricing</Link>
+            {' '}when credits run out. Subscribe or buy a pack here — Stripe credits this wallet.
+          </div>
+
 
           {/* Section 1: Status Dashboard (Minimalist) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { UnsubscribeClient } from "./unsubscribe-client";
 
 export const metadata = {
-  title: "Unsubscribe | AI SaaS",
+  title: "Unsubscribe | AI Office by Cloud Computer AI",
   description: "Manage your email preferences",
 };
 

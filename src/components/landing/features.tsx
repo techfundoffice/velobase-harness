@@ -6,26 +6,26 @@ import { cn } from "@/lib/utils";
 const features = [
   {
     icon: Sparkles,
-    title: "AI-First Architecture",
-    description: "Multi-provider AI SDK with OpenAI, Anthropic, Google Gemini, and more — ready out of the box.",
+    title: "AI Office",
+    description: "Docs, sheets, slides, and PDF with the same prepaid credits you buy here.",
     color: "text-blue-500",
   },
   {
     icon: Zap,
-    title: "Ship Fast",
-    description: "Auth, billing, payments, background jobs, and email — all pre-wired so you can focus on your core feature.",
+    title: "Subscribe or top up",
+    description: "Stripe subscriptions refill monthly credits. Credit packs are one-time top-ups.",
     color: "text-purple-500",
   },
   {
     icon: Lock,
-    title: "Production Ready",
-    description: "Rate limiting, abuse prevention, analytics, and admin dashboard included from day one.",
+    title: "Your account",
+    description: "Sign in with Google or GitHub. Billing, invoices, and credit balance live in one wallet.",
     color: "text-emerald-500",
   },
   {
     icon: CreditCard,
-    title: "Flexible Billing",
-    description: "Stripe, Airwallex, crypto payments, and a credit-based system with subscriptions and promo codes.",
+    title: "LiteLLM + Stripe",
+    description: "Paid credits gate AI chat. Desktop AI Office opens this same checkout when credits run out.",
     color: "text-orange-500",
   },
 ];
@@ -40,16 +40,16 @@ export function Features() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-8">
           <div className="max-w-2xl">
             <h2 className="text-sm font-medium text-blue-500 tracking-widest uppercase mb-6">
-              Framework Features
+              AI Office
             </h2>
             <h3 className="text-4xl md:text-6xl font-medium tracking-tight text-foreground leading-[1.1]">
-              Everything you need <br/>
-              <span className="text-muted-foreground">to launch your AI SaaS.</span>
+              Subscribe once. <br/>
+              <span className="text-muted-foreground">Use it in the desktop app.</span>
             </h3>
           </div>
           
           <p className="text-lg text-muted-foreground max-w-sm leading-relaxed font-light">
-            A full-stack Next.js framework with all the infrastructure a solo developer needs to build, launch, and scale an AI product.
+            This is the Cloud Computer AI checkout for AI Office. Credits you buy here power chat in this workspace and the Windows installer.
           </p>
         </div>
 

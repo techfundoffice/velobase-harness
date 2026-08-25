@@ -43,8 +43,8 @@
     "refundPolicy": "Refund Policy"
   },
   "auth": {
-    "welcomeTitle": "Welcome to AI SaaS",
-    "welcomeSubtitle": "Sign in to start building with AI SaaS",
+    "welcomeTitle": "Welcome to AI Office",
+    "welcomeSubtitle": "Sign in to subscribe, buy credits, and use AI Office by Cloud Computer AI",
     "continueWith": "Continue with {provider}",
     "continueWithEmail": "Continue with Email",
     "loginTestAccount": "Login test account",
@@ -136,10 +136,10 @@
   },
   "landing": {
     "hero": {
-      "titleLine1": "Build Your AI App",
-      "titleLine2": "In Record Time",
-      "subtitle": "A production-ready AI SaaS framework with auth, billing, payments, and AI chat built in.",
-      "subtitleAccent": "Focus on your core feature. We handle the rest."
+      "titleLine1": "AI Office by",
+      "titleLine2": "Cloud Computer AI",
+      "subtitle": "Word, sheets, slides, and PDF with prepaid AI credits.",
+      "subtitleAccent": "Subscribe or buy a credit pack — Stripe checkout, then chat."
     }
   },
   "account": {

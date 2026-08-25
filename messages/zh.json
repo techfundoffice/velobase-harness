@@ -43,8 +43,8 @@
     "refundPolicy": "Refund Policy"
   },
   "auth": {
-    "welcomeTitle": "Welcome to AI SaaS",
-    "welcomeSubtitle": "Sign in to start building with AI SaaS",
+    "welcomeTitle": "欢迎使用 AI Office",
+    "welcomeSubtitle": "登录后可订阅、购买积分，并使用 Cloud Computer AI 的 AI Office",
     "continueWith": "Continue with {provider}",
     "continueWithEmail": "Continue with Email",
     "loginTestAccount": "登录测试账户",
@@ -136,10 +136,10 @@
   },
   "landing": {
     "hero": {
-      "titleLine1": "Build Your AI App",
-      "titleLine2": "In Record Time",
-      "subtitle": "A production-ready AI SaaS framework with auth, billing, payments, and AI chat built in.",
-      "subtitleAccent": "Focus on your core feature. We handle the rest."
+      "titleLine1": "AI Office by",
+      "titleLine2": "Cloud Computer AI",
+      "subtitle": "文档、表格、幻灯片和 PDF，预付 AI 积分即可使用。",
+      "subtitleAccent": "订阅或购买积分包 — Stripe 结账后即可对话。"
     }
   },
   "account": {

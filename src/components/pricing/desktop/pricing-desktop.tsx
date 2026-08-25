@@ -97,7 +97,7 @@ export function PricingDesktop({
     setLoadingId(productId);
     const result = await startCheckout({
       productId,
-      successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent('/create')}`,
+      successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent('/account/billing')}`,
       cancelUrl: `${window.location.origin}/pricing`,
     });
 
@@ -120,7 +120,7 @@ export function PricingDesktop({
     setLoadingId(productId);
     const result = await startCheckout({
       productId,
-      successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent('/create')}`,
+      successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent('/account/billing')}`,
       cancelUrl: `${window.location.origin}/pricing#credits`,
     });
 
