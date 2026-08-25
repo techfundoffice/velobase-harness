@@ -4,7 +4,11 @@ import { getBalance } from "@/server/billing/services/get-balance";
 import { postConsume } from "@/server/billing/services/post-consume";
 import { calculateChatCost } from "@/server/billing/config/token-pricing";
 import { resolveOfficeDesktopKey } from "@/server/office/keys";
-import { resolveLiteLlmModel } from "@/server/office/litellm-model";
+import {
+  listLiteLlmModelIds,
+  resolveLiteLlmModel,
+  toOpenRouterModel,
+} from "@/server/office/litellm-model";
 import { createId } from "@paralleldrive/cuid2";
 
 const BILLING =
@@ -56,7 +60,11 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
-  const modelName = typeof body.model === "string" && body.model.trim() ? body.model : "gpt-4o-mini";
+  const modelName =
+    typeof body.model === "string" && body.model.trim()
+      ? body.model
+      : "anthropic/claude-sonnet-4.5";
+  const catalog = await listLiteLlmModelIds();
   const model = await resolveLiteLlmModel(modelName);
   const stream = Boolean(body.stream);
   const upstreamBody = {
@@ -65,22 +73,96 @@ export async function POST(req: Request) {
     ...(stream ? { stream_options: { include_usage: true } } : {}),
   };
 
-  const upstream = await fetch(`${litellmUrl}/v1/chat/completions`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${master}`,
-    },
-    body: JSON.stringify(upstreamBody),
-  });
+  const openrouterKey = env.OPENROUTER_API_KEY;
+  const FREE_MODEL = "minimax/minimax-m3:free";
+
+  async function openRouterCompletion(modelId: string) {
+    if (!openrouterKey) return null;
+    return fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${openrouterKey}`,
+        "http-referer": BILLING,
+        "x-title": "AI Office by Cloud Computer AI",
+      },
+      body: JSON.stringify({ ...upstreamBody, model: modelId }),
+    });
+  }
+
+  let upstream: Response;
+  const skipLiteLlm = catalog.length === 0 && Boolean(openrouterKey);
+  if (skipLiteLlm) {
+    upstream =
+      (await openRouterCompletion(toOpenRouterModel(modelName))) ??
+      (await openRouterCompletion(FREE_MODEL)) ??
+      new Response(JSON.stringify({ error: { message: "OpenRouter is not configured" } }), {
+        status: 503,
+        headers: { "content-type": "application/json" },
+      });
+  } else {
+    upstream = await fetch(`${litellmUrl}/v1/chat/completions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${master}`,
+      },
+      body: JSON.stringify(upstreamBody),
+    });
+  }
+
+  if (!upstream.ok && openrouterKey) {
+    const text = await upstream.text();
+    const retryable =
+      /invalid model name|call `\/v1\/models`|missing authentication|insufficient credits|no deployments available|cooldown/i.test(
+        text,
+      ) ||
+      upstream.status === 401 ||
+      upstream.status === 402 ||
+      upstream.status === 429;
+    if (retryable) {
+      let retry =
+        (await openRouterCompletion(toOpenRouterModel(modelName))) ??
+        (await openRouterCompletion(FREE_MODEL));
+      if (retry && !retry.ok) {
+        const paidFail = await retry.text();
+        if (/insufficient credits/i.test(paidFail) || retry.status === 402) {
+          retry = await openRouterCompletion(FREE_MODEL);
+        } else {
+          retry = new Response(paidFail, {
+            status: retry.status,
+            headers: {
+              "content-type": retry.headers.get("content-type") || "application/json",
+            },
+          });
+        }
+      }
+      upstream =
+        retry ??
+        new Response(text, {
+          status: upstream.status,
+          headers: {
+            "content-type":
+              upstream.headers.get("content-type") || "application/json",
+          },
+        });
+    } else {
+      upstream = new Response(text, {
+        status: upstream.status,
+        headers: {
+          "content-type":
+            upstream.headers.get("content-type") || "application/json",
+        },
+      });
+    }
+  }
 
   if (!upstream.ok) {
     const text = await upstream.text();
-    const exhausted =
-      /budget|quota|credit|insufficient/i.test(text) ||
-      upstream.status === 401 ||
-      upstream.status === 402;
-    if (exhausted) return creditsExhausted();
+    const userOutOfCredits =
+      /cloudcomputerai credits have been exhausted|available credits/i.test(text) ||
+      (upstream.status === 402 && /insufficient_quota/i.test(text));
+    if (userOutOfCredits) return creditsExhausted();
     return new NextResponse(text || `LiteLLM HTTP ${upstream.status}`, {
       status: upstream.status,
       headers: { "content-type": upstream.headers.get("content-type") || "application/json" },
