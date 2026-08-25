@@ -38,18 +38,18 @@ export default function HomePage() {
             </span>
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-            <a
+            <Link
               href="/pricing"
               className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
             >
               Subscribe or buy credits
-            </a>
-            <a
+            </Link>
+            <Link
               href="/chat"
               className="inline-flex h-11 items-center justify-center rounded-md border border-border bg-background px-6 text-sm font-medium hover:bg-accent"
             >
               Open AI chat
-            </a>
+            </Link>
           </div>
         </div>
       </main>
