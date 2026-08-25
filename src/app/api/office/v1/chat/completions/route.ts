@@ -56,7 +56,8 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
-  const model = toLiteLlmModel(String(body.model || "gpt-4o-mini"));
+  const modelName = typeof body.model === "string" && body.model.trim() ? body.model : "gpt-4o-mini";
+  const model = toLiteLlmModel(modelName);
   const stream = Boolean(body.stream);
   const upstreamBody = {
     ...body,
