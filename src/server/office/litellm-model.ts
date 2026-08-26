@@ -52,7 +52,10 @@ export async function listLiteLlmModelIds(): Promise<string[]> {
   const ids: string[] = [];
   for (const path of ["/v1/models", "/model/info", "/v1/model/info"]) {
     try {
-      const res = await fetch(`${base}${path}`, { headers });
+      const res = await fetch(`${base}${path}`, {
+        headers,
+        signal: AbortSignal.timeout(8_000),
+      });
       if (!res.ok) continue;
       ids.push(...collectIds(await res.json()));
     } catch {

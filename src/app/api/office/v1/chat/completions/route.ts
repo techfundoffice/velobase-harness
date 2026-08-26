@@ -51,7 +51,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const balance = await getBalance({ userId });
+    const balance = await Promise.race([
+      getBalance({ userId }),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("balance timeout")), 8_000);
+      }),
+    ]);
     if (balance.totalSummary.available <= 0) {
       return creditsExhausted();
     }
@@ -87,6 +92,7 @@ export async function POST(req: Request) {
         "x-title": "AI Office by Cloud Computer AI",
       },
       body: JSON.stringify({ ...upstreamBody, model: modelId }),
+      signal: AbortSignal.timeout(20_000),
     });
   }
 
@@ -101,14 +107,24 @@ export async function POST(req: Request) {
         headers: { "content-type": "application/json" },
       });
   } else {
-    upstream = await fetch(`${litellmUrl}/v1/chat/completions`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${master}`,
-      },
-      body: JSON.stringify(upstreamBody),
-    });
+    try {
+      upstream = await fetch(`${litellmUrl}/v1/chat/completions`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${master}`,
+        },
+        body: JSON.stringify(upstreamBody),
+        signal: AbortSignal.timeout(stream ? 45_000 : 12_000),
+      });
+    } catch {
+      upstream =
+        (await openRouterCompletion(FREE_MODEL)) ??
+        new Response(
+          JSON.stringify({ error: { message: "LiteLLM timed out" } }),
+          { status: 504, headers: { "content-type": "application/json" } },
+        );
+    }
   }
 
   if (!upstream.ok && openrouterKey) {
