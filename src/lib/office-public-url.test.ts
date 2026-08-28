@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
+import {
+  OFFICE_PUBLIC_ORIGIN,
+  officePaymentCancelUrl,
+  officePaymentSuccessUrl,
+  officePublicOrigin,
+} from './office-public-url.ts'
+
+const aioffice = {
+  origin: 'https://aioffice.cloudcomputerai.com',
+  hostname: 'aioffice.cloudcomputerai.com',
+}
+
+const railway = {
+  origin:
+    'https://velobase-harness-ai-office-by-cloud-computer-ai.up.railway.app',
+  hostname: 'velobase-harness-ai-office-by-cloud-computer-ai.up.railway.app',
+}
+
+describe('officePublicOrigin', () => {
+  it('keeps aioffice when the window is already on the public host', () => {
+    assert.equal(officePublicOrigin(aioffice), OFFICE_PUBLIC_ORIGIN)
+  })
+
+  it('pins railway.app windows onto aioffice.cloudcomputerai.com', () => {
+    assert.equal(officePublicOrigin(railway), OFFICE_PUBLIC_ORIGIN)
+    assert.equal(officePublicOrigin(railway).includes('railway.app'), false)
+  })
+})
+
+describe('officePaymentSuccessUrl', () => {
+  it('uses aioffice and the Stripe session_id template from the public host', () => {
+    const url = officePaymentSuccessUrl(undefined, aioffice)
+    assert.equal(new URL(url).host, 'aioffice.cloudcomputerai.com')
+    assert.match(url, /session_id=\{CHECKOUT_SESSION_ID\}/)
+    assert.equal(url.includes('railway.app'), false)
+  })
+
+  it('rewrites a railway.app window onto aioffice with the session_id template', () => {
+    const url = officePaymentSuccessUrl('/account/billing', railway)
+    const parsed = new URL(url.replace('{CHECKOUT_SESSION_ID}', 'sess_test'))
+    assert.equal(parsed.host, 'aioffice.cloudcomputerai.com')
+    assert.equal(parsed.pathname, '/payment/success')
+    assert.equal(url.includes('railway.app'), false)
+    assert.match(url, /session_id=\{CHECKOUT_SESSION_ID\}/)
+  })
+})
+
+describe('officePaymentCancelUrl', () => {
+  it('cancels on aioffice from the public host', () => {
+    const url = officePaymentCancelUrl('/pricing', aioffice)
+    assert.equal(new URL(url).host, 'aioffice.cloudcomputerai.com')
+    assert.equal(url.includes('railway.app'), false)
+  })
+
+  it('cancels on aioffice even when the window is still on railway.app', () => {
+    const url = officePaymentCancelUrl('/pricing', railway)
+    assert.equal(new URL(url).host, 'aioffice.cloudcomputerai.com')
+    assert.equal(url.includes('up.railway.app'), false)
+  })
+})
