@@ -8,6 +8,8 @@
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { pinOfficeAuthUrl } = await import("./lib/office-public-url");
+    pinOfficeAuthUrl();
     const { initRuntime } = await import("./server/init");
     await initRuntime();
   }

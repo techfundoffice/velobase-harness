@@ -55,3 +55,35 @@ export function officePaymentCancelUrl(
   const suffix = path.startsWith('/') ? path : `/${path}`
   return `${officePublicOrigin(loc)}${suffix}`
 }
+
+/**
+ * Canonical Auth.js / NextAuth URL for OAuth redirect_uri.
+ * Railway NEXTAUTH_URL/AUTH_URL pointing at *.up.railway.app is rewritten to
+ * aioffice so Google login from the public host does not bounce.
+ */
+export function officeAuthUrl(
+  env: Record<string, string | undefined> = process.env,
+): string {
+  for (const key of ['AUTH_URL', 'NEXTAUTH_URL'] as const) {
+    const raw = env[key]?.trim()
+    if (!raw) continue
+    try {
+      const parsed = new URL(raw)
+      if (parsed.hostname.endsWith('railway.app')) continue
+      return `${parsed.protocol}//${parsed.host}`
+    } catch {
+      continue
+    }
+  }
+  return OFFICE_PUBLIC_ORIGIN
+}
+
+/** Mutate AUTH_URL / NEXTAUTH_URL so NextAuth() sees the public host. */
+export function pinOfficeAuthUrl(
+  env: Record<string, string | undefined> = process.env,
+): string {
+  const url = officeAuthUrl(env)
+  env.AUTH_URL = url
+  env.NEXTAUTH_URL = url
+  return url
+}
