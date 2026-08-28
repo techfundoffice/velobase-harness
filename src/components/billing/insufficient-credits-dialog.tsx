@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscriptionProducts, useCreditsPackages, useCreditsPackVariant } from "@/hooks/use-pricing-products";
 import { useSmartCheckout } from "@/hooks/use-smart-checkout";
+import { officePaymentCancelUrl, officePaymentSuccessUrl } from "@/lib/office-public-url";
 
 import { CreditsDialogContent } from "./credits-dialog-content";
 import type { UserTier } from "./insufficient-credits/hooks/use-upgrade-strategy";
@@ -94,8 +95,8 @@ export function InsufficientCreditsDialog({
       const returnPath = typeof window !== "undefined" ? window.location.pathname : "/";
       const result = await startCheckout({
         productId,
-        successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent(returnPath)}`,
-        cancelUrl: `${window.location.origin}${returnPath}`,
+        successUrl: officePaymentSuccessUrl(returnPath),
+        cancelUrl: officePaymentCancelUrl(returnPath),
       });
 
       if (result.status === "ERROR") {

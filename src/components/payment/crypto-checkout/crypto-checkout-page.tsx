@@ -21,6 +21,7 @@ import {
   type CryptoCheckoutPreview, 
   type CryptoEstimate 
 } from './types'
+import { officePaymentCancelUrl, officePublicOrigin } from '@/lib/office-public-url'
 
 export function CryptoCheckoutPage() {
   const searchParams = useSearchParams()
@@ -150,8 +151,8 @@ export function CryptoCheckoutPage() {
       const result = await checkout.mutateAsync({
         productId,
         quantity: 1,
-        successUrl: `${window.location.origin}/payment/success?from=${from}`,
-        cancelUrl: `${window.location.origin}/payment/select-crypto?productId=${productId}&from=${from}`,
+        successUrl: `${officePublicOrigin()}/payment/success?from=${from}&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: officePaymentCancelUrl(`/payment/select-crypto?productId=${productId}&from=${from}`),
       })
       
       if (result.status === 'OK' && result.url) {
@@ -217,8 +218,8 @@ export function CryptoCheckoutPage() {
         gateway: 'NOWPAYMENTS',
         cryptoCurrency: selectedCurrencyId,
         quantity,
-        successUrl: `${window.location.origin}/payment/success?from=${from}`,
-        cancelUrl: `${window.location.origin}/payment/select-crypto?productId=${productId}&from=${from}`,
+        successUrl: `${officePublicOrigin()}/payment/success?from=${from}&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: officePaymentCancelUrl(`/payment/select-crypto?productId=${productId}&from=${from}`),
       })
       
       if (result.status === 'OK' && result.url) {

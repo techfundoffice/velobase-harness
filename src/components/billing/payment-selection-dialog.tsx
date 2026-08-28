@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import { CreditCard, Wallet, ChevronRight, ShieldCheck, Zap, Loader2 } from 'lucide-react'
 import { usePaymentDialogStore, type PaymentMethod } from '@/stores/payment-dialog-store'
+import { officePaymentCancelUrl, officePaymentSuccessUrl } from '@/lib/office-public-url'
 
 export function PaymentSelectionDialog() {
   const isMobile = useIsMobile()
@@ -50,8 +51,8 @@ export function PaymentSelectionDialog() {
           const result = await checkoutMutation.mutateAsync({
             productId,
             gateway: 'STRIPE',
-            successUrl: `${window.location.origin}/payment/success`,
-            cancelUrl: window.location.href,
+            successUrl: officePaymentSuccessUrl(),
+            cancelUrl: officePaymentCancelUrl('/pricing'),
           })
           closePaymentDialog()
           if (result.status === 'OK' && result.url) {

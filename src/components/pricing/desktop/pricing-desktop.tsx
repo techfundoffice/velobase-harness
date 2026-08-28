@@ -12,6 +12,7 @@ import { StarterPlanCard } from './starter-plan-card';
 import { CreditPacksSection } from './credit-packs-section';
 import { useSmartCheckout } from '@/hooks/use-smart-checkout';
 import { SALES_PAUSED } from '@/config/decommission';
+import { officePaymentCancelUrl, officePaymentSuccessUrl } from '@/lib/office-public-url';
 
 // Define types based on usage
 export interface ProductFeatures {
@@ -97,8 +98,8 @@ export function PricingDesktop({
     setLoadingId(productId);
     const result = await startCheckout({
       productId,
-      successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent('/account/billing')}`,
-      cancelUrl: `${window.location.origin}/pricing`,
+      successUrl: officePaymentSuccessUrl('/account/billing'),
+      cancelUrl: officePaymentCancelUrl('/pricing'),
     });
 
     if (result.status === 'ERROR') {
@@ -120,8 +121,8 @@ export function PricingDesktop({
     setLoadingId(productId);
     const result = await startCheckout({
       productId,
-      successUrl: `${window.location.origin}/payment/success?next=${encodeURIComponent('/account/billing')}`,
-      cancelUrl: `${window.location.origin}/pricing#credits`,
+      successUrl: officePaymentSuccessUrl('/account/billing'),
+      cancelUrl: officePaymentCancelUrl('/pricing#credits'),
     });
 
     if (result.status === 'ERROR') {

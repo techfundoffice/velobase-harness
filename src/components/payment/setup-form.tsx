@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Lock, CreditCard, ShieldCheck } from "lucide-react";
 import type { StripeCardNumberElementOptions } from "@stripe/stripe-js";
 import { useTheme } from "next-themes";
+import { officePublicOrigin } from "@/lib/office-public-url";
 
 // Common countries
 const COUNTRIES = [
@@ -111,7 +112,7 @@ export function SetupForm({ clientSecret }: SetupFormProps) {
           address: { country, postal_code: postalCode.trim() || undefined },
         },
       },
-      return_url: `${window.location.origin}/payment-info/success`,
+      return_url: `${officePublicOrigin()}/payment-info/success`,
     });
 
     if (error) {

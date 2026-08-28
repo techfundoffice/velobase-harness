@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { track } from '@/analytics';
 import { BILLING_EVENTS } from '@/analytics/events/billing';
 import { useSmartCheckout } from '@/hooks/use-smart-checkout';
+import { officePaymentCancelUrl, officePaymentSuccessUrl } from '@/lib/office-public-url';
 
 interface ProductItem {
   id: string;
@@ -103,8 +104,8 @@ export function SubscriptionCard({ product, billingInterval, onRequireLogin, use
     try {
       const result = await startCheckout({
         productId: product.id,
-        successUrl: `${window.location.origin}/payment/success`,
-        cancelUrl: `${window.location.origin}/payment/failed?reason=canceled`,
+        successUrl: officePaymentSuccessUrl(),
+        cancelUrl: officePaymentCancelUrl('/payment/failed?reason=canceled'),
       });
 
       if (result.status === 'ERROR') {

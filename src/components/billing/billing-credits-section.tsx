@@ -10,6 +10,7 @@ import { BILLING_EVENTS } from '@/analytics/events/billing';
 import Link from 'next/link';
 import { useSmartCheckout } from '@/hooks/use-smart-checkout';
 import { SALES_PAUSED } from '@/config/decommission';
+import { officePaymentCancelUrl, officePaymentSuccessUrl } from '@/lib/office-public-url';
 
 interface StarterPack {
   id: string;
@@ -44,8 +45,8 @@ export function BillingCreditsSection({ starterPack }: BillingCreditsSectionProp
 
     const result = await startCheckout({
       productId: starterPack.id,
-      successUrl: `${window.location.origin}/payment/success`,
-      cancelUrl: `${window.location.origin}/payment/failed?reason=canceled`,
+      successUrl: officePaymentSuccessUrl(),
+      cancelUrl: officePaymentCancelUrl('/payment/failed?reason=canceled'),
     });
 
     if (result.status === 'ERROR') {

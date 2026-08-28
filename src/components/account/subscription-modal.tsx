@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { track } from '@/analytics';
 import { BILLING_EVENTS } from '@/analytics/events/billing';
 import { useSmartCheckout } from '@/hooks/use-smart-checkout';
+import { officePaymentCancelUrl, officePaymentSuccessUrl } from '@/lib/office-public-url';
 
 interface ProductItem {
   id: string;
@@ -75,8 +76,8 @@ export function SubscriptionModal({ products, children }: SubscriptionModalProps
     try {
       const result = await startCheckout({
         productId: selectedProduct.id,
-        successUrl: `${window.location.origin}/payment/success`,
-        cancelUrl: `${window.location.origin}/payment/failed?reason=canceled`,
+        successUrl: officePaymentSuccessUrl(),
+        cancelUrl: officePaymentCancelUrl('/payment/failed?reason=canceled'),
       });
 
       if (result.status === 'ERROR') {

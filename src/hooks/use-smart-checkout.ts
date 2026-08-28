@@ -3,6 +3,7 @@
 import { api } from '@/trpc/react'
 import { toast } from 'sonner'
 import { SALES_PAUSED } from '@/config/decommission'
+import { officePaymentCancelUrl, officePaymentSuccessUrl } from '@/lib/office-public-url'
 
 interface CheckoutParams {
   productId: string
@@ -36,8 +37,8 @@ export function useSmartCheckout() {
       const result = await checkoutMutation.mutateAsync({
         productId,
         gateway: 'STRIPE',
-        successUrl: successUrl ?? `${window.location.origin}/payment/success`,
-        cancelUrl: cancelUrl ?? window.location.href,
+        successUrl: successUrl ?? officePaymentSuccessUrl(),
+        cancelUrl: cancelUrl ?? officePaymentCancelUrl('/pricing'),
       })
 
       if (result.status === 'OK' && result.url) {

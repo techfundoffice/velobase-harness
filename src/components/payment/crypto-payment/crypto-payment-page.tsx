@@ -21,6 +21,7 @@ import { CryptoPaymentReceipt } from './crypto-payment-receipt'
 import { CryptoPaymentProgress } from './crypto-payment-progress'
 import { CryptoPaymentFooter } from './crypto-payment-footer'
 import { ceilToDecimals, type NowPaymentsExtra, type ProgressStep } from './types'
+import { officePublicOrigin } from '@/lib/office-public-url'
 
 function getNetworkName(currencySymbol: string) {
   const match = CRYPTO_CURRENCIES.find((c) => c.id.toLowerCase() === currencySymbol.toLowerCase())
@@ -209,7 +210,7 @@ export function CryptoPaymentPage() {
     if (!payment?.status) return
 
     if (payment.status === 'SUCCEEDED') {
-      const u = new URL(`${window.location.origin}/payment/success`)
+      const u = new URL(`${officePublicOrigin()}/payment/success`)
       u.searchParams.set('paymentId', paymentId)
       if (orderId) u.searchParams.set('orderId', orderId)
       router.replace(u.toString())
@@ -217,7 +218,7 @@ export function CryptoPaymentPage() {
     }
 
     if (['FAILED', 'EXPIRED', 'REFUNDED'].includes(payment.status)) {
-      const u = new URL(`${window.location.origin}/payment/failed`)
+      const u = new URL(`${officePublicOrigin()}/payment/failed`)
       u.searchParams.set('paymentId', paymentId)
       if (orderId) u.searchParams.set('orderId', orderId)
       u.searchParams.set('reason', payment.status === 'EXPIRED' ? 'canceled' : 'failed')
