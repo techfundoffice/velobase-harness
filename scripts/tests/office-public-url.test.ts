@@ -7,7 +7,7 @@ import {
   officePaymentSuccessUrl,
   officePublicOrigin,
   pinOfficeAuthUrl,
-} from './office-public-url.ts'
+} from '../../src/lib/office-public-url.ts'
 
 const aioffice = {
   origin: 'https://aioffice.cloudcomputerai.com',

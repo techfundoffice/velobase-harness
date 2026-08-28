@@ -30,7 +30,7 @@
     "dev:all": "tsx watch src/server/standalone.ts",
     "start:all": "node --import tsx src/server/standalone.ts",
     "update:disposable-domains": "tsx scripts/update-disposable-domains.ts",
-    "test:office-urls": "tsx --test src/lib/office-public-url.test.ts"
+    "test:office-urls": "tsx --test scripts/tests/office-public-url.test.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.53",
