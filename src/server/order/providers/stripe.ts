@@ -14,6 +14,15 @@ import {
 } from "@/server/affiliate/services/ledger";
 import type { NormalizedSubscriptionWebhookData } from "./types";
 import { getStripe } from "@/server/order/services/stripe/client";
+import { officeStripeCheckoutUrl } from "@/lib/office-public-url";
+
+function requireStripeCheckoutUrl(sessionUrl: string | null | undefined): string {
+  const url = officeStripeCheckoutUrl(sessionUrl);
+  if (!url) {
+    throw new Error("Stripe Checkout session missing checkout.stripe.com URL");
+  }
+  return url;
+}
 
 export { getStripe as getStripeClient } from "@/server/order/services/stripe/client";
 
@@ -185,8 +194,8 @@ export const stripeProvider: PaymentProvider = {
           quantity: 1,
         },
       ],
-      success_url: payment.extra?.SuccessURL ?? "https://example.com/success",
-      cancel_url: payment.extra?.CancelURL ?? "https://example.com/cancel",
+      success_url: payment.extra?.SuccessURL ?? "https://aioffice.cloudcomputerai.com/payment/success",
+      cancel_url: payment.extra?.CancelURL ?? "https://aioffice.cloudcomputerai.com/pricing",
       customer: stripeCustomerId,
       // IMPORTANT:
       // We MUST attach paymentId/orderId onto PaymentIntent.metadata, otherwise
@@ -202,7 +211,7 @@ export const stripeProvider: PaymentProvider = {
     });
 
     return {
-      paymentUrl: session.url!,
+      paymentUrl: requireStripeCheckoutUrl(session.url),
       // 交易主 ID：PaymentIntent
       gatewayTransactionId: session.payment_intent as string | undefined,
       // 补偿用的 Checkout Session ID
@@ -302,8 +311,8 @@ export const stripeProvider: PaymentProvider = {
           quantity: 1,
         },
       ],
-      success_url: payment.extra?.SuccessURL ?? "https://example.com/success",
-      cancel_url: payment.extra?.CancelURL ?? "https://example.com/cancel",
+      success_url: payment.extra?.SuccessURL ?? "https://aioffice.cloudcomputerai.com/payment/success",
+      cancel_url: payment.extra?.CancelURL ?? "https://aioffice.cloudcomputerai.com/pricing",
       customer: stripeCustomerId,
       // 允许复用已保存的支付方式
       // 优化 3DS：移除显式的 payment_method_save: "enabled"。
@@ -320,7 +329,7 @@ export const stripeProvider: PaymentProvider = {
     });
 
     return {
-      paymentUrl: session.url!,
+      paymentUrl: requireStripeCheckoutUrl(session.url),
       gatewaySubscriptionId: session.subscription as string,
       // 订阅场景同样记录 Checkout Session ID，方便后续排查或补偿
       checkoutSessionId: session.id,

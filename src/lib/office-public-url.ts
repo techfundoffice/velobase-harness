@@ -87,3 +87,23 @@ export function pinOfficeAuthUrl(
   env.NEXTAUTH_URL = url
   return url
 }
+
+/** Host Stripe Checkout uses for the card form (not Railway, not the app origin). */
+export const STRIPE_CHECKOUT_HOST = 'checkout.stripe.com'
+
+/**
+ * URL Buy Pack may open in the browser after `order.checkout`.
+ * Only Stripe Checkout is allowed; empty and railway.app URLs are rejected.
+ */
+export function officeStripeCheckoutUrl(raw: string | null | undefined): string | null {
+  const value = (raw ?? '').trim()
+  if (!value) return null
+  try {
+    const url = new URL(value)
+    if (url.protocol !== 'https:') return null
+    if (url.hostname === STRIPE_CHECKOUT_HOST) return url.href
+    return null
+  } catch {
+    return null
+  }
+}

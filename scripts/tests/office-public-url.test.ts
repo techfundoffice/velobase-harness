@@ -2,10 +2,12 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
   OFFICE_PUBLIC_ORIGIN,
+  STRIPE_CHECKOUT_HOST,
   officeAuthUrl,
   officePaymentCancelUrl,
   officePaymentSuccessUrl,
   officePublicOrigin,
+  officeStripeCheckoutUrl,
   pinOfficeAuthUrl,
 } from '../../src/lib/office-public-url.ts'
 
@@ -19,6 +21,30 @@ const railway = {
     'https://velobase-harness-ai-office-by-cloud-computer-ai.up.railway.app',
   hostname: 'velobase-harness-ai-office-by-cloud-computer-ai.up.railway.app',
 }
+
+describe('officeStripeCheckoutUrl (Buy Pack browser redirect)', () => {
+  it('opens the Stripe Checkout host from a session URL', () => {
+    const opened = officeStripeCheckoutUrl(
+      'https://checkout.stripe.com/c/pay/cs_live_a1b2#fidkdWxOYHwn',
+    )
+    assert.ok(opened)
+    assert.equal(new URL(opened).host, STRIPE_CHECKOUT_HOST)
+    assert.equal(new URL(opened).host, 'checkout.stripe.com')
+  })
+
+  it('rejects railway.app, empty, and non-https URLs so Buy Pack cannot use them', () => {
+    assert.equal(
+      officeStripeCheckoutUrl(
+        'https://velobase-harness-ai-office-by-cloud-computer-ai.up.railway.app/checkout',
+      ),
+      null,
+    )
+    assert.equal(officeStripeCheckoutUrl(''), null)
+    assert.equal(officeStripeCheckoutUrl(null), null)
+    assert.equal(officeStripeCheckoutUrl(undefined), null)
+    assert.equal(officeStripeCheckoutUrl('http://checkout.stripe.com/c/pay/cs_live_x'), null)
+  })
+})
 
 describe('officePublicOrigin', () => {
   it('keeps aioffice when the window is already on the public host', () => {

@@ -3,7 +3,11 @@
 import { api } from '@/trpc/react'
 import { toast } from 'sonner'
 import { SALES_PAUSED } from '@/config/decommission'
-import { officePaymentCancelUrl, officePaymentSuccessUrl } from '@/lib/office-public-url'
+import {
+  officePaymentCancelUrl,
+  officePaymentSuccessUrl,
+  officeStripeCheckoutUrl,
+} from '@/lib/office-public-url'
 
 interface CheckoutParams {
   productId: string
@@ -41,9 +45,12 @@ export function useSmartCheckout() {
         cancelUrl: cancelUrl ?? officePaymentCancelUrl('/pricing'),
       })
 
-      if (result.status === 'OK' && result.url) {
-        window.location.href = result.url
-        return { status: 'REDIRECTING' }
+      if (result.status === 'OK') {
+        const checkoutUrl = officeStripeCheckoutUrl(result.url)
+        if (checkoutUrl) {
+          window.location.href = checkoutUrl
+          return { status: 'REDIRECTING' }
+        }
       }
 
       const errMsg = result.status === 'CONFLICT' ? result.message : 'No payment URL returned'

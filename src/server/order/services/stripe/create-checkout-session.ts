@@ -1,6 +1,7 @@
 import { getStripe } from "./client";
 import type { Order, Payment, Product } from "@prisma/client";
 import type Stripe from "stripe";
+import { officeStripeCheckoutUrl } from "@/lib/office-public-url";
 
 interface CreateCheckoutSessionParams {
   order: Order;
@@ -54,9 +55,13 @@ export async function createStripeCheckoutSession({
 
     const session = await getStripe().checkout.sessions.create(sessionParams);
 
+    const url = officeStripeCheckoutUrl(session.url);
+    if (!url) {
+      throw new Error("Stripe Checkout session missing checkout.stripe.com URL");
+    }
     return {
       sessionId: session.id,
-      url: session.url,
+      url,
     };
   } catch (error) {
     console.error("Failed to create Stripe checkout session:", error);

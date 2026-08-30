@@ -20,6 +20,7 @@ import { confirmPaymentById } from "./confirm-payment";
 import { resolvePaymentGateway } from "./resolve-gateway";
 import { getProductPriceForCountry } from "@/server/product/services/get-price-for-currency";
 import { resolveClientCountryCode } from "@/server/lib/resolve-client-country";
+import { officeStripeCheckoutUrl } from "@/lib/office-public-url";
 
 interface CheckoutParams {
   userId: string;
@@ -508,11 +509,17 @@ export async function checkout({
     });
 
     if (existingPayment?.paymentUrl) {
-      logger.info(
-        { userId, productId, orderId: order.id, paymentId: existingPayment.id, gateway },
-        "Checkout: returned existing pending payment url (idempotency)"
-      );
-      return { status: "OK", orderId: order.id, paymentId: existingPayment.id, url: existingPayment.paymentUrl };
+      const reuseUrl =
+        gateway === "STRIPE"
+          ? officeStripeCheckoutUrl(existingPayment.paymentUrl)
+          : existingPayment.paymentUrl;
+      if (reuseUrl) {
+        logger.info(
+          { userId, productId, orderId: order.id, paymentId: existingPayment.id, gateway },
+          "Checkout: returned existing pending payment url (idempotency)"
+        );
+        return { status: "OK", orderId: order.id, paymentId: existingPayment.id, url: reuseUrl };
+      }
     }
   }
 
@@ -691,6 +698,13 @@ export async function checkout({
     });
   }
 
+  if (gateway === "STRIPE") {
+    const checkoutUrl = officeStripeCheckoutUrl(session.paymentUrl);
+    if (!checkoutUrl) {
+      throw new Error("Checkout did not return a Stripe Checkout URL");
+    }
+    return { status: "OK", orderId: order.id, paymentId: payment.id, url: checkoutUrl };
+  }
   return { status: "OK", orderId: order.id, paymentId: payment.id, url: session.paymentUrl };
 }
 
