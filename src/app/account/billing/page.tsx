@@ -97,9 +97,10 @@ export default async function BillingPage() {
       <main className="relative z-10 flex flex-col items-center w-full px-4 pt-28 pb-20">
         <div className="w-full max-w-3xl space-y-10">
           <div className="rounded-xl border border-border/60 bg-card/40 px-4 py-3 text-sm text-muted-foreground">
-            Desktop <span className="text-foreground">AI Office by Cloud Computer AI</span> opens
-            {' '}<Link href="/pricing" className="underline underline-offset-2">Pricing</Link>
-            {' '}when credits run out. Subscribe or buy a pack here — Stripe credits this wallet.
+            Desktop <span className="text-foreground">AI Office by Cloud Computer AI</span>
+            {' '}signs in with Google and uses this wallet. Subscribe or buy a pack here —
+            Stripe credits the same account. When credits run out, the app opens{' '}
+            <Link href="/pricing" className="underline underline-offset-2">Pricing</Link>.
           </div>
           <OfficeDesktopKeyCard />
 

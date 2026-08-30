@@ -1,6 +1,6 @@
 import { env } from "@/env";
 
-/** Desktop/Genspark ids → OpenRouter ids used by support chat and seed agents. */
+/** Desktop AI Office model ids → OpenRouter ids used by support chat and seed agents. */
 const ALIASES: Record<string, string> = {
   "claude-opus-4-7": "anthropic/claude-sonnet-4.5",
   "claude-opus-4-8": "anthropic/claude-sonnet-4.5",
