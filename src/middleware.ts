@@ -129,9 +129,8 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Skip Next.js internals/static files
-    "/((?!_next/static|_next/image|favicon.ico|favicon.svg|public/).*)",
+    // Skip Next.js internals, static files, AND all /api/ routes
+    // so next-intl locale prefixing cannot rewrite webhooks or credit endpoints to /en/api/...
+    "/((?!_next/static|_next/image|favicon.ico|favicon.svg|public/|api/).*)",
   ],
 };
-
-
